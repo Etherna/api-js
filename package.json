@@ -28,7 +28,7 @@
   "type": "module",
   "module": "./index.js",
   "scripts": {
-    "dev": "node bundle.mjs -w",
+    "dev": "node bundle.mjs && node bundle.watch.mjs",
     "build": "node bundle.mjs && tsc -p tsconfig.build.json",
     "test": "vitest",
     "test-ui": "vitest --ui"
