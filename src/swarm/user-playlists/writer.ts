@@ -1,0 +1,53 @@
+import type { UserPlaylists } from "../.."
+import type { BeeClient, Reference } from "../../clients"
+import { UserPlaylistsSerializer } from "../../serializers"
+import type { WriterOptions, WriterUploadOptions } from "../base-writer"
+import BaseWriter from "../base-writer"
+import { USER_PLAYLISTS_TOPIC } from "./reader"
+
+interface UserPlaylistsWriterOptions extends WriterOptions {}
+
+interface UserPlaylistsWriterUploadOptions extends WriterUploadOptions {}
+
+export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
+  private playlists: UserPlaylists
+  private beeClient: BeeClient
+
+  constructor(playlists: UserPlaylists, opts: UserPlaylistsWriterOptions) {
+    super(playlists, opts)
+
+    this.playlists = playlists
+    this.beeClient = opts.beeClient
+  }
+
+  async upload(opts?: UserPlaylistsWriterUploadOptions): Promise<Reference> {
+    const batchId = await this.beeClient.stamps.fetchBestBatchId()
+    const playlistsRaw = new UserPlaylistsSerializer().serialize(this.playlists)
+
+    const { reference } = await this.beeClient.bzz.upload(playlistsRaw, {
+      batchId,
+      headers: {
+        "content-type": "application/json",
+        // "x-etherna-reason": "user-playlists-upload",
+      },
+      signal: opts?.signal,
+      onUploadProgress: opts?.onUploadProgress,
+    })
+
+    const feed = this.beeClient.feed.makeFeed(
+      USER_PLAYLISTS_TOPIC,
+      this.beeClient.signer!.address,
+      "sequence"
+    )
+    const writer = this.beeClient.feed.makeWriter(feed)
+    await writer.upload(reference, {
+      batchId,
+      headers: {
+        // "x-etherna-reason": "user-playlists-feed-update",
+      },
+      signal: opts?.signal,
+    })
+
+    return reference
+  }
+}

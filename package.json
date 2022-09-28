@@ -1,0 +1,78 @@
+{
+  "name": "@etherna/api-js",
+  "version": "1.0.0",
+  "description": "Etherna api clients/utils for operations on the network",
+  "author": "Mattia Dalzocchio",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etherna/api-js.git"
+  },
+  "keywords": [
+    "etherna",
+    "clients",
+    "swarm",
+    "bee",
+    "index",
+    "gateway",
+    "sso",
+    "schema",
+    "manifest",
+    "serializer",
+    "deserializer"
+  ],
+  "bugs": {
+    "url": "https://etherna.atlassian.net/jira/software/c/projects/ECL/issues"
+  },
+  "homepage": "https://github.com/etherna/clients#readme",
+  "type": "module",
+  "module": "./index.js",
+  "scripts": {
+    "dev": "node bundle.mjs -w",
+    "build": "node bundle.mjs && tsc -p tsconfig.build.json",
+    "test": "vitest",
+    "test-ui": "vitest --ui"
+  },
+  "peerDependencies": {
+    "axios": ">=0.27",
+    "blurhash": ">=2.0",
+    "cookiejs": ">=2.1.2",
+    "crypto-ts": ">=1.0.2",
+    "immer": ">=9.0",
+    "react": ">=18.2",
+    "zustand": ">=4.1"
+  },
+  "dependencies": {
+    "@noble/secp256k1": "1.7.0",
+    "axios": "0.27.2",
+    "blurhash": "2.0.0",
+    "cookiejs": "2.1.2",
+    "crypto-ts": "1.0.2",
+    "immer": "9.0.15",
+    "js-sha3": "0.8.0",
+    "zod": "3.19.1",
+    "zustand": "4.1.1"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "3.4.2",
+    "@typescript-eslint/eslint-plugin": "5.38.0",
+    "@typescript-eslint/parser": "5.38.0",
+    "esbuild": "^0.15.8",
+    "eslint": "8.23.1",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-prettier": "4.2.1",
+    "prettier": "2.7.1",
+    "typescript": "4.8.3",
+    "vite": "3.1.3",
+    "vitest": "0.23.4"
+  },
+  "optionalDependencies": {
+    "@vitest/ui": "0.23.4",
+    "chokidar": "3.5.3"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": []
+    }
+  }
+}
