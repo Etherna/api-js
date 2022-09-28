@@ -18,25 +18,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2.2.2
+      - name: Setup node & npm
+        uses: actions/setup-node@v2
         with:
-          version: 7.8.0
+          node-version: '16'
+          architecture: 'x64'
+          registry-url: https://registry.npmjs.org/
 
-      - name: Install deps
-        run: pnpm install --no-optional
+      - run: yarn install --ignore-optional
 
-      - name: Test
-        run: pnpm test
+      # - name: Test
+      #   run: yarn test
 
       - name: Build
-        run: pnpm build
-
-      - name: Setup npm
-        uses: actions/setup-node@v1
-        with:
-          node-version: '16.x'
-          registry-url: https://registry.npmjs.org/
+        run: yarn build
 
       - name: Publish to NPM
         run: npm publish
