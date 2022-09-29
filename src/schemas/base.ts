@@ -19,6 +19,12 @@ export const birthday = z
     }
   )
 
+export const slicedString = (max: number, min?: number) =>
+  z
+    .string()
+    .min(min ?? 0)
+    .transform(v => v.slice(0, max))
+
 export const ethAddress = z.string().regex(/^0x[a-fA-F0-9]{40}$/, {
   message: "must be a valid ethereum address",
 })

@@ -1,13 +1,13 @@
 import { z } from "zod"
 
-import { beeReference, birthday, ethAddress } from "./base"
+import { beeReference, birthday, ethAddress, slicedString } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 
 export const ProfileRawSchema = z.object({
   /**  Profile address */
   address: ethAddress,
   /**  Name of the Profile */
-  name: z.string().min(1).max(100),
+  name: slicedString(100, 1),
   /**  Description of the Profile */
   description: z.string().nullable().optional(),
   /**  User's raw avatar image */
@@ -28,7 +28,7 @@ export const ProfileSchema = z.object({
   /**  Profile address */
   address: ethAddress,
   /**  Name of the Profile */
-  name: z.string().min(1).max(100),
+  name: slicedString(100, 1),
   /**  Description of the Profile */
   description: z.string().nullable(),
   /**  User's avatar image */

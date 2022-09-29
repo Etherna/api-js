@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { beeReference, ethAddress } from "./base"
+import { beeReference, ethAddress, slicedString } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 
 const quality = z.custom<`${number}p`>(val => /^\d+p$/g.test(val as string))
@@ -18,9 +18,9 @@ export const VideoSourceRawSchema = z.object({
 
 export const VideoRawSchema = z.object({
   /**  Title of the video */
-  title: z.string().min(1).max(150),
+  title: slicedString(150),
   /**  Description of the video */
-  description: z.string().max(5000),
+  description: slicedString(5000),
   /** Video creation timestamp */
   createdAt: z.number().min(0),
   /** Video creation timestamp */
@@ -50,9 +50,9 @@ export const VideoSchema = z.object({
   /**  Hash of the video */
   reference: beeReference,
   /**  Title of the video */
-  title: z.string().min(1).max(150),
+  title: slicedString(150),
   /**  Description of the video */
-  description: z.string().max(5000),
+  description: slicedString(5000),
   /** Video creation timestamp */
   createdAt: z.number().min(0),
   /** Video update timestamp */
