@@ -74,5 +74,9 @@
     "peerDependencyRules": {
       "ignoreMissing": []
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

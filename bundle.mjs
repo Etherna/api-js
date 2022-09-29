@@ -44,7 +44,7 @@ export async function build() {
   // await buildDefinitions()
 }
 
-// Copy & edit package.json
+// Copy & edit package.json / README
 
 /** @type {Record<string, any>} */
 const packageCopy = packageJson
@@ -55,4 +55,8 @@ packageCopy.type = "module"
 delete packageCopy.optionalDependencies
 delete packageCopy.pnpm
 
+// package.json
 fs.writeFileSync(path.join(DIST_PATH, "package.json"), Buffer.from(JSON.stringify(packageCopy, null, 2), "utf-8"))
+
+// README.md
+fs.writeFileSync(path.join(DIST_PATH, "README.md"), fs.readFileSync(path.resolve("README.md")))

@@ -1,29 +1,46 @@
 name: CI/CD
 
 on:
-  release:
-    types: [created,edited]
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  build:
-    name: Build, lint, test and publish
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: |
+            Version ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  publish:
+    name: Test, build and publish
     runs-on: ubuntu-latest
 
     env:
       NODE_ENV: production
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup node & npm
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
-          architecture: 'x64'
-          registry-url: https://registry.npmjs.org/
+          node-version: 16
 
       - run: yarn install
 
@@ -34,6 +51,6 @@ jobs:
         run: yarn build
 
       - name: Publish to NPM
-        run: npm publish dist
+        run: npm publish ./dist
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
