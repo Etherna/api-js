@@ -1,6 +1,6 @@
 import type BeeClient from "."
 import type { RequestOptions } from ".."
-import type { ReferenceResponse, RequestUploadOptions } from "./types"
+import type { ReferenceResponse, RequestDownloadOptions, RequestUploadOptions } from "./types"
 import { wrapBytesWithHelpers } from "./utils/bytes"
 import { prepareData } from "./utils/data"
 import { extractFileUploadHeaders } from "./utils/headers"
@@ -14,12 +14,18 @@ export default class Bytes {
     return `${this.instance.url}${bytesEndpoint}/${reference}`
   }
 
-  async download(hash: string, options?: RequestOptions) {
+  async download(hash: string, options?: RequestDownloadOptions) {
     const resp = await this.instance.request.get<ArrayBuffer>(`${bytesEndpoint}/${hash}`, {
       responseType: "arraybuffer",
       headers: options?.headers,
       timeout: options?.timeout,
       signal: options?.signal,
+      onDownloadProgress: e => {
+        if (options?.onDownloadProgress) {
+          const progress = Math.round((e.loaded / e.total) * 100)
+          options.onDownloadProgress(progress)
+        }
+      },
     })
 
     return wrapBytesWithHelpers(new Uint8Array(resp.data))
@@ -35,6 +41,12 @@ export default class Bytes {
         },
         timeout: options?.timeout,
         signal: options?.signal,
+        onUploadProgress: e => {
+          if (options?.onUploadProgress) {
+            const progress = Math.round((e.loaded / e.total) * 100)
+            options.onUploadProgress(progress)
+          }
+        },
       }
     )
 

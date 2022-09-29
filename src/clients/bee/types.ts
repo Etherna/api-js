@@ -99,10 +99,12 @@ export interface RequestUploadOptions extends RequestOptions {
   encrypt?: boolean
   tag?: string
   deferred?: boolean
+  /** Upload progress, ranging 0 to 100 */
   onUploadProgress?(completion: number): void
 }
 
 export interface RequestDownloadOptions extends RequestOptions {
+  /** Download progress, ranging 0 to 100 */
   onDownloadProgress?(completion: number): void
 }
 
