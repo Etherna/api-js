@@ -7,43 +7,69 @@ interface EthernaResourcesHandlerOptions {
   gatewayClient: EthernaGatewayClient
 }
 
+interface EthernaResourcesFetchOptions {
+  withByWhom?: boolean
+}
+
 export default class EthernaResourcesHandler {
   resourcesStatus?: SwarmResourceStatus[]
-  video: Video
+  videos: Video[]
   private gatewayClient: EthernaGatewayClient
 
-  constructor(video: Video, opts: EthernaResourcesHandlerOptions) {
-    this.video = video
+  constructor(videos: Video[], opts: EthernaResourcesHandlerOptions) {
+    this.videos = videos
     this.gatewayClient = opts.gatewayClient
   }
 
-  async fetchOffers() {
-    const references = EthernaResourcesHandler.videoReferences(this.video)
-    const responses = await Promise.allSettled(
-      references.map(reference => this.gatewayClient.resources.fetchOffers(reference))
-    )
+  async fetchOffers(opts?: EthernaResourcesFetchOptions) {
+    const fetchByWhom = opts?.withByWhom ?? true
+
+    const references = this.videos
+      .map(video => EthernaResourcesHandler.videoReferences(video))
+      .flat()
+      .filter((reference, index, self) => self.indexOf(reference) === index)
 
     this.resourcesStatus = []
 
-    for (const [index, reference] of references.entries()) {
-      const response = responses[index]!
-      this.resourcesStatus.push({
-        reference,
-        isOffered: response.status === "fulfilled" && response.value.length > 0,
-        offeredBy: response.status === "fulfilled" ? response.value : [],
-      })
+    if (fetchByWhom) {
+      const responses = await Promise.allSettled(
+        references.map(reference => this.gatewayClient.resources.fetchOffers(reference))
+      )
+
+      for (const [index, reference] of references.entries()) {
+        const response = responses[index]!
+        this.resourcesStatus.push({
+          reference,
+          isOffered: response.status === "fulfilled" && response.value.length > 0,
+          offeredBy: response.status === "fulfilled" ? response.value : [],
+        })
+      }
+    } else {
+      const results = await this.gatewayClient.resources.fetchAreOffered(references)
+
+      for (const [reference, isOffered] of Object.entries(results)) {
+        this.resourcesStatus.push({
+          reference,
+          isOffered,
+          offeredBy: [],
+        })
+      }
     }
   }
 
   async offerResources() {
-    const references = EthernaResourcesHandler.videoReferences(this.video)
+    const references = this.videos
+      .map(video => EthernaResourcesHandler.videoReferences(video))
+      .flat()
     await Promise.allSettled(
       references.map(reference => this.gatewayClient.resources.offer(reference))
     )
   }
 
   async unofferResources() {
-    const references = EthernaResourcesHandler.videoReferences(this.video)
+    const references = this.videos
+      .map(video => EthernaResourcesHandler.videoReferences(video))
+      .flat()
     await Promise.allSettled(
       references.map(reference => this.gatewayClient.resources.cancelOffer(reference))
     )
@@ -51,6 +77,11 @@ export default class EthernaResourcesHandler {
 
   getReferenceStatus(reference: string): SwarmResourceStatus | null {
     return this.resourcesStatus?.find(status => status.reference === reference) ?? null
+  }
+
+  getVideoReferencesStatus(video: Video): SwarmResourceStatus[] {
+    const videoReferences = EthernaResourcesHandler.videoReferences(video)
+    return (this.resourcesStatus ?? []).filter(status => videoReferences.includes(status.reference))
   }
 
   static videoReferences(video: Video) {

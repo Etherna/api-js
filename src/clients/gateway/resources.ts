@@ -27,6 +27,26 @@ export default class ResourcesClient {
   }
 
   /**
+   * Check if multiple resources are offered
+   *
+   * @param references Hashes of the resources
+   * @param opts Request options
+   * @returns Addresses of users that are offering the resource
+   */
+  async fetchAreOffered(references: string[], opts?: RequestOptions) {
+    const resp = await this.instance.request.post<Record<string, boolean>>(
+      `/resources/areoffered`,
+      references
+    )
+
+    if (typeof resp.data !== "object") {
+      throw new Error("Cannot fetch byte price")
+    }
+
+    return resp.data
+  }
+
+  /**
    * Get all resource offers
    *
    * @param reference Hash of the resource
