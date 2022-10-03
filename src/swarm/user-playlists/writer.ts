@@ -1,8 +1,9 @@
-import type { UserPlaylists } from "../.."
+import type { UserPlaylists, Playlist } from "../.."
 import type { BeeClient, Reference } from "../../clients"
 import { UserPlaylistsSerializer } from "../../serializers"
 import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 import BaseWriter from "../base-writer"
+import PlaylistReader from "../playlist/reader"
 import { USER_PLAYLISTS_TOPIC } from "./reader"
 
 interface UserPlaylistsWriterOptions extends WriterOptions {}
@@ -49,5 +50,33 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     })
 
     return reference
+  }
+
+  static defaultChannelPlaylists(owner: string): Playlist {
+    return {
+      id: PlaylistReader.channelPlaylistId,
+      reference: "",
+      type: "public",
+      owner,
+      videos: [],
+      name: "",
+      description: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+  }
+
+  static defaultSavedPlaylists(owner: string): Playlist {
+    return {
+      id: PlaylistReader.savedPlaylistId,
+      reference: "",
+      type: "unlisted",
+      owner,
+      videos: [],
+      name: "",
+      description: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
   }
 }
