@@ -67,3 +67,9 @@ export type IndexVideoComment = {
 export type VoteValue = "Up" | "Down" | "Neutral"
 
 export type IndexEncryptionType = "AES256" | "Plain"
+
+export type IndexParameters = {
+  commentMaxLength: number
+  videoDescriptionMaxLength: number
+  videoTitleMaxLength: number
+}

@@ -27,7 +27,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
       throw new Error("Please insert a password for a private playlist")
     }
 
-    this.playlist.updatedAt = new Date().getTime()
+    this.playlist.updatedAt = Date.now()
 
     const batchId = await this.beeClient.stamps.fetchBestBatchId()
     const rawPlaylist = new PlaylistSerializer().serialize(this.playlist, opts?.encryptionPassword)
@@ -40,7 +40,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
       },
     })
 
-    // get a static root manifest fot user's playlist subscription
+    // get a static root manifest for user's playlist subscription
     if (this.playlist.type === "public") {
       const topicName = getFeedTopicName(this.playlist.id)
       const feed = this.beeClient.feed.makeFeed(

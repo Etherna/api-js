@@ -2,6 +2,9 @@ import axios from "axios"
 import type { AxiosInstance } from "axios"
 
 import { composeUrl } from "../../utils/urls"
+import IndexComments from "./comments"
+import IndexModeration from "./moderation"
+import IndexSystem from "./system"
 import IndexUsers from "./users"
 import IndexVideos from "./videos"
 
@@ -18,6 +21,9 @@ export default class EthernaIndexClient {
   loginPath: string
   logoutPath: string
 
+  comments: IndexComments
+  moderation: IndexModeration
+  system: IndexSystem
   videos: IndexVideos
   users: IndexUsers
 
@@ -29,6 +35,9 @@ export default class EthernaIndexClient {
     this.url = composeUrl(options.url, options.apiPath)
 
     this.request = axios.create({ baseURL: this.url })
+    this.comments = new IndexComments(this)
+    this.moderation = new IndexModeration(this)
+    this.system = new IndexSystem(this)
     this.videos = new IndexVideos(this)
     this.users = new IndexUsers(this)
     this.loginPath = composeUrl(options.url, options.loginPath || "/account/login")
