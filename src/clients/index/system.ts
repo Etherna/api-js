@@ -10,8 +10,8 @@ export default class IndexSystem {
    * @param opts Request options
    */
   async fetchParameters(opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexParameters>("/system/paramters", {
-      withCredentials: true,
+    const resp = await this.instance.request.get<IndexParameters>("/system/parameters", {
+      // withCredentials: true,
       headers: opts?.headers,
       signal: opts?.signal,
       timeout: opts?.timeout,
