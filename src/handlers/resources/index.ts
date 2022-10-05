@@ -104,7 +104,7 @@ export default class EthernaResourcesHandler {
     if (videoSource) return "video"
     // is thumb image source?
     const thumbSource = Object.entries(video.thumbnail?.sources ?? {}).find(
-      ([_, thumbReference]) => thumbReference === reference
+      ([_, thumbReference]) => extractReference(thumbReference ?? "") === reference
     )
     if (thumbSource) return "thumb"
     // not found!
