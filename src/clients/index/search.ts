@@ -6,13 +6,13 @@ export default class IndexSearch {
   constructor(private instance: EthernaIndexClient) {}
 
   /**
-   * Get a list of recent users
+   * Search videos
    * @param query Search query
    * @param page Page offset (default = 0)
    * @param take Count of users to get (default = 25)
    * @param opts Request options
    */
-  async fetchUsers(query: string, page = 0, take = 25, opts?: RequestOptions) {
+  async fetchVideos(query: string, page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideo[]>("/search/query", {
       params: { query, page, take },
       headers: opts?.headers,
