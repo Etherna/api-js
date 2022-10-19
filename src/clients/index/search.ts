@@ -26,22 +26,4 @@ export default class IndexSearch {
 
     return resp.data
   }
-
-  /**
-   * Re-index a video
-   * @param opts Request options
-   */
-  async reindexVideo(opts?: RequestOptions) {
-    const resp = await this.instance.request.post<IndexVideo>("/search/videos/reindex", null, {
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
-    })
-
-    if (!Array.isArray(resp.data)) {
-      throw new Error("Cannot fetch videos")
-    }
-
-    return resp.data
-  }
 }
