@@ -57,11 +57,13 @@ export type IndexVideoValidation = {
 }
 
 export type IndexVideoComment = {
+  id: string
+  isFrozen: boolean
   creationDateTime: string
   ownerAddress: EthAddress
-  ownerIdentityManifest?: string
   text: string
-  videoManifestHash: string
+  lastUpdateDateTime: string
+  videoId: string
 }
 
 export type VoteValue = "Up" | "Down" | "Neutral"
