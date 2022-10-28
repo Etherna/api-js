@@ -1,7 +1,8 @@
-import type { Video } from "../.."
-import type { BeeClient, BatchId, Reference } from "../../clients"
 import { VideoSerializer } from "../../serializers"
 import BaseWriter from "../../swarm/base-writer"
+
+import type { Video } from "../.."
+import type { BeeClient, BatchId, Reference } from "../../clients"
 import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
 interface VideoWriterOptions extends WriterOptions {

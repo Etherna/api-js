@@ -1,10 +1,11 @@
-import type { UserPlaylists, Playlist } from "../.."
-import type { BeeClient, Reference } from "../../clients"
 import { UserPlaylistsSerializer } from "../../serializers"
-import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 import BaseWriter from "../base-writer"
 import PlaylistReader from "../playlist/reader"
 import { USER_PLAYLISTS_TOPIC } from "./reader"
+
+import type { UserPlaylists, Playlist } from "../.."
+import type { BeeClient, Reference } from "../../clients"
+import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
 interface UserPlaylistsWriterOptions extends WriterOptions {}
 

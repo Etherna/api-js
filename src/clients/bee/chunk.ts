@@ -1,8 +1,9 @@
+import { wrapBytesWithHelpers } from "./utils/bytes"
+import { extractUploadHeaders } from "./utils/headers"
+
 import type BeeClient from "."
 import type { RequestOptions } from ".."
 import type { ReferenceResponse, RequestUploadOptions } from "./types"
-import { wrapBytesWithHelpers } from "./utils/bytes"
-import { extractUploadHeaders } from "./utils/headers"
 
 const chunkEndpoint = "/chunks"
 

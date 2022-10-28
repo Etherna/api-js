@@ -1,9 +1,10 @@
-import type { Profile, ProfileRaw } from "../.."
-import type { BeeClient, EthAddress } from "../../clients"
 import { ProfileDeserializer } from "../../serializers"
 import Cache from "../../utils/cache"
-import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
 import BaseReader from "../base-reader"
+
+import type { Profile, ProfileRaw } from "../.."
+import type { BeeClient, EthAddress } from "../../clients"
+import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
 
 interface ProfileReaderOptions extends ReaderOptions {
   prefetchData?: Profile

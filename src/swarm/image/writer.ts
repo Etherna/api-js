@@ -1,9 +1,10 @@
-import type { ImageRaw, ImageRawSources } from "../.."
-import type { BeeClient, Reference } from "../../clients"
 import { ImageSerializer } from "../../serializers"
 import { imageToBlurhash } from "../../utils/blurhash"
 import { bufferToDataURL, fileToBuffer } from "../../utils/buffer"
 import { resizeImage } from "../../utils/image"
+
+import type { ImageRaw, ImageRawSources } from "../.."
+import type { BeeClient, Reference } from "../../clients"
 import type { WriterUploadOptions } from "../base-writer"
 
 interface ImageWriterOptions {

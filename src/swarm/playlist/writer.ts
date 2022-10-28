@@ -1,9 +1,10 @@
-import type { Playlist } from "../.."
-import type { BeeClient, Reference } from "../../clients"
 import { PlaylistSerializer } from "../../serializers"
-import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 import BaseWriter from "../base-writer"
 import { getFeedTopicName, PlaylistCache } from "./reader"
+
+import type { Playlist } from "../.."
+import type { BeeClient, Reference } from "../../clients"
+import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
 interface ImageWriterOptions extends WriterOptions {}
 

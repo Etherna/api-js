@@ -1,3 +1,7 @@
+import { beeReference } from "../../schemas/base"
+import { VideoDeserializer } from "../../serializers"
+import BaseReader from "../base-reader"
+
 import type { Video, VideoRaw, Profile } from "../.."
 import type {
   BeeClient,
@@ -6,11 +10,7 @@ import type {
   Reference,
   IndexVideoManifest,
 } from "../../clients"
-import { beeReference } from "../../schemas/base"
-import { VideoDeserializer } from "../../serializers"
-import type { ReaderOptions } from "../base-reader"
-import BaseReader from "../base-reader"
-import type { ReaderDownloadOptions } from "../base-reader"
+import type { ReaderOptions, ReaderDownloadOptions } from "../base-reader"
 
 interface VideoReaderOptions extends ReaderOptions {
   indexClient?: EthernaIndexClient

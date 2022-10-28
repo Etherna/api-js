@@ -1,9 +1,10 @@
-import type { Playlist, PlaylistRaw } from "../.."
-import type { BeeClient, EthAddress, Reference } from "../../clients"
 import { PlaylistDeserializer } from "../../serializers"
 import Cache from "../../utils/cache"
-import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
 import BaseReader from "../base-reader"
+
+import type { Playlist, PlaylistRaw } from "../.."
+import type { BeeClient, EthAddress, Reference } from "../../clients"
+import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
 
 interface PlaylistReaderOptions extends ReaderOptions {
   playlistId?: string

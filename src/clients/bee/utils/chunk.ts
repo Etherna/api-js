@@ -1,7 +1,8 @@
-import type { Chunk } from "../types"
 import { bmtHash } from "./bmt"
 import { flexBytesAtOffset, serializeBytes } from "./bytes"
 import { CAC_PAYLOAD_OFFSET, MAX_SPAN_LENGTH, SPAN_SIZE } from "./contants"
+
+import type { Chunk } from "../types"
 
 /**
  * Creates a content addressed chunk and verifies the payload size.

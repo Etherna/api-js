@@ -1,8 +1,9 @@
 import cookie from "cookiejs"
 
+import { stringToBase64 } from "../../utils/buffer"
+
 import type BeeClient from "."
 import type { RequestOptions, AuthenticationOptions } from ".."
-import { stringToBase64 } from "../../utils/buffer"
 
 const authEndpoint = "/auth"
 const authRefreshEndpoint = "/refresh"

@@ -1,7 +1,8 @@
-import type { PlaylistRaw } from "../.."
 import { PlaylistEncryptedDataRawSchema, PlaylistSchema } from "../../schemas/playlist"
 import { encryptData } from "../../utils/crypto"
 import BaseSerializer from "../base-serializer"
+
+import type { PlaylistRaw } from "../.."
 
 export default class PlaylistSerializer extends BaseSerializer {
   constructor() {

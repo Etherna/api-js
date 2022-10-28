@@ -1,4 +1,3 @@
-import type { AxiosInstance } from "axios"
 import axios from "axios"
 
 import { composeUrl } from "../../utils/urls"
@@ -6,6 +5,8 @@ import PostageClient from "./postage"
 import ResourcesClient from "./resources"
 import SystemClient from "./system"
 import UsersClient from "./users"
+
+import type { AxiosInstance } from "axios"
 
 export interface GatewayClientOptions {
   url: string

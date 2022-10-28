@@ -1,6 +1,7 @@
-import type { ImageRaw, ImageRawSources, Image } from "../.."
 import { ImageSchema } from "../../schemas/image"
 import { extractReference } from "../../utils/bzz"
+
+import type { ImageRaw, ImageRawSources, Image } from "../.."
 
 export default class ImageSerializer {
   constructor() {}

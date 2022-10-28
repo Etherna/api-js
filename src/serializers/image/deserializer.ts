@@ -1,7 +1,8 @@
-import type { Image } from "../.."
 import { ImageRawSchema } from "../../schemas/image"
 import { blurHashToDataURL } from "../../utils/blurhash"
 import { getBzzUrl } from "../../utils/bzz"
+
+import type { Image } from "../.."
 
 export default class ImageDeserializer {
   constructor(private beeUrl: string) {}

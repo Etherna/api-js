@@ -1,5 +1,11 @@
 import { utils } from "@noble/secp256k1"
-import type { AxiosError, AxiosResponseHeaders } from "axios"
+
+import { makeBytes, serializeBytes } from "./utils/bytes"
+import { keccak256Hash } from "./utils/hash"
+import { extractUploadHeaders } from "./utils/headers"
+import { makeHexString } from "./utils/hex"
+import { makeBytesReference } from "./utils/reference"
+import { writeUint64BigEndian } from "./utils/uint64"
 
 import type BeeClient from "."
 import type {
@@ -12,12 +18,7 @@ import type {
   Index,
   ReferenceResponse,
 } from "./types"
-import { makeBytes, serializeBytes } from "./utils/bytes"
-import { keccak256Hash } from "./utils/hash"
-import { extractUploadHeaders } from "./utils/headers"
-import { makeHexString } from "./utils/hex"
-import { makeBytesReference } from "./utils/reference"
-import { writeUint64BigEndian } from "./utils/uint64"
+import type { AxiosError, AxiosResponseHeaders } from "axios"
 
 const feedEndpoint = "/feeds"
 

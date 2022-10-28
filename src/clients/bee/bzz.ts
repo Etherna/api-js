@@ -1,8 +1,9 @@
-import type BeeClient from "."
-import type { FileDownloadOptions, FileUploadOptions, ReferenceResponse } from ".."
 import { wrapBytesWithHelpers } from "./utils/bytes"
 import { prepareData } from "./utils/data"
 import { extractFileUploadHeaders, readFileHeaders } from "./utils/headers"
+
+import type BeeClient from "."
+import type { FileDownloadOptions, FileUploadOptions, ReferenceResponse } from ".."
 
 const bzzEndpoint = "/bzz"
 

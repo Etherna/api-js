@@ -1,7 +1,8 @@
-import type { Image, ImageRaw } from "../.."
-import type { BeeClient } from "../../clients"
 import { ImageDeserializer, ImageSerializer } from "../../serializers"
 import { extractReference } from "../../utils"
+
+import type { Image, ImageRaw } from "../.."
+import type { BeeClient } from "../../clients"
 
 interface ImageReaderOptions {
   beeClient: BeeClient

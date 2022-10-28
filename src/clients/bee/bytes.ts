@@ -1,9 +1,10 @@
-import type BeeClient from "."
-import type { RequestOptions } from ".."
-import type { ReferenceResponse, RequestDownloadOptions, RequestUploadOptions } from "./types"
 import { wrapBytesWithHelpers } from "./utils/bytes"
 import { prepareData } from "./utils/data"
 import { extractFileUploadHeaders } from "./utils/headers"
+
+import type BeeClient from "."
+import type { RequestOptions } from ".."
+import type { ReferenceResponse, RequestDownloadOptions, RequestUploadOptions } from "./types"
 
 const bytesEndpoint = "/bytes"
 

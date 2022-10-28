@@ -1,8 +1,9 @@
 import axios from "axios"
-import type { AxiosInstance } from "axios"
 
 import { composeUrl } from "../../utils/urls"
 import IdentityClient from "./identity"
+
+import type { AxiosInstance } from "axios"
 
 export interface SSOClientOptions {
   url: string

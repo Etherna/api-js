@@ -1,10 +1,10 @@
-import type { Profile } from "../.."
-import type { BeeClient, EthAddress, Reference } from "../../clients"
-import { makeHexString } from "../../clients/bee/utils/hex"
 import { ProfileSerializer } from "../../serializers"
-import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 import BaseWriter from "../base-writer"
 import { ProfileCache, PROFILE_TOPIC } from "./reader"
+
+import type { Profile } from "../.."
+import type { BeeClient, EthAddress, Reference } from "../../clients"
+import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
 interface ProfileWriterOptions extends WriterOptions {}
 

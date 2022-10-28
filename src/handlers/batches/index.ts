@@ -1,9 +1,9 @@
-import type { BeeClient, EthernaGatewayClient } from "../../clients"
-import type { BatchId, PostageBatch } from "../../clients"
-import type { UpdatingBatch } from "../../stores/batches"
 import batchesStore, { BatchUpdateType } from "../../stores/batches"
 import { calcDilutedTTL, getBatchCapacity, getBatchSpace, ttlToAmount } from "../../utils/batches"
 import FlagEnumManager from "../FlagEnumManager"
+
+import type { BeeClient, EthernaGatewayClient, BatchId, PostageBatch } from "../../clients"
+import type { UpdatingBatch } from "../../stores/batches"
 import type { AnyBatch } from "./types"
 
 const DEFAULT_TTL = 60 * 60 * 24 * 365 * 2 // 2 years

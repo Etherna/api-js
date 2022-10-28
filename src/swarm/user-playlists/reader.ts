@@ -1,8 +1,9 @@
+import { UserPlaylistsDeserializer } from "../../serializers"
+import BaseReader from "../base-reader"
+
 import type { UserPlaylists, UserPlaylistsRaw } from "../.."
 import type { BeeClient, EthAddress } from "../../clients"
-import { UserPlaylistsDeserializer } from "../../serializers"
 import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
-import BaseReader from "../base-reader"
 
 interface UserPlaylistsReaderOptions extends ReaderOptions {}
 

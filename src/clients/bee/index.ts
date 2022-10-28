@@ -1,5 +1,4 @@
 import axios from "axios"
-import type { AxiosInstance } from "axios"
 
 import { isValidReference } from "../../utils"
 import Auth from "./auth"
@@ -11,8 +10,10 @@ import Feed from "./feeds"
 import Pins from "./pins"
 import Soc from "./soc"
 import Stamps from "./stamps"
-import type { PostageBatch, Reference, Signer } from "./types"
 import { makePrivateKeySigner } from "./utils/signer"
+
+import type { PostageBatch, Reference, Signer } from "./types"
+import type { AxiosInstance } from "axios"
 
 export interface BeeClientOptions {
   signer?: Signer | string

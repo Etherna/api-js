@@ -1,6 +1,7 @@
-import type { UserPlaylists } from "../.."
 import { UserPlaylistsRawSchema } from "../../schemas/user-playlists"
 import BaseDeserializer from "../base-deserializer"
+
+import type { UserPlaylists } from "../.."
 
 export default class UserPlaylistsDeserializer extends BaseDeserializer<UserPlaylists> {
   constructor() {

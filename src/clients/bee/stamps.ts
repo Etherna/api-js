@@ -1,7 +1,8 @@
+import { STAMPS_DEPTH_MIN } from "./utils/contants"
+
 import type BeeClient from "."
 import type { RequestOptions } from ".."
 import type { BatchId, PostageBatch } from "./types"
-import { STAMPS_DEPTH_MIN } from "./utils/contants"
 
 const stampsEndpoint = "/stamps"
 

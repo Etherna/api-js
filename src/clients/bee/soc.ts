@@ -1,14 +1,5 @@
 import { utils } from "@noble/secp256k1"
 
-import type BeeClient from "."
-import type { RequestOptions } from ".."
-import type {
-  Chunk,
-  EthAddress,
-  ReferenceResponse,
-  RequestUploadOptions,
-  SingleOwnerChunk,
-} from "./types"
 import { bmtHash } from "./utils/bmt"
 import { bytesAtOffset, bytesEqual, flexBytesAtOffset, serializeBytes } from "./utils/bytes"
 import { makeContentAddressedChunk } from "./utils/chunk"
@@ -25,6 +16,16 @@ import { keccak256Hash } from "./utils/hash"
 import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
 import { recoverAddress } from "./utils/signer"
+
+import type BeeClient from "."
+import type { RequestOptions } from ".."
+import type {
+  Chunk,
+  EthAddress,
+  ReferenceResponse,
+  RequestUploadOptions,
+  SingleOwnerChunk,
+} from "./types"
 
 const socEndpoint = "/soc"
 

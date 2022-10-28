@@ -1,6 +1,6 @@
 import type EthernaIndexClient from "."
-import type { RequestOptions } from ".."
 import type {
+  RequestOptions,
   IndexVideo,
   IndexVideoComment,
   IndexVideoManifest,

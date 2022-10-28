@@ -1,5 +1,4 @@
 import axios from "axios"
-import type { AxiosInstance } from "axios"
 
 import { composeUrl } from "../../utils/urls"
 import IndexComments from "./comments"
@@ -8,6 +7,8 @@ import IndexSearch from "./search"
 import IndexSystem from "./system"
 import IndexUsers from "./users"
 import IndexVideos from "./videos"
+
+import type { AxiosInstance } from "axios"
 
 export interface IndexClientOptions {
   url: string

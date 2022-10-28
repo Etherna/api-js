@@ -1,8 +1,9 @@
-import type { VideoRaw } from "../.."
 import { beeReference } from "../../schemas/base"
 import { VideoSchema } from "../../schemas/video"
 import BaseSerializer from "../base-serializer"
 import ImageSerializer from "../image/serializer"
+
+import type { VideoRaw } from "../.."
 
 export default class VideoSerializer extends BaseSerializer {
   constructor() {

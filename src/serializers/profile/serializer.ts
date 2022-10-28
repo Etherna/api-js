@@ -1,7 +1,8 @@
 import { ProfileSchema } from "../../schemas/profile"
-import type { ProfileRaw } from "../../schemas/profile"
 import BaseSerializer from "../base-serializer"
 import ImageSerializer from "../image/serializer"
+
+import type { ProfileRaw } from "../../schemas/profile"
 
 export default class ProfileSerializer extends BaseSerializer {
   constructor() {

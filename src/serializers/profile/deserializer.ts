@@ -1,8 +1,9 @@
-import type { Profile } from "../.."
 import { beeReference } from "../../schemas/base"
 import { ProfileRawSchema } from "../../schemas/profile"
 import BaseDeserializer from "../base-deserializer"
 import ImageDeserializer from "../image/deserializer"
+
+import type { Profile } from "../.."
 
 export type ProfileDeserializerOptions = {
   fallbackBatchId: string | null

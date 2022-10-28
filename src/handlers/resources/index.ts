@@ -1,6 +1,7 @@
+import { extractReference } from "../../utils"
+
 import type { Video } from "../.."
 import type { EthernaGatewayClient } from "../../clients"
-import { extractReference } from "../../utils"
 import type { SwarmResourceStatus } from "./types"
 
 interface EthernaResourcesHandlerOptions {

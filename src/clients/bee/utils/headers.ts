@@ -1,6 +1,5 @@
-import type { AxiosResponseHeaders } from "axios"
-
 import type { FileUploadOptions, RequestUploadOptions } from "../types"
+import type { AxiosResponseHeaders } from "axios"
 
 export function readFileHeaders(headers: AxiosResponseHeaders) {
   const name = readContentDispositionFilename(headers["content-disposition"])

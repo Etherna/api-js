@@ -1,9 +1,10 @@
-import type { Video } from "../.."
 import { beeReference } from "../../schemas/base"
 import { VideoRawSchema } from "../../schemas/video"
 import { getBzzUrl } from "../../utils/bzz"
 import BaseDeserializer from "../base-deserializer"
 import ImageDeserializer from "../image/deserializer"
+
+import type { Video } from "../.."
 
 export type VideoDeserializerOptions = {
   /** Video swarm reference */
