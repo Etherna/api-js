@@ -23,7 +23,7 @@ export default class Bytes {
       signal: options?.signal,
       onDownloadProgress: e => {
         if (options?.onDownloadProgress) {
-          const progress = Math.round((e.loaded / e.total) * 100)
+          const progress = Math.round((e.progress ?? 0) * 100)
           options.onDownloadProgress(progress)
         }
       },
@@ -44,7 +44,7 @@ export default class Bytes {
         signal: options?.signal,
         onUploadProgress: e => {
           if (options?.onUploadProgress) {
-            const progress = Math.round((e.loaded / e.total) * 100)
+            const progress = Math.round((e.progress ?? 0) * 100)
             options.onUploadProgress(progress)
           }
         },

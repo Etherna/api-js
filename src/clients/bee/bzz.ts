@@ -36,7 +36,7 @@ export default class Bzz {
         signal: signal,
         onDownloadProgress: e => {
           if (options?.onDownloadProgress) {
-            const progress = Math.round((e.loaded / e.total) * 100)
+            const progress = Math.round((e.progress ?? 0) * 100)
             options.onDownloadProgress(progress)
           }
           if (options?.maxResponseSize && e.loaded > options.maxResponseSize) {
@@ -66,7 +66,7 @@ export default class Bzz {
         signal: options?.signal,
         onUploadProgress: e => {
           if (options?.onUploadProgress) {
-            const progress = Math.round((e.loaded / e.total) * 100)
+            const progress = Math.round((e.progress ?? 0) * 100)
             options.onUploadProgress(progress)
           }
         },

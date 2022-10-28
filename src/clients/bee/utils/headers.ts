@@ -1,7 +1,7 @@
 import type { FileUploadOptions, RequestUploadOptions } from "../types"
 import type { AxiosResponseHeaders } from "axios"
 
-export function readFileHeaders(headers: AxiosResponseHeaders) {
+export function readFileHeaders(headers: AxiosResponseHeaders | Partial<Record<string, string>>) {
   const name = readContentDispositionFilename(headers["content-disposition"])
   const tagUid = readTagUid(headers["swarm-tag-uid"])
   const contentType = headers["content-type"] || undefined

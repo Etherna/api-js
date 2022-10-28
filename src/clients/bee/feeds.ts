@@ -151,7 +151,9 @@ export default class Feed {
     }
   }
 
-  private readFeedUpdateHeaders(headers: AxiosResponseHeaders): FeedUpdateHeaders {
+  private readFeedUpdateHeaders(
+    headers: AxiosResponseHeaders | Partial<Record<string, string>>
+  ): FeedUpdateHeaders {
     const feedIndex = headers["swarm-feed-index"]
     const feedIndexNext = headers["swarm-feed-index-next"]
 
