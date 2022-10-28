@@ -15,8 +15,10 @@
     "^[./]",
     "^[../]",
     "",
-    "<THIRD_PARTY_TYPES>",
-    "<TYPE>"
+    "<TYPES>^[./]",
+    "<TYPES>^react",
+    "<TYPES>^@/",
+    "<TYPES>"
   ],
   "importOrderSeparation": false,
   "importOrderMergeDuplicateImports": true
