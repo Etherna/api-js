@@ -1,5 +1,5 @@
 // @ts-check
-import esbuild from "esbuild"
+import { build } from "vite"
 import fs from "node:fs"
 import path from "node:path"
 
@@ -7,13 +7,34 @@ import path from "node:path"
 import packageJson from "./package.json" assert { type: "json" }
 
 const entries = [
-  "src/index.ts",
-  "src/clients/index.ts",
-  "src/serializers/index.ts",
-  "src/stores/index.ts",
-  "src/handlers/index.ts",
-  "src/swarm/index.ts",
-  "src/utils/index.ts",
+  {
+    entry: path.resolve("src/index.ts"),
+    fileName: "index",
+  },
+  {
+    entry: path.resolve("src/clients/index.ts"),
+    fileName: "clients/index",
+  },
+  {
+    entry: path.resolve("src/handlers/index.ts"),
+    fileName: "handlers/index",
+  },
+  {
+    entry: path.resolve("src/serializers/index.ts"),
+    fileName: "serializers/index",
+  },
+  {
+    entry: path.resolve("src/stores/index.ts"),
+    fileName: "stores/index",
+  },
+  {
+    entry: path.resolve("src/swarm/index.ts"),
+    fileName: "swarm/index",
+  },
+  {
+    entry: path.resolve("src/utils/index.ts"),
+    fileName: "utils/index",
+  },
 ]
 
 // Clean 'dist' folder
@@ -25,23 +46,27 @@ if (fs.existsSync(DIST_PATH)) {
 
 // Bundle
 
-await build()
+const watch = process.argv.includes("--watch")
 
-export async function build() {
-  await esbuild.build({
-    entryPoints: entries,
-    outdir: "dist",
-    bundle: true,
-    sourcemap: false,
-    minify: true,
-    splitting: true,
-    format: "esm",
-    target: ["esnext"],
-    platform: "browser",
-    external: Object.keys(packageJson.peerDependencies),
-    treeShaking: true,
-  })
-  // await buildDefinitions()
+for (const lib of entries) {
+  await build({
+    mode: watch ? "development" : "production",
+    build: {
+      outDir: "./dist",
+      lib: {
+        ...lib,
+        formats: ["es"],
+      },
+      emptyOutDir: false,
+      sourcemap: false,
+      minify: "esbuild",
+      target: "es2017",
+      rollupOptions: {
+        external: Object.keys(packageJson.peerDependencies),
+        treeshake: true,
+      }
+    },
+  });
 }
 
 // Copy & edit package.json / README
