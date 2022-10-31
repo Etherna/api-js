@@ -36,7 +36,12 @@ export default class ResourcesClient {
   async fetchAreOffered(references: string[], opts?: RequestOptions) {
     const resp = await this.instance.request.post<Record<string, boolean>>(
       `/resources/areoffered`,
-      references
+      references,
+      {
+        headers: opts?.headers,
+        signal: opts?.signal,
+        timeout: opts?.timeout,
+      }
     )
 
     if (typeof resp.data !== "object") {
@@ -55,8 +60,10 @@ export default class ResourcesClient {
    */
   async fetchOffers(reference: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<string[]>(`/resources/${reference}/offers`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -77,8 +84,10 @@ export default class ResourcesClient {
    */
   async offer(reference: string, opts?: RequestOptions) {
     await this.instance.request.post(`/resources/${reference}/offers`, undefined, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -95,8 +104,10 @@ export default class ResourcesClient {
    */
   async cancelOffer(reference: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/resources/${reference}/offers`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })

@@ -11,15 +11,15 @@ export default class IndexUsers {
    * @param opts Request options
    */
   async fetchUsers(page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexUser[]>("/users", {
+    const resp = await this.instance.request.get<PaginatedResult<IndexUser>>("/users/list2", {
       params: { page, take },
       headers: opts?.headers,
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
 
-    if (!Array.isArray(resp.data)) {
-      throw new Error("Cannot fetch users")
+    if (typeof resp.data !== "object" || !Array.isArray(resp.data.elements)) {
+      throw new Error("Cannot fetch user's videos")
     }
 
     return resp.data
@@ -75,8 +75,10 @@ export default class IndexUsers {
    */
   async fetchCurrentUser(opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexCurrentUser>(`/users/current`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })

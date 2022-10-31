@@ -13,8 +13,10 @@ export default class SystemClient {
    */
   async fetchCurrentBytePrice(opts?: RequestOptions) {
     const resp = await this.instance.request.get<number>(`/system/byteprice`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -34,8 +36,10 @@ export default class SystemClient {
    */
   async fetchChainstate(opts?: RequestOptions) {
     const resp = await this.instance.request.get<GatewayChainState>(`/system/chainstate`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -58,8 +62,10 @@ export default class SystemClient {
     const resp = await this.instance.request.get<BatchId>(
       `/system/postagebatchref/${referenceId}`,
       {
-        withCredentials: true,
-        headers: opts?.headers,
+        headers: {
+          ...opts?.headers,
+          Authorization: `Bearer ${this.instance.accessToken}`,
+        },
         signal: opts?.signal,
         timeout: opts?.timeout,
       }

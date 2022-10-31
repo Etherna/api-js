@@ -30,8 +30,10 @@ export default class IndexVideos {
         encryptionType: encryptionKey ? "AES256" : "Plain",
       },
       {
-        withCredentials: true,
-        headers: opts?.headers,
+        headers: {
+          ...opts?.headers,
+          Authorization: `Bearer ${this.instance.accessToken}`,
+        },
         signal: opts?.signal,
         timeout: opts?.timeout,
       }
@@ -53,7 +55,9 @@ export default class IndexVideos {
    */
   async fetchVideoFromId(id: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideo>(`/videos/${id}`, {
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -146,8 +150,10 @@ export default class IndexVideos {
       params: {
         newHash,
       },
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -192,8 +198,10 @@ export default class IndexVideos {
    */
   async deleteVideo(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/videos/${id}`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -213,8 +221,10 @@ export default class IndexVideos {
   async fetchComments(id: string, page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideoComment[]>(`/videos/${id}/comments`, {
       params: { page, take },
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -239,11 +249,11 @@ export default class IndexVideos {
       `/videos/${id}/comments`,
       `"${message}"`,
       {
-        withCredentials: true,
         headers: {
+          ...opts?.headers,
           accept: "text/plain",
           "content-type": "application/json",
-          ...opts?.headers,
+          Authorization: `Bearer ${this.instance.accessToken}`,
         },
         signal: opts?.signal,
         timeout: opts?.timeout,
@@ -265,8 +275,10 @@ export default class IndexVideos {
       params: {
         value: vote,
       },
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -290,8 +302,10 @@ export default class IndexVideos {
         params: {
           description: code,
         },
-        withCredentials: true,
-        headers: opts?.headers,
+        headers: {
+          ...opts?.headers,
+          Authorization: `Bearer ${this.instance.accessToken}`,
+        },
         signal: opts?.signal,
         timeout: opts?.timeout,
       }

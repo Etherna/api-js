@@ -11,6 +11,7 @@ import type { AxiosInstance } from "axios"
 export interface GatewayClientOptions {
   url: string
   apiPath: string
+  accessToken?: string
   loginPath?: string
   logoutPath?: string
 }
@@ -20,6 +21,7 @@ export default class EthernaGatewayClient {
   request: AxiosInstance
   loginPath: string
   logoutPath: string
+  accessToken: string | undefined
 
   resources: ResourcesClient
   users: UsersClient
@@ -35,6 +37,7 @@ export default class EthernaGatewayClient {
    */
   constructor(options: GatewayClientOptions) {
     this.url = composeUrl(options.url, options.apiPath)
+    this.accessToken = options.accessToken
 
     this.request = axios.create({ baseURL: this.url })
     this.resources = new ResourcesClient(this)

@@ -13,6 +13,7 @@ import type { AxiosInstance } from "axios"
 export interface IndexClientOptions {
   url: string
   apiPath: string
+  accessToken?: string
   loginPath?: string
   logoutPath?: string
 }
@@ -22,6 +23,7 @@ export default class EthernaIndexClient {
   request: AxiosInstance
   loginPath: string
   logoutPath: string
+  accessToken: string | undefined
 
   comments: IndexComments
   moderation: IndexModeration
@@ -36,6 +38,7 @@ export default class EthernaIndexClient {
    */
   constructor(options: IndexClientOptions) {
     this.url = composeUrl(options.url, options.apiPath)
+    this.accessToken = options.accessToken
 
     this.request = axios.create({ baseURL: this.url })
     this.comments = new IndexComments(this)

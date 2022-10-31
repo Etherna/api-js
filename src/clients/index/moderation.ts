@@ -11,8 +11,10 @@ export default class IndexModeration {
    */
   async deleteComment(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/moderation/comments/${id}`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
@@ -27,8 +29,10 @@ export default class IndexModeration {
    */
   async deleteVideo(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/moderation/videos/${id}`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })

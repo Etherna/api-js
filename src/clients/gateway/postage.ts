@@ -13,8 +13,10 @@ export default class PostageClient {
    */
   async topupBatch(batchId: string, byAmount: number | string, opts?: RequestOptions) {
     await this.instance.request.patch(`/postage/batches/${batchId}/topup/${byAmount}`, null, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })

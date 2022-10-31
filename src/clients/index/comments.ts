@@ -11,8 +11,10 @@ export default class IndexComments {
    */
   async deleteComment(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/comments/${id}`, {
-      withCredentials: true,
-      headers: opts?.headers,
+      headers: {
+        ...opts?.headers,
+        Authorization: `Bearer ${this.instance.accessToken}`,
+      },
       signal: opts?.signal,
       timeout: opts?.timeout,
     })
