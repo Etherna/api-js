@@ -1,6 +1,6 @@
 {
   "name": "@etherna/api-js",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "description": "Etherna api clients/utils for operations on the network",
   "author": "Mattia Dalzocchio",
   "license": "Apache-2.0",
@@ -25,16 +25,6 @@
     "url": "https://etherna.atlassian.net/jira/software/c/projects/ECL/issues"
   },
   "homepage": "https://github.com/etherna/clients#readme",
-  "module": "./index.js",
-  "files": [
-    "index.js",
-    "clients/index.js",
-    "handlers/index.js",
-    "serializers/index.js",
-    "stores/index.js",
-    "swarm/index.js",
-    "utils/index.js"
-  ],
   "scripts": {
     "dev": "node bundle.mjs --watch",
     "build": "node bundle.mjs && tsc -p tsconfig.build.json",
