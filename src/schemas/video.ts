@@ -37,8 +37,10 @@ export const VideoRawSchema = z.object({
   sources: z.array(VideoSourceRawSchema).min(1),
   /** batch id used */
   batchId: beeReference.nullable().optional(),
+  /** Optional extra data */
+  personalData: z.string().max(200).optional(),
   /** Schema version */
-  v: z.literal("1.0").or(z.literal("1.1")).or(z.undefined()),
+  v: z.enum(["1.0", "1.1", "1.2"]).optional(),
 })
 
 export const VideoSourceSchema = VideoSourceRawSchema.extend({
