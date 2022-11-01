@@ -13,10 +13,8 @@ export default class IndexSearch {
    */
   async fetchVideos(query: string, page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideo[]>("/search/query", {
+      ...this.instance.prepareAxiosConfig(opts),
       params: { query, page, take },
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
     })
 
     if (!Array.isArray(resp.data)) {

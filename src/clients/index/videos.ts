@@ -30,12 +30,7 @@ export default class IndexVideos {
         encryptionType: encryptionKey ? "AES256" : "Plain",
       },
       {
-        headers: {
-          ...opts?.headers,
-          Authorization: `Bearer ${this.instance.accessToken}`,
-        },
-        signal: opts?.signal,
-        timeout: opts?.timeout,
+        ...this.instance.prepareAxiosConfig(opts),
       }
     )
 
@@ -55,11 +50,7 @@ export default class IndexVideos {
    */
   async fetchVideoFromId(id: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideo>(`/videos/${id}`, {
-      headers: {
-        ...opts?.headers,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -78,9 +69,7 @@ export default class IndexVideos {
    */
   async fetchVideoFromHash(hash: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideo>(`/videos/manifest/${hash}`, {
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -100,10 +89,8 @@ export default class IndexVideos {
    */
   async fetchLatestVideos(page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideo[]>(`/videos/latest`, {
+      ...this.instance.prepareAxiosConfig(opts),
       params: { page, take },
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
     })
 
     if (!Array.isArray(resp.data)) {
@@ -124,9 +111,7 @@ export default class IndexVideos {
     const resp = await this.instance.request.get<IndexVideoValidation>(
       `/videos/manifest/${hash}/validation`,
       {
-        headers: opts?.headers,
-        signal: opts?.signal,
-        timeout: opts?.timeout,
+        ...this.instance.prepareAxiosConfig(opts),
       }
     )
 
@@ -147,15 +132,8 @@ export default class IndexVideos {
    */
   async updateVideo(id: string, newHash: string, opts?: RequestOptions) {
     const resp = await this.instance.request.put<IndexVideoManifest>(`/videos/${id}`, null, {
-      params: {
-        newHash,
-      },
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
+      params: { newHash },
     })
 
     if (typeof resp.data !== "object") {
@@ -176,9 +154,7 @@ export default class IndexVideos {
     const resp = await this.instance.request.get<IndexVideoValidation[]>(
       `/videos/${id}/validations`,
       {
-        headers: opts?.headers,
-        signal: opts?.signal,
-        timeout: opts?.timeout,
+        ...this.instance.prepareAxiosConfig(opts),
       }
     )
 
@@ -198,12 +174,7 @@ export default class IndexVideos {
    */
   async deleteVideo(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/videos/${id}`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true
@@ -220,13 +191,8 @@ export default class IndexVideos {
    */
   async fetchComments(id: string, page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexVideoComment[]>(`/videos/${id}/comments`, {
+      ...this.instance.prepareAxiosConfig(opts),
       params: { page, take },
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
     })
 
     if (!Array.isArray(resp.data)) {
@@ -249,14 +215,12 @@ export default class IndexVideos {
       `/videos/${id}/comments`,
       `"${message}"`,
       {
+        ...this.instance.prepareAxiosConfig(opts),
         headers: {
-          ...opts?.headers,
+          ...this.instance.prepareAxiosConfig(opts).headers,
           accept: "text/plain",
           "content-type": "application/json",
-          Authorization: `Bearer ${this.instance.accessToken}`,
         },
-        signal: opts?.signal,
-        timeout: opts?.timeout,
       }
     )
 
@@ -272,15 +236,8 @@ export default class IndexVideos {
    */
   async vote(id: string, vote: VoteValue, opts?: RequestOptions) {
     const resp = await this.instance.request.post<IndexVideoComment>(`/videos/${id}/votes`, null, {
-      params: {
-        value: vote,
-      },
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
+      params: { value: vote },
     })
 
     return resp.data
@@ -299,15 +256,8 @@ export default class IndexVideos {
       `/videos/${id}/manifest/${manifestReference}/reports`,
       null,
       {
-        params: {
-          description: code,
-        },
-        headers: {
-          ...opts?.headers,
-          Authorization: `Bearer ${this.instance.accessToken}`,
-        },
-        signal: opts?.signal,
-        timeout: opts?.timeout,
+        ...this.instance.prepareAxiosConfig(opts),
+        params: { description: code },
       }
     )
 

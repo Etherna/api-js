@@ -13,10 +13,7 @@ export default class ResourcesClient {
    */
   async fetchIsOffered(reference: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<boolean>(`/resources/${reference}/isoffered`, {
-      withCredentials: true,
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "boolean") {
@@ -38,9 +35,7 @@ export default class ResourcesClient {
       `/resources/areoffered`,
       references,
       {
-        headers: opts?.headers,
-        signal: opts?.signal,
-        timeout: opts?.timeout,
+        ...this.instance.prepareAxiosConfig(opts),
       }
     )
 
@@ -60,12 +55,7 @@ export default class ResourcesClient {
    */
   async fetchOffers(reference: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<string[]>(`/resources/${reference}/offers`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -84,12 +74,7 @@ export default class ResourcesClient {
    */
   async offer(reference: string, opts?: RequestOptions) {
     await this.instance.request.post(`/resources/${reference}/offers`, undefined, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true
@@ -104,12 +89,7 @@ export default class ResourcesClient {
    */
   async cancelOffer(reference: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/resources/${reference}/offers`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true

@@ -9,7 +9,7 @@ export default class IdentityClient {
    */
   async fetchCurrentIdentity() {
     const resp = await this.instance.request.get<SSOIdentity>(`/identity`, {
-      withCredentials: true,
+      ...this.instance.prepareAxiosConfig(),
     })
 
     if (typeof resp.data !== "object") {

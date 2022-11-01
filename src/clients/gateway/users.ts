@@ -11,12 +11,7 @@ export default class UsersClient {
    */
   async fetchCurrentUser(opts?: RequestOptions) {
     const resp = await this.instance.request.get<GatewayCurrentUser>(`/users/current`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -33,12 +28,7 @@ export default class UsersClient {
    */
   async fetchCredit(opts?: RequestOptions) {
     const resp = await this.instance.request.get<GatewayCredit>(`/users/current/credit`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -55,12 +45,7 @@ export default class UsersClient {
    */
   async fetchBatches(opts?: RequestOptions) {
     const resp = await this.instance.request.get<GatewayBatchPreview[]>(`/users/current/batches`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (!Array.isArray(resp.data)) {
@@ -83,16 +68,11 @@ export default class UsersClient {
     opts?: RequestOptions
   ): Promise<GatewayBatch> {
     const resp = await this.instance.request.post<string>(`/users/current/batches`, null, {
+      ...this.instance.prepareAxiosConfig(opts),
       params: {
         depth,
         amount,
       },
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
     })
 
     const referenceId = resp.data
@@ -139,12 +119,7 @@ export default class UsersClient {
     const resp = await this.instance.request.get<GatewayBatch>(
       `/users/current/batches/${batchId}`,
       {
-        headers: {
-          ...opts?.headers,
-          Authorization: `Bearer ${this.instance.accessToken}`,
-        },
-        signal: opts?.signal,
-        timeout: opts?.timeout,
+        ...this.instance.prepareAxiosConfig(opts),
       }
     )
 
@@ -163,12 +138,7 @@ export default class UsersClient {
    */
   async diluteBatch(batchId: string, depth: number, opts?: RequestOptions) {
     await this.instance.request.patch(`/users/current/batches/${batchId}/dilute/${depth}`, null, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true
@@ -181,12 +151,7 @@ export default class UsersClient {
    */
   async fetchOfferedResources(opts?: RequestOptions) {
     const resp = await this.instance.request.get<string[]>(`/users/current/offeredResources`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -206,12 +171,7 @@ export default class UsersClient {
    */
   async fetchPostageBatchRef(referenceId: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<string>(`/system/postagebatchref/${referenceId}`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     const batchId = resp.data

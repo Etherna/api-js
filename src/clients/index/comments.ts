@@ -11,12 +11,7 @@ export default class IndexComments {
    */
   async deleteComment(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/comments/${id}`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true

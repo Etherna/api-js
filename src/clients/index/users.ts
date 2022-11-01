@@ -12,10 +12,8 @@ export default class IndexUsers {
    */
   async fetchUsers(page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<PaginatedResult<IndexUser>>("/users/list2", {
+      ...this.instance.prepareAxiosConfig(opts),
       params: { page, take },
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
     })
 
     if (typeof resp.data !== "object" || !Array.isArray(resp.data.elements)) {
@@ -32,9 +30,7 @@ export default class IndexUsers {
    */
   async fetchUser(address: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexUser>(`/users/${address}`, {
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
@@ -55,10 +51,8 @@ export default class IndexUsers {
     const resp = await this.instance.request.get<PaginatedResult<IndexVideo>>(
       `/users/${address}/videos2`,
       {
+        ...this.instance.prepareAxiosConfig(opts),
         params: { page, take },
-        headers: opts?.headers,
-        signal: opts?.signal,
-        timeout: opts?.timeout,
       }
     )
 
@@ -75,12 +69,7 @@ export default class IndexUsers {
    */
   async fetchCurrentUser(opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexCurrentUser>(`/users/current`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {

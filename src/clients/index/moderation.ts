@@ -11,12 +11,7 @@ export default class IndexModeration {
    */
   async deleteComment(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/moderation/comments/${id}`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true
@@ -29,12 +24,7 @@ export default class IndexModeration {
    */
   async deleteVideo(id: string, opts?: RequestOptions) {
     await this.instance.request.delete(`/moderation/videos/${id}`, {
-      headers: {
-        ...opts?.headers,
-        Authorization: `Bearer ${this.instance.accessToken}`,
-      },
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     return true

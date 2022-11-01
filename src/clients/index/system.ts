@@ -11,9 +11,7 @@ export default class IndexSystem {
    */
   async fetchParameters(opts?: RequestOptions) {
     const resp = await this.instance.request.get<IndexParameters>("/system/parameters", {
-      headers: opts?.headers,
-      signal: opts?.signal,
-      timeout: opts?.timeout,
+      ...this.instance.prepareAxiosConfig(opts),
     })
 
     if (typeof resp.data !== "object") {
