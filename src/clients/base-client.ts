@@ -34,10 +34,11 @@ export default class BaseClient {
   }
 
   prepareAxiosConfig(opts?: RequestOptions): AxiosRequestConfig {
+    const authHeader = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}
     return {
       headers: {
+        ...authHeader,
         ...opts?.headers,
-        Authorization: this.accessToken ? `Bearer ${this.accessToken}` : undefined,
       },
       withCredentials: this.accessToken ? false : true,
       signal: opts?.signal,

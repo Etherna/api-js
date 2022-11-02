@@ -68,6 +68,7 @@ export default class IndexUsers {
    * @param opts Request options
    */
   async fetchCurrentUser(opts?: RequestOptions) {
+    console.log("config", this.instance.prepareAxiosConfig(opts))
     const resp = await this.instance.request.get<IndexCurrentUser>(`/users/current`, {
       ...this.instance.prepareAxiosConfig(opts),
     })
