@@ -38,9 +38,9 @@ export function extractUploadHeaders(options: RequestUploadOptions): Record<stri
 export function extractFileUploadHeaders(options: FileUploadOptions): Record<string, string> {
   const headers = extractUploadHeaders(options)
 
-  if (options?.size) headers["content-length"] = String(options.size)
+  if (options?.size) headers["Content-Length"] = String(options.size)
 
-  if (options?.contentType) headers["content-type"] = options.contentType
+  if (options?.contentType) headers["Content-Type"] = options.contentType
 
   return headers
 }
