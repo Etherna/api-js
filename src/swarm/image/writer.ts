@@ -4,12 +4,13 @@ import { bufferToDataURL, fileToBuffer } from "../../utils/buffer"
 import { resizeImage } from "../../utils/image"
 
 import type { ImageRaw, ImageRawSources } from "../.."
-import type { BeeClient, Reference } from "../../clients"
+import type { BatchId, BeeClient, Reference } from "../../clients"
 import type { WriterUploadOptions } from "../base-writer"
 
 interface ImageWriterOptions {
   beeClient: BeeClient
   responsiveSizes?: number[]
+  batchId?: BatchId
 }
 
 export default class ImageWriter {
@@ -17,6 +18,7 @@ export default class ImageWriter {
   private responsiveSizes: number[]
   private file: File
   private preGenerateImages?: Awaited<ReturnType<typeof this.generateImages>>
+  private batchId?: BatchId
 
   static defaultResponsiveSizes = [480, 768, 1024, 1280, 1800]
   static avatarResponsiveSizes = [128, 256, 512]
@@ -26,6 +28,7 @@ export default class ImageWriter {
     this.beeClient = opts.beeClient
     this.responsiveSizes = opts.responsiveSizes ?? ImageWriter.defaultResponsiveSizes
     this.file = file
+    this.batchId = opts.batchId
   }
 
   /**
@@ -38,7 +41,7 @@ export default class ImageWriter {
     const { blurhash, imageAspectRatio, responsiveSourcesData } =
       this.preGenerateImages ?? (await this.generateImages())
 
-    const batchId = await this.beeClient.stamps.fetchBestBatchId()
+    const batchId = this.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
 
     // upload files and retrieve the new reference
     let results: Reference[] = []

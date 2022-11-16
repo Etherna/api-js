@@ -10,9 +10,9 @@ interface VideoWriterOptions extends WriterOptions {
 }
 
 export default class VideoWriter extends BaseWriter<Video> {
-  video: Video
-  batchId: BatchId
-  beeClient: BeeClient
+  private video: Video
+  private batchId: BatchId
+  private beeClient: BeeClient
 
   constructor(video: Video, opts: VideoWriterOptions) {
     super(video, opts)
