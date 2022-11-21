@@ -29,7 +29,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     const { reference } = await this.beeClient.bzz.upload(playlistsRaw, {
       batchId,
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
         // "x-etherna-reason": "user-playlists-upload",
       },
       signal: opts?.signal,

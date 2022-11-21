@@ -24,7 +24,7 @@ export default class Chunk {
   async upload(data: Uint8Array, options: RequestUploadOptions) {
     const resp = await this.instance.request.post<ReferenceResponse>(`${chunkEndpoint}`, data, {
       headers: {
-        "content-type": "application/octet-stream",
+        "Content-Type": "application/octet-stream",
         ...extractUploadHeaders(options),
       },
       timeout: options?.timeout,

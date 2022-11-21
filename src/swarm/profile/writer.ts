@@ -29,7 +29,7 @@ export default class ProfileWriter extends BaseWriter<Profile> {
     const { reference } = await this.beeClient.bzz.upload(rawProfile, {
       batchId,
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
         // "x-etherna-reason": "profile-upload",
       },
       signal: opts?.signal,

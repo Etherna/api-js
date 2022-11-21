@@ -36,7 +36,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
     let { reference } = await this.beeClient.bzz.upload(rawPlaylist, {
       batchId,
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
         // "x-etherna-reason": "swarm-playlist-upload",
       },
     })

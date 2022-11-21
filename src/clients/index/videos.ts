@@ -219,7 +219,7 @@ export default class IndexVideos {
         headers: {
           ...this.instance.prepareAxiosConfig(opts).headers,
           accept: "text/plain",
-          "content-type": "application/json",
+          "Content-Type": "application/json",
         },
       }
     )

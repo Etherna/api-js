@@ -54,7 +54,7 @@ export default class Soc {
       payload,
       {
         headers: {
-          "content-type": "application/octet-stream",
+          "Content-Type": "application/octet-stream",
           ...extractUploadHeaders(options),
         },
         params: { sig: signature },
