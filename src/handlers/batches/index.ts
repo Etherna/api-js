@@ -294,7 +294,7 @@ export default class BatchesHandler {
         const fetchedBatch = await this.fetchBatch(this.getBatchId(batch))
 
         // creation
-        const hasCreated = fetchedBatch.depth > 0
+        const hasCreated = fetchedBatch.depth > 0 && fetchedBatch.usable
         // dilute
         const increasedDepth = fetchedBatch.depth > batch.depth
         // topup

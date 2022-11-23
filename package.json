@@ -1,6 +1,6 @@
 {
   "name": "@etherna/api-js",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Etherna api clients/utils for operations on the network",
   "author": "Mattia Dalzocchio",
   "license": "Apache-2.0",
