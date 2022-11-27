@@ -28,6 +28,10 @@ export default class ProfileWriter extends BaseWriter<Profile> {
     // Upload json
     const { reference } = await this.beeClient.bzz.upload(rawProfile, {
       batchId,
+      deferred: opts?.deferred,
+      encrypt: opts?.encrypt,
+      pin: opts?.pin,
+      tag: opts?.tag,
       headers: {
         "Content-Type": "application/json",
         // "x-etherna-reason": "profile-upload",
@@ -45,6 +49,10 @@ export default class ProfileWriter extends BaseWriter<Profile> {
     const writer = this.beeClient.feed.makeWriter(feed)
     await writer.upload(reference, {
       batchId,
+      deferred: opts?.deferred,
+      encrypt: opts?.encrypt,
+      pin: opts?.pin,
+      tag: opts?.tag,
       headers: {
         // "x-etherna-reason": "profile-feed-update",
       },

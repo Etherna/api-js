@@ -56,6 +56,10 @@ export default class ImageWriter {
             options.onUploadProgress(multipleCompletion / responsiveSources.length)
           }
         },
+        deferred: options?.deferred,
+        encrypt: options?.encrypt,
+        pin: options?.pin,
+        tag: options?.tag,
         signal: options?.signal,
         contentType: this.file.type,
         headers: {

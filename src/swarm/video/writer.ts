@@ -27,6 +27,10 @@ export default class VideoWriter extends BaseWriter<Video> {
     const { reference } = await this.beeClient.bzz.upload(videoRaw, {
       batchId: this.batchId,
       contentType: "application/json",
+      deferred: opts?.deferred,
+      encrypt: opts?.encrypt,
+      pin: opts?.pin,
+      tag: opts?.tag,
       signal: opts?.signal,
       onUploadProgress: opts?.onUploadProgress,
     })

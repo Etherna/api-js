@@ -35,6 +35,10 @@ export default class ImageWriter extends BaseWriter<Playlist> {
 
     let { reference } = await this.beeClient.bzz.upload(rawPlaylist, {
       batchId,
+      deferred: opts?.deferred,
+      encrypt: opts?.encrypt,
+      pin: opts?.pin,
+      tag: opts?.tag,
       headers: {
         "Content-Type": "application/json",
         // "x-etherna-reason": "swarm-playlist-upload",
@@ -52,6 +56,10 @@ export default class ImageWriter extends BaseWriter<Playlist> {
       const writer = this.beeClient.feed.makeWriter(feed)
       await writer.upload(reference, {
         batchId,
+        deferred: opts?.deferred,
+        encrypt: opts?.encrypt,
+        pin: opts?.pin,
+        tag: opts?.tag,
         headers: {
           // "x-etherna-reason": "swarm-playlist-feed-upload",
         },
@@ -60,6 +68,10 @@ export default class ImageWriter extends BaseWriter<Playlist> {
       })
       const feedManifest = await this.beeClient.feed.createRootManifest(feed, {
         batchId,
+        deferred: opts?.deferred,
+        encrypt: opts?.encrypt,
+        pin: opts?.pin,
+        tag: opts?.tag,
         headers: {
           // "x-etherna-reason": "swarm-playlist-feed-root-manifest",
         },

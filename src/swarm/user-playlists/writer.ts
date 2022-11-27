@@ -28,6 +28,10 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
 
     const { reference } = await this.beeClient.bzz.upload(playlistsRaw, {
       batchId,
+      deferred: opts?.deferred,
+      encrypt: opts?.encrypt,
+      pin: opts?.pin,
+      tag: opts?.tag,
       headers: {
         "Content-Type": "application/json",
         // "x-etherna-reason": "user-playlists-upload",
@@ -44,6 +48,10 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     const writer = this.beeClient.feed.makeWriter(feed)
     await writer.upload(reference, {
       batchId,
+      deferred: opts?.deferred,
+      encrypt: opts?.encrypt,
+      pin: opts?.pin,
+      tag: opts?.tag,
       headers: {
         // "x-etherna-reason": "user-playlists-feed-update",
       },

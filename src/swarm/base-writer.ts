@@ -6,6 +6,10 @@ export interface WriterOptions {
 
 export interface WriterUploadOptions {
   signal?: AbortSignal
+  pin?: boolean
+  deferred?: boolean
+  encrypt?: boolean
+  tag?: string
   onUploadProgress?(completion: number): void
 }
 
