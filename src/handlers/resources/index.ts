@@ -1,7 +1,8 @@
 import { extractReference } from "../../utils"
+import { extractVideoReferences } from "../../utils/references"
 
 import type { Video } from "../.."
-import type { EthernaGatewayClient } from "../../clients"
+import type { EthernaGatewayClient, Reference } from "../../clients"
 import type { SwarmResourceStatus } from "./types"
 
 interface EthernaResourcesHandlerOptions {
@@ -26,7 +27,7 @@ export default class EthernaResourcesHandler {
     const fetchByWhom = opts?.withByWhom ?? true
 
     const references = this.videos
-      .map(video => EthernaResourcesHandler.videoReferences(video))
+      .map(video => extractVideoReferences(video))
       .flat()
       .filter((reference, index, self) => self.indexOf(reference) === index)
 
@@ -50,7 +51,7 @@ export default class EthernaResourcesHandler {
 
       for (const [reference, isOffered] of Object.entries(results)) {
         this.resourcesStatus.push({
-          reference,
+          reference: reference as Reference,
           isOffered,
           offeredBy: [],
         })
@@ -59,18 +60,14 @@ export default class EthernaResourcesHandler {
   }
 
   async offerResources() {
-    const references = this.videos
-      .map(video => EthernaResourcesHandler.videoReferences(video))
-      .flat()
+    const references = this.videos.map(video => extractVideoReferences(video)).flat()
     await Promise.allSettled(
       references.map(reference => this.gatewayClient.resources.offer(reference))
     )
   }
 
   async unofferResources() {
-    const references = this.videos
-      .map(video => EthernaResourcesHandler.videoReferences(video))
-      .flat()
+    const references = this.videos.map(video => extractVideoReferences(video)).flat()
     await Promise.allSettled(
       references.map(reference => this.gatewayClient.resources.cancelOffer(reference))
     )
@@ -81,17 +78,8 @@ export default class EthernaResourcesHandler {
   }
 
   getVideoReferencesStatus(video: Video): SwarmResourceStatus[] {
-    const videoReferences = EthernaResourcesHandler.videoReferences(video)
+    const videoReferences = extractVideoReferences(video)
     return (this.resourcesStatus ?? []).filter(status => videoReferences.includes(status.reference))
-  }
-
-  static videoReferences(video: Video) {
-    const thumbnailSources = Object.values(video.thumbnail?.sources ?? {}) as string[]
-    return [
-      video.reference,
-      ...video.sources.map(source => source.reference),
-      ...thumbnailSources.map(src => extractReference(src)),
-    ]
   }
 
   static videoReferenceType(

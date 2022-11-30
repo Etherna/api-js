@@ -29,3 +29,10 @@ export type GatewayChainState = {
   timeStamp: string
   totalAmount: number
 }
+
+export type GatewayPin = {
+  freePinningEndOfLife: string
+  isPinned: boolean
+  isPinningInProgress: boolean
+  isPinningRequired: boolean
+}

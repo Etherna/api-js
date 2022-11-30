@@ -39,6 +39,23 @@ export default class UsersClient {
   }
 
   /**
+   * Get current user's pinned resources
+   *
+   * @returns List of resources references
+   */
+  async fetchPinnedResources(opts?: RequestOptions) {
+    const resp = await this.instance.request.get<string[]>(`/users/current/pinnedResources`, {
+      ...this.instance.prepareAxiosConfig(opts),
+    })
+
+    if (!Array.isArray(resp.data)) {
+      throw new Error("Cannot fetch user's pinned resources")
+    }
+
+    return resp.data
+  }
+
+  /**
    * Get current user's batches
    *
    * @returns User's list of batches

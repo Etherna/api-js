@@ -1,5 +1,7 @@
+import type { Reference } from "../../clients"
+
 export type SwarmResourceStatus = {
-  reference: string
+  reference: Reference
   isOffered: boolean
   offeredBy: string[]
 }
