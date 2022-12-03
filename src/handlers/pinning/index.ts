@@ -1,11 +1,15 @@
 import { extractVideoReferences } from "../../utils/references"
 
 import type { Video } from "../.."
-import type { BeeClient, EthernaGatewayClient, RequestOptions } from "../../clients"
+import type { BeeClient, EthernaGatewayClient, Reference, RequestOptions } from "../../clients"
 import type { SwarmResourcePinStatus } from "./types"
 
 interface EthernaResourcesHandlerOptions {
   client: EthernaGatewayClient | BeeClient
+}
+
+interface EthernaPinningFetchOptions {
+  withByWhom?: boolean
 }
 
 export default class EthernaPinningHandler {
@@ -22,7 +26,9 @@ export default class EthernaPinningHandler {
     return (client as EthernaGatewayClient).resources !== undefined
   }
 
-  async fetchPins() {
+  async fetchPins(opts?: EthernaPinningFetchOptions) {
+    const fetchByWhom = opts?.withByWhom ?? false
+
     const references = this.videos
       .map(video => extractVideoReferences(video))
       .flat()
@@ -33,26 +39,35 @@ export default class EthernaPinningHandler {
     const responses = await Promise.allSettled(
       references.map(reference =>
         this.isGatewayClient(this.client)
-          ? this.client.resources.fetchIsPinned(reference)
+          ? fetchByWhom
+            ? this.client.resources.fetchPinUsers(reference)
+            : this.client.resources.fetchIsPinned(reference)
           : this.client.pins.isPinned(reference)
       )
     )
 
     for (const [index, reference] of references.entries()) {
       const response = responses[index]!
-      this.pinStatus.push(
-        response.status === "fulfilled"
-          ? {
-              reference,
-              ...(typeof response.value === "boolean"
-                ? { isPinned: response.value }
-                : response.value),
-            }
-          : {
-              reference,
-              isPinned: false,
-            }
-      )
+      const pinStatus: SwarmResourcePinStatus = {
+        reference,
+        isPinned: false,
+      }
+
+      if (response.status === "fulfilled") {
+        if (typeof response.value === "boolean") {
+          pinStatus.isPinned = response.value
+        } else if (Array.isArray(response.value)) {
+          pinStatus.pinnedBy = response.value as Reference[]
+          pinStatus.isPinned = response.value.length > 0
+        } else {
+          pinStatus.isPinned = response.value.isPinned
+          pinStatus.isPinningInProgress = response.value.isPinningInProgress
+          pinStatus.isPinningRequired = response.value.isPinningRequired
+          pinStatus.freePinningEndOfLife = response.value.freePinningEndOfLife
+        }
+      }
+
+      this.pinStatus.push(pinStatus)
     }
   }
 
@@ -76,6 +91,11 @@ export default class EthernaPinningHandler {
           : this.client.pins.unpin(reference, opts)
       )
     )
+  }
+
+  getVideoReferencesStatus(video: Video): SwarmResourcePinStatus[] {
+    const videoReferences = extractVideoReferences(video)
+    return (this.pinStatus ?? []).filter(status => videoReferences.includes(status.reference))
   }
 
   getReferenceStatus(reference: string): SwarmResourcePinStatus | null {

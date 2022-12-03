@@ -6,4 +6,5 @@ export type SwarmResourcePinStatus = {
   freePinningEndOfLife?: string
   isPinningInProgress?: boolean
   isPinningRequired?: boolean
+  pinnedBy?: string[]
 }
