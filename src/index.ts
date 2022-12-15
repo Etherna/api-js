@@ -11,4 +11,11 @@ export type {
 } from "./schemas/playlist"
 export type { Profile, ProfileRaw } from "./schemas/profile"
 export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/user-playlists"
-export type { Video, VideoRaw, VideoSource } from "./schemas/video"
+export type {
+  Video,
+  VideoDetails,
+  VideoPreview,
+  VideoSource,
+  VideoPreviewRaw,
+  VideoDetailsRaw,
+} from "./schemas/video"

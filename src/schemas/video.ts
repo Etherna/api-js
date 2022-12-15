@@ -5,14 +5,16 @@ import { ImageRawSchema, ImageSchema } from "./image"
 
 const quality = z.custom<`${number}p`>(val => /^\d+p$/g.test(val as string))
 
-export const VideoSourceRawSchema = z.discriminatedUnion("type", [
+export const VideoSourceRawSchema = z.union([
   z.object({
     /** Source type */
-    type: z.literal("mp4"),
+    type: z.literal("mp4").optional(),
     /** Video resolution (eg: 1080p) */
     quality: quality,
+    /** Path of the video (for folder based video manifest) */
+    path: z.string().optional(),
     /** Swarm reference of the video */
-    reference: beeReference,
+    reference: beeReference.optional(),
     /** Video size in bytes */
     size: z.number().min(0),
     /** Video bitrate */
@@ -20,13 +22,7 @@ export const VideoSourceRawSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     /** Source type */
-    type: z.literal("dash"),
-    /** Path of the source */
-    path: z.string().min(3),
-  }),
-  z.object({
-    /** Source type */
-    type: z.literal("hls"),
+    type: z.enum(["dash", "hls"]),
     /** Path of the source */
     path: z.string().min(3),
   }),
@@ -52,8 +48,8 @@ export const VideoPreviewRawSchema = z.object({
 export const VideoDetailsRawSchema = z.object({
   /** Description of the video */
   description: slicedString(5000),
-  /** Quality of the original video */
-  originalQuality: quality,
+  /** Video aspect ratio (width / height) */
+  aspectRatio: z.number().min(0).nullish(),
   /** List of available qualities of the video */
   sources: z.array(VideoSourceRawSchema).min(1),
   /** batch id used */
@@ -64,38 +60,41 @@ export const VideoDetailsRawSchema = z.object({
   v: z.enum(["1.0", "1.1", "1.2", "2.0"]).optional(),
 })
 
-export const VideoSourceSchema = z.discriminatedUnion("type", [
-  z.object({
-    /** Source type */
-    type: z.literal("mp4"),
-    /** Video resolution (eg: 1080p) */
-    quality: quality,
-    /** Swarm reference of the video */
-    reference: beeReference,
-    /** Video size in bytes */
-    size: z.number().min(0),
-    /** Video bitrate */
-    bitrate: z.number().min(0).optional(),
-    /** source url */
-    url: z.string().url(),
-  }),
-  z.object({
-    /** Source type */
-    type: z.literal("dash"),
-    /** Path of the source */
-    path: z.string().min(3),
-    /** source url */
-    url: z.string().url(),
-  }),
-  z.object({
-    /** Source type */
-    type: z.literal("hls"),
-    /** Path of the source */
-    path: z.string().min(3),
-    /** source url */
-    url: z.string().url(),
-  }),
-])
+export const VideoSourceSchema = z
+  .union([
+    z.object({
+      /** Source type */
+      type: z.literal("mp4"),
+      /** Video resolution (eg: 1080p) */
+      quality: quality,
+      /** Swarm reference of the video */
+      reference: beeReference.optional(),
+      /** Path of the video (for folder based video manifest) */
+      path: z.string().optional(),
+      /** Video size in bytes */
+      size: z.number().min(0),
+      /** Video bitrate */
+      bitrate: z.number().min(0).optional(),
+      /** source url */
+      url: z.string().url(),
+    }),
+    z.object({
+      /** Source type */
+      type: z.enum(["dash", "hls"]),
+      /** Path of the source */
+      path: z.string().min(3),
+      /** source url */
+      url: z.string().url(),
+    }),
+  ])
+  .superRefine((data, ctx) => {
+    if (data.type === "mp4" && !data.reference && !data.path) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either reference or path must be defined",
+      })
+    }
+  })
 
 export const VideoPreviewSchema = z.object({
   /** Hash of the video */
@@ -117,10 +116,12 @@ export const VideoPreviewSchema = z.object({
 export const VideoDetailsSchema = z.object({
   /** Description of the video */
   description: slicedString(5000),
-  /** Quality of the original video */
-  originalQuality: quality,
   /** All qualities of video */
   sources: z.array(VideoSourceSchema).min(1),
+  /** Video aspect ratio (width / height) */
+  aspectRatio: z.number().min(0).nullable(),
+  /** Optional extra data */
+  personalData: z.string().max(200).optional(),
   /** batch id used (null if v < `1.1`) */
   batchId: beeReference.nullable(),
 })
@@ -132,3 +133,4 @@ export type VideoDetailsRaw = z.infer<typeof VideoDetailsRawSchema>
 export type VideoSource = z.infer<typeof VideoSourceSchema>
 export type VideoPreview = z.infer<typeof VideoPreviewSchema>
 export type VideoDetails = z.infer<typeof VideoDetailsSchema>
+export type Video = VideoPreview & VideoDetails

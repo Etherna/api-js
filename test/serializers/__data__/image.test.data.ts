@@ -1,5 +1,6 @@
-import type { Image, ImageRaw } from "../../../src"
 import { blurHashToDataURL } from "../../../src/utils"
+
+import type { Image, ImageRaw } from "../../../src"
 
 export const beeUrl = "http://localhost:1633"
 
@@ -26,5 +27,5 @@ export const testImageParsed: Image = {
     "200w":
       "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123",
   },
-  src: "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123",
+  url: "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123",
 }

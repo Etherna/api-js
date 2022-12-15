@@ -7,7 +7,9 @@ export function extractVideoReferences(video: Video): Reference[] {
   const thumbnailSources = Object.values(video.thumbnail?.sources ?? {}) as string[]
   const references = [
     video.reference,
-    ...video.sources.map(source => source.reference),
+    ...video.sources
+      .map(source => (source.type === "mp4" ? source.reference : null))
+      .filter(Boolean),
     ...thumbnailSources.map(src => extractReference(src)),
   ] as Reference[]
 

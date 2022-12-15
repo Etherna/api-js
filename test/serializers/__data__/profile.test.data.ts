@@ -1,5 +1,6 @@
-import type { Profile, ProfileRaw } from "../../../src"
 import { testImageParsed, testImageRaw } from "./image.test.data"
+
+import type { Profile, ProfileRaw } from "../../../src"
 
 export const beeUrl = "http://localhost:1633"
 

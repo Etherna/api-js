@@ -37,7 +37,7 @@ export const ImageSchema = z.object({
   /** Data URL of the blur-hash  */
   blurredBase64: z.string(),
   /** img src url */
-  src: z.string().url(),
+  url: z.string().url(),
 })
 
 // Types

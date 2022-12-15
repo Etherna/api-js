@@ -1,37 +1,49 @@
 import { beeReference } from "../../schemas/base"
-import { VideoSchema } from "../../schemas/video"
-import BaseSerializer from "../base-serializer"
+import { VideoPreviewSchema, VideoDetailsSchema, VideoSourceRawSchema } from "../../schemas/video"
 import ImageSerializer from "../image/serializer"
 
-import type { VideoRaw } from "../.."
+import type { VideoPreviewRaw, VideoDetailsRaw } from "../.."
 
-export default class VideoSerializer extends BaseSerializer {
-  constructor() {
-    super()
-  }
+export default class VideoSerializer {
+  constructor() {}
 
-  serialize(item: object): string {
-    const video = VideoSchema.parse(item)
+  serializePreview(previewItem: object): string {
+    const videoPreview = VideoPreviewSchema.parse(previewItem)
 
     const imageSerializer = new ImageSerializer()
 
-    const videoRaw: VideoRaw = {
-      v: "1.1",
-      title: video.title,
-      description: video.description,
-      duration: video.duration,
-      ownerAddress: video.ownerAddress,
-      originalQuality: video.originalQuality,
-      createdAt: video.createdAt,
-      updatedAt: video.updatedAt,
-      thumbnail: video.thumbnail ? imageSerializer.serialize(video.thumbnail) : null,
-      sources: video.sources.map(source => ({
-        reference: source.reference,
-        quality: source.quality,
-        size: source.size,
-        bitrate: source.bitrate,
-      })),
-      batchId: beeReference.parse(video.batchId),
+    const videoRaw: VideoPreviewRaw = {
+      v: "2.0",
+      title: videoPreview.title,
+      duration: videoPreview.duration,
+      ownerAddress: videoPreview.ownerAddress,
+      createdAt: videoPreview.createdAt,
+      updatedAt: videoPreview.updatedAt,
+      thumbnail: videoPreview.thumbnail ? imageSerializer.serialize(videoPreview.thumbnail) : null,
+    }
+
+    return JSON.stringify(videoRaw)
+  }
+
+  serializeDetails(detailsItem: object): string {
+    const videoDetails = VideoDetailsSchema.parse(detailsItem)
+
+    const videoRaw: VideoDetailsRaw = {
+      v: "2.0",
+      description: videoDetails.description,
+      aspectRatio: videoDetails.aspectRatio,
+      personalData: videoDetails.personalData,
+      sources: videoDetails.sources.map(source =>
+        VideoSourceRawSchema.parse({
+          type: source.type,
+          path: source.path,
+          reference: source.type === "mp4" ? source.reference : undefined,
+          quality: source.type === "mp4" ? source.quality : undefined,
+          size: source.type === "mp4" ? source.size : undefined,
+          bitrate: source.type === "mp4" ? source.bitrate : undefined,
+        })
+      ),
+      batchId: beeReference.parse(videoDetails.batchId),
     }
 
     return JSON.stringify(videoRaw)

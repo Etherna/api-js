@@ -1,40 +1,58 @@
 import { beeReference } from "../../schemas/base"
-import { VideoRawSchema } from "../../schemas/video"
+import {
+  VideoDetailsRawSchema,
+  VideoPreviewRawSchema,
+  VideoSourceSchema,
+} from "../../schemas/video"
 import { getBzzUrl } from "../../utils/bzz"
-import BaseDeserializer from "../base-deserializer"
 import ImageDeserializer from "../image/deserializer"
 
-import type { Video } from "../.."
+import type { VideoDetails, VideoPreview } from "../../schemas/video"
 
 export type VideoDeserializerOptions = {
   /** Video swarm reference */
   reference: string
 }
 
-export default class VideoDeserializer extends BaseDeserializer<Video, VideoDeserializerOptions> {
-  constructor(private beeUrl: string) {
-    super()
-  }
+export default class VideoDeserializer {
+  constructor(private beeUrl: string) {}
 
-  deserialize(data: string, opts: VideoDeserializerOptions): Video {
-    const videoRaw = VideoRawSchema.parse(JSON.parse(data))
+  deserializePreview(data: string, opts: VideoDeserializerOptions): VideoPreview {
+    const videoRaw = VideoPreviewRawSchema.parse(JSON.parse(data))
 
     const imageDeserializer = new ImageDeserializer(this.beeUrl)
 
-    const video: Video = {
+    const video: VideoPreview = {
       reference: beeReference.parse(opts.reference),
       title: videoRaw.title,
-      description: videoRaw.description,
       duration: videoRaw.duration,
       ownerAddress: videoRaw.ownerAddress,
-      originalQuality: videoRaw.originalQuality,
       createdAt: videoRaw.createdAt,
       updatedAt: videoRaw.updatedAt || null,
       thumbnail: videoRaw.thumbnail ? imageDeserializer.deserialize(videoRaw.thumbnail) : null,
-      sources: videoRaw.sources.map(source => ({
-        ...source,
-        source: getBzzUrl(this.beeUrl, source.reference),
-      })),
+    }
+
+    return video
+  }
+
+  deserializeDetails(data: string, opts: VideoDeserializerOptions): VideoDetails {
+    const videoRaw = VideoDetailsRawSchema.parse(JSON.parse(data))
+
+    const video: VideoDetails = {
+      description: videoRaw.description,
+      aspectRatio: videoRaw.aspectRatio || null,
+      personalData: videoRaw.personalData,
+      sources: videoRaw.sources.map(source =>
+        VideoSourceSchema.parse({
+          ...source,
+          type: source.type || "mp4",
+          url: getBzzUrl(
+            this.beeUrl,
+            "reference" in source && source.reference ? source.reference : opts.reference,
+            source.path
+          ),
+        })
+      ),
       batchId: videoRaw.batchId || null,
     }
 

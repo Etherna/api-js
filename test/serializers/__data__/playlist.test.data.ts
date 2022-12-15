@@ -1,10 +1,10 @@
-import type { Playlist, PlaylistEncryptedDataRaw, PlaylistRaw } from "../../../src"
 import { encryptData } from "../../../src/utils"
+
+import type { Playlist, PlaylistEncryptedDataRaw, PlaylistRaw } from "../../../src"
 
 export const password = "test"
 
 export const testManifest: PlaylistRaw = {
-  v: "1.0"
   id: "__channel",
   name: "",
   description: null,
