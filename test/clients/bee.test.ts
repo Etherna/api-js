@@ -70,7 +70,7 @@ describe("bee client", () => {
   })
 
   it("should upload raw data", async () => {
-    const { reference } = await bee.bytes.upload(message, {
+    const { reference } = await bee.bytes.upload(new TextEncoder().encode(message), {
       batchId,
     })
 

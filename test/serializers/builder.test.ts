@@ -5,20 +5,23 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { BeeClient } from "../../src/clients"
 import { VideoDeserializer } from "../../src/serializers"
 import VideoBuilder from "../../src/swarm/video/builder"
-import { createPostaBatch } from "../__utils__/bee-process"
+import { createPostaBatch, startBee } from "../__utils__/bee-process"
 import { testVideoRaw_1_1 } from "./__data__/video.test.data"
 
 import type { BatchId, Reference } from "../../src/clients"
+import type { ChildProcess } from "../__utils__/bee-process"
 
 describe("builder", () => {
   const beeClient = new BeeClient("http://localhost:1633")
   const deserializer = new VideoDeserializer("http://localhost:1633")
 
+  let beeProcess: ChildProcess
   let batchId: BatchId
   let legacyVideoReference: Reference
   let folderVideoReference: Reference
 
   beforeAll(async () => {
+    beeProcess = await startBee()
     batchId = await createPostaBatch()
 
     // upload v1 video
@@ -59,6 +62,10 @@ describe("builder", () => {
       contentType: "application/json",
     })
     legacyVideoReference = reference
+  })
+
+  afterAll(() => {
+    beeProcess?.kill()
   })
 
   it("should parse a legacy video", async () => {
