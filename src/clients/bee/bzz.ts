@@ -55,23 +55,19 @@ export default class Bzz {
   }
 
   async upload(data: Uint8Array | File | string, options: FileUploadOptions) {
-    const resp = await this.instance.request.post<ReferenceResponse>(
-      `${bzzEndpoint}`,
-      prepareData(data),
-      {
-        headers: {
-          ...extractFileUploadHeaders(options),
-        },
-        timeout: options?.timeout,
-        signal: options?.signal,
-        onUploadProgress: e => {
-          if (options?.onUploadProgress) {
-            const progress = Math.round((e.progress ?? 0) * 100)
-            options.onUploadProgress(progress)
-          }
-        },
-      }
-    )
+    const resp = await this.instance.request.post<ReferenceResponse>(`${bzzEndpoint}`, data, {
+      headers: {
+        ...extractFileUploadHeaders(options),
+      },
+      timeout: options?.timeout,
+      signal: options?.signal,
+      onUploadProgress: e => {
+        if (options?.onUploadProgress) {
+          const progress = Math.round((e.progress ?? 0) * 100)
+          options.onUploadProgress(progress)
+        }
+      },
+    })
 
     return {
       reference: resp.data.reference,

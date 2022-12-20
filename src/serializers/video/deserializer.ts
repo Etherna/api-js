@@ -29,7 +29,9 @@ export default class VideoDeserializer {
       ownerAddress: videoRaw.ownerAddress,
       createdAt: videoRaw.createdAt,
       updatedAt: videoRaw.updatedAt || null,
-      thumbnail: videoRaw.thumbnail ? imageDeserializer.deserialize(videoRaw.thumbnail) : null,
+      thumbnail: videoRaw.thumbnail
+        ? imageDeserializer.deserialize(videoRaw.thumbnail, { reference: opts.reference })
+        : null,
     }
 
     return video

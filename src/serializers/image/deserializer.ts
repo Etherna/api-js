@@ -3,7 +3,7 @@ import { ImageRawSchema } from "../../schemas/image"
 import { blurHashToDataURL } from "../../utils/blurhash"
 import { getBzzUrl } from "../../utils/bzz"
 
-import type { Image } from "../.."
+import type { Image, ImageSource } from "../.."
 
 export type ImageDeserializerOptions = {
   /** Base path reference */
@@ -15,24 +15,22 @@ export default class ImageDeserializer {
 
   deserialize(item: object, opts?: ImageDeserializerOptions): Image {
     const imageRaw = ImageRawSchema.parse(item)
-    const sources = (Object.keys(imageRaw.sources) as (keyof typeof imageRaw.sources)[])
-      .sort((a, b) => parseInt(b) - parseInt(a))
-      .reduce<Image["sources"]>(
-        (srcs, size) => ({
-          ...srcs,
-          [size]: beeReference.safeParse(imageRaw.sources![size]!).success
-            ? getBzzUrl(this.beeUrl, imageRaw.sources![size]!)
-            : getBzzUrl(this.beeUrl, opts?.reference ?? "", imageRaw.sources![size]!),
-        }),
-        {}
-      )
+    const rawSources = imageRaw.sources
+    const sources = rawSources
+      .map(source => ({
+        ...source,
+        url: beeReference.safeParse(source.reference!).success
+          ? getBzzUrl(this.beeUrl, source.reference!)
+          : getBzzUrl(this.beeUrl, opts?.reference ?? "", source.path!),
+      }))
+      .sort((a: ImageSource, b: ImageSource) => b.width - a.width)
 
     return {
       aspectRatio: imageRaw.aspectRatio,
       blurhash: imageRaw.blurhash,
       blurredBase64: blurHashToDataURL(imageRaw.blurhash),
       sources: sources,
-      url: Object.values(sources)[0]!,
+      url: Object.values(sources)[0]!.url,
     }
   }
 }

@@ -1,5 +1,4 @@
 import { ImageSchema } from "../../schemas/image"
-import { extractReference } from "../../utils/bzz"
 
 import type { ImageRaw, ImageRawSources, Image } from "../.."
 
@@ -11,12 +10,17 @@ export default class ImageSerializer {
 
     const aspectRatio = image.aspectRatio
     const blurhash = image.blurhash
-    const sources: ImageRawSources = Object.keys(image.sources).reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: extractReference(image.sources[key as keyof typeof image.sources]!),
-      }),
-      {}
+    const sources: ImageRawSources = image.sources.map(source => ({
+      type: source.type,
+      width: source.width,
+      path: source.path,
+      reference: source.reference,
+    }))
+
+    sources.forEach(src =>
+      (Object.keys(src) as (keyof typeof src)[]).forEach(
+        key => src[key] === undefined && delete src[key]
+      )
     )
 
     const imageRaw: ImageRaw = {

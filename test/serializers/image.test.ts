@@ -1,10 +1,21 @@
 import { describe, it, expect } from "vitest"
 
 import { ImageDeserializer, ImageSerializer } from "../../src/serializers"
-import { beeUrl, testImageRaw, testImageParsed } from "./__data__/image.test.data"
+import {
+  beeUrl,
+  testImageRaw,
+  testImageParsed,
+  testLegacyImageRaw,
+  testLegacyImageParsed,
+} from "./__data__/image.test.data"
 
 describe("image deserializer", () => {
   const deserializer = new ImageDeserializer(beeUrl)
+
+  it("should parse a legacy raw image", () => {
+    const manifest = deserializer.deserialize(testLegacyImageRaw)
+    expect(manifest).toEqual(testLegacyImageParsed)
+  })
 
   it("should parse a raw image", () => {
     const manifest = deserializer.deserialize(testImageRaw)
@@ -25,6 +36,17 @@ describe("image deserializer", () => {
     // sources
     manifest = { ...testImageRaw }
     delete manifest.sources
+    expect(() => deserializer.deserialize(manifest)).toThrowError()
+
+    // source type
+    manifest = JSON.parse(JSON.stringify(testImageRaw))
+    delete manifest.sources[0].type
+    expect(() => deserializer.deserialize(manifest)).toThrowError()
+
+    // source path/reference
+    manifest = JSON.parse(JSON.stringify(testImageRaw))
+    delete manifest.sources[0].reference
+    delete manifest.sources[0].path
     expect(() => deserializer.deserialize(manifest)).toThrowError()
 
     // empty sources
@@ -55,6 +77,17 @@ describe("image serializer", () => {
     // sources
     manifest = { ...testImageParsed }
     delete manifest.sources
+    expect(() => serializer.serialize(manifest as any)).toThrowError()
+
+    // source type
+    manifest = JSON.parse(JSON.stringify(testImageRaw))
+    delete manifest.sources[0].type
+    expect(() => serializer.serialize(manifest as any)).toThrowError()
+
+    // source path/reference
+    manifest = JSON.parse(JSON.stringify(testImageRaw))
+    delete manifest.sources[0].reference
+    delete manifest.sources[0].path
     expect(() => serializer.serialize(manifest as any)).toThrowError()
 
     // empty sources

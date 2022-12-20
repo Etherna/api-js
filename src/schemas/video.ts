@@ -5,6 +5,23 @@ import { ImageRawSchema, ImageSchema } from "./image"
 
 const quality = z.custom<`${number}p`>(val => /^\d+p$/g.test(val as string))
 
+/**
+ * / --> preview
+ * /preview
+ * /details
+ * /thumb/
+ *   /480-png
+ *   /1280-png
+ *   /480-avif
+ *   /1280-avif
+ * /sources/
+ *   /720p
+ *   /1080p
+ *   /dash/
+ *     /manifest.mpd
+ *     /...
+ */
+
 export const VideoSourceRawSchema = z.union([
   z.object({
     /** Source type */
@@ -131,6 +148,7 @@ export type VideoQuality = z.infer<typeof quality>
 export type VideoPreviewRaw = z.infer<typeof VideoPreviewRawSchema>
 export type VideoDetailsRaw = z.infer<typeof VideoDetailsRawSchema>
 export type VideoSource = z.infer<typeof VideoSourceSchema>
+export type VideoSourceRaw = z.infer<typeof VideoSourceRawSchema>
 export type VideoPreview = z.infer<typeof VideoPreviewSchema>
 export type VideoDetails = z.infer<typeof VideoDetailsSchema>
 export type Video = VideoPreview & VideoDetails

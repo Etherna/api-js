@@ -1,6 +1,16 @@
 // Types
 export type { SchemaVersion } from "./schemas/base"
-export type { Image, ImageRaw, ImageRawSources, ImageSources } from "./schemas/image"
+export type {
+  Image,
+  ImageRaw,
+  ImageRawLegacySources,
+  ImageRawSources,
+  ImageSources,
+  ImageSource,
+  ImageRawSource,
+  ImageType,
+  ImageSize,
+} from "./schemas/image"
 export type {
   Playlist,
   PlaylistEncryptedDataRaw,
@@ -16,6 +26,8 @@ export type {
   VideoDetails,
   VideoPreview,
   VideoSource,
+  VideoSourceRaw,
+  VideoQuality,
   VideoPreviewRaw,
   VideoDetailsRaw,
 } from "./schemas/video"

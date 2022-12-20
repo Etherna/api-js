@@ -1,3 +1,4 @@
+import { toHexString } from "../../utils/bytes"
 import { NodeType } from "./types"
 import {
   checkReference,
@@ -276,6 +277,23 @@ export class MantarayNode {
     if (this.type > 255) throw 'Property "type" in Node is greater than 255'
 
     return this.type
+  }
+
+  public get readable(): object {
+    return {
+      entry: this.entry ? toHexString(this.entry) : undefined,
+      metadata: this.metadata,
+      forks: Object.keys(this.forks || {}).reduce(
+        (acc, key) => ({
+          ...acc,
+          [new TextDecoder().decode(new Uint8Array([+key]))]: {
+            prefix: new TextDecoder().decode(this.forks![+key]!.prefix),
+            node: this.forks![+key]!.node.readable,
+          },
+        }),
+        {}
+      ),
+    }
   }
 
   /// Node type related functions

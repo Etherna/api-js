@@ -5,6 +5,9 @@ export const isValidReference = (reference: string): reference is Reference => {
 }
 
 export function getBzzUrl(origin: string, reference: string, path?: string): string {
+  if (!reference || !isValidReference(reference)) {
+    throw new Error("Provide a valid reference")
+  }
   const url = new URL(`/bzz/${reference}/${path ?? ""}`, origin)
   return url.href.replace(/\/$/, "")
 }

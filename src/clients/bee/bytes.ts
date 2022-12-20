@@ -32,24 +32,20 @@ export default class Bytes {
     return wrapBytesWithHelpers(new Uint8Array(resp.data))
   }
 
-  async upload(data: Uint8Array | File | string, options: RequestUploadOptions) {
-    const resp = await this.instance.request.post<ReferenceResponse>(
-      `${bytesEndpoint}`,
-      prepareData(data),
-      {
-        headers: {
-          ...extractFileUploadHeaders(options),
-        },
-        timeout: options?.timeout,
-        signal: options?.signal,
-        onUploadProgress: e => {
-          if (options?.onUploadProgress) {
-            const progress = Math.round((e.progress ?? 0) * 100)
-            options.onUploadProgress(progress)
-          }
-        },
-      }
-    )
+  async upload(data: Uint8Array, options: RequestUploadOptions) {
+    const resp = await this.instance.request.post<ReferenceResponse>(`${bytesEndpoint}`, data, {
+      headers: {
+        ...extractFileUploadHeaders(options),
+      },
+      timeout: options?.timeout,
+      signal: options?.signal,
+      onUploadProgress: e => {
+        if (options?.onUploadProgress) {
+          const progress = Math.round((e.progress ?? 0) * 100)
+          options.onUploadProgress(progress)
+        }
+      },
+    })
 
     return {
       reference: resp.data.reference,
