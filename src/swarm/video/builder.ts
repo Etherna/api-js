@@ -1,11 +1,13 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
 import Queue from "../../handlers/Queue"
-import { MantarayNode } from "../../handlers/mantaray"
+import { MantarayFork, MantarayNode } from "../../handlers/mantaray"
+import { beeReference } from "../../schemas/base"
 import { imageType } from "../../schemas/image"
-import { VideoSerializer } from "../../serializers"
+import { MantarayNodeSchema } from "../../schemas/mantaray"
+import { VideoDetailsRawSchema, VideoPreviewRawSchema } from "../../schemas/video"
+import { VideoDeserializer, VideoSerializer } from "../../serializers"
 import { isValidReference } from "../../utils"
-import { toHexString } from "../../utils/bytes"
 import {
   jsonToReference,
   encodePath,
@@ -22,10 +24,16 @@ import {
 } from "../../utils/mantaray"
 import { getVideoMeta } from "../../utils/media"
 
-import type { ImageSource } from "../.."
+import type {
+  ImageType,
+  VideoDetails,
+  VideoPreview,
+  VideoQuality,
+  MantarayNode as MantarayNodeType,
+} from "../.."
 import type { BatchId, BeeClient, Reference } from "../../clients"
-import type { ImageType, ImageRawSource } from "../../schemas/image"
-import type { VideoDetails, VideoPreview, VideoQuality, VideoSource } from "../../schemas/video"
+import type { ImageRawSource } from "../../schemas/image"
+import type { VideoDetailsRaw, VideoPreviewRaw, VideoSourceRaw } from "../../schemas/video"
 
 interface VideoBuilderOptions {
   reference?: Reference
@@ -41,8 +49,8 @@ export const VIDEO_DETAILS_META_PATH = "details"
 
 export default class VideoBuilder {
   reference: Reference
-  previewMeta: VideoPreview
-  detailsMeta: VideoDetails
+  previewMeta: VideoPreviewRaw
+  detailsMeta: VideoDetailsRaw
   node: MantarayNode
   batchId?: BatchId
 
@@ -50,21 +58,24 @@ export default class VideoBuilder {
   private queue: Queue
 
   constructor(opts: VideoBuilderOptions) {
-    this.previewMeta = opts.previewMeta ?? {
-      reference: opts.reference ?? "",
-      title: "",
-      duration: 0,
-      thumbnail: null,
-      ownerAddress: opts.ownerAddress,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    }
-    this.detailsMeta = opts.detailsMeta ?? {
-      description: "",
-      aspectRatio: 1,
-      sources: [],
-      batchId: null,
-    }
+    this.previewMeta = opts.previewMeta
+      ? VideoPreviewRawSchema.parse(opts.previewMeta)
+      : {
+          title: "",
+          duration: 0,
+          thumbnail: null,
+          ownerAddress: opts.ownerAddress,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }
+    this.detailsMeta = opts.detailsMeta
+      ? VideoDetailsRawSchema.parse(opts.detailsMeta)
+      : {
+          description: "",
+          aspectRatio: 1,
+          sources: [],
+          batchId: null,
+        }
     this.beeClient = opts.beeClient
     this.batchId = opts.batchId
     this.queue = new Queue()
@@ -144,8 +155,25 @@ export default class VideoBuilder {
   async saveNode() {
     if (!this.batchId) throw new Error("BatchId is missing")
 
-    this.previewMeta = JSON.parse(new VideoSerializer().serializePreview(this.previewMeta))
-    this.detailsMeta = JSON.parse(new VideoSerializer().serializeDetails(this.detailsMeta))
+    // 1. deserialize with dummy params
+    // 2. re-serialize in a raw format
+    // validation: raw -> parsed -> raw
+    this.previewMeta = JSON.parse(
+      new VideoSerializer().serializePreview(
+        new VideoDeserializer("http://doesntmatter.com").deserializePreview(
+          JSON.stringify(this.previewMeta),
+          { reference: "0".repeat(64) }
+        )
+      )
+    )
+    this.detailsMeta = JSON.parse(
+      new VideoSerializer().serializeDetails(
+        new VideoDeserializer("http://doesntmatter.com").deserializeDetails(
+          JSON.stringify(this.detailsMeta),
+          { reference: "0".repeat(64) }
+        )
+      )
+    )
 
     this.updateNode()
 
@@ -199,6 +227,56 @@ export default class VideoBuilder {
     this.updateNode()
   }
 
+  serialize(): string {
+    return JSON.stringify({
+      reference: this.reference,
+      previewMeta: this.previewMeta,
+      detailsMeta: this.detailsMeta,
+      node: this.node.readable,
+    })
+  }
+
+  deserialize(value: string) {
+    const obj = JSON.parse(value)
+    this.reference = beeReference.parse(obj.reference) as Reference
+    this.previewMeta = VideoPreviewRawSchema.parse(obj.previewMeta)
+    this.detailsMeta = VideoDetailsRawSchema.parse(obj.detailsMeta)
+
+    const recursiveLoadNode = (node: MantarayNodeType): MantarayNode => {
+      const mantarayNode = new MantarayNode()
+
+      if (node.entry) {
+        mantarayNode.setEntry = referenceToBytesReference(node.entry as Reference)
+      }
+      if (node.metadata) {
+        mantarayNode.setMetadata = node.metadata
+      }
+      if (Object.keys(node.forks).length > 0) {
+        mantarayNode.forks = Object.entries(node.forks).reduce((acc, [path, value]) => {
+          const fork = new MantarayFork(encodePath(value.prefix), recursiveLoadNode(value.node))
+          return {
+            ...acc,
+            [encodePath(path)[0]!]: fork,
+          }
+        }, {} as Record<number, MantarayFork>)
+      }
+
+      return mantarayNode
+    }
+
+    const node = MantarayNodeSchema.parse(obj.node)
+    this.node = recursiveLoadNode(node)
+
+    return JSON.stringify({
+      reference: this.reference,
+      previewMeta: this.previewMeta,
+      detailsMeta: this.detailsMeta,
+      node: this.node.readable,
+    })
+  }
+
+  // private
+
   private enqueueData(data: Uint8Array) {
     const chunkedFile = makeChunkedFile(data)
     this.queue.enqueue(async () => {
@@ -207,7 +285,7 @@ export default class VideoBuilder {
     return chunkedFile.address()
   }
 
-  private addVideoSource(quality: VideoQuality, size: number, entry: Reference): VideoSource {
+  private addVideoSource(quality: VideoQuality, size: number, entry: Reference): VideoSourceRaw {
     const path = this.getVideoPath(quality)
 
     this.node.addFork(encodePath(path), referenceToBytesReference(entry), {
@@ -221,11 +299,10 @@ export default class VideoBuilder {
       quality,
       size,
       path,
-      url: `${this.beeClient.url}/bytes/${entry}`,
     }
   }
 
-  private addThumbSource(width: number, type: ImageType, entry: Reference): ImageSource {
+  private addThumbSource(width: number, type: ImageType, entry: Reference): ImageRawSource {
     const path = this.getThumbPath(width, type)
 
     this.node.addFork(encodePath(path), referenceToBytesReference(entry), {
@@ -238,7 +315,6 @@ export default class VideoBuilder {
       type,
       width,
       path,
-      url: `${this.beeClient.url}/bytes/${entry}`,
     }
   }
 

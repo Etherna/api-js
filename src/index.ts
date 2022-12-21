@@ -11,6 +11,7 @@ export type {
   ImageType,
   ImageSize,
 } from "./schemas/image"
+export type { MantarayFork, MantarayNode } from "./schemas/mantaray"
 export type {
   Playlist,
   PlaylistEncryptedDataRaw,

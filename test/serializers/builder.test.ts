@@ -119,4 +119,47 @@ describe("builder", () => {
     await builder.loadNode()
     await builder.saveNode()
   })
+
+  it("should serialize and deserialize", async () => {
+    const reference = folderVideoReference
+    const videoPreviewManifest = await beeClient.bzz.downloadPath(reference, "preview")
+    const videoDetailsManifest = await beeClient.bzz.downloadPath(reference, "details")
+
+    const videoPreview = new VideoDeserializer(beeClient.url).deserializePreview(
+      videoPreviewManifest.data.text(),
+      { reference }
+    )
+    const videoDetails = new VideoDeserializer(beeClient.url).deserializeDetails(
+      videoDetailsManifest.data.text(),
+      { reference }
+    )
+
+    const builder = new VideoBuilder({
+      reference,
+      beeClient,
+      batchId,
+      ownerAddress: "0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246",
+      previewMeta: videoPreview,
+      detailsMeta: videoDetails,
+    })
+
+    await builder.loadNode()
+
+    const initialPreview = builder.previewMeta
+    const initialDetails = builder.detailsMeta
+    const initialNode = builder.node.readable
+
+    const serializedString = builder.serialize()
+
+    const builder2 = new VideoBuilder({
+      beeClient,
+      batchId,
+      ownerAddress: "0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246",
+    })
+    builder2.deserialize(serializedString)
+
+    expect(JSON.stringify(initialPreview)).toEqual(JSON.stringify(builder2.previewMeta))
+    expect(JSON.stringify(initialDetails)).toEqual(JSON.stringify(builder2.detailsMeta))
+    expect(JSON.stringify(initialNode)).toEqual(JSON.stringify(builder2.node.readable))
+  })
 })
