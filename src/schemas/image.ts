@@ -4,7 +4,7 @@ import { nonEmptyRecord, beeReference } from "./base"
 
 export const imageSize = z.custom<`${number}w`>(val => /^\d+w$/g.test(val as string))
 
-export const imageType = z.enum(["jpeg", "png", "webp", "avif", "jpeg-xl"])
+export const imageType = z.enum(["jpeg", "png", "webp", "avif", "jpeg-xl"]).default("jpeg")
 
 export const ImageRawLegacySourcesSchema = nonEmptyRecord(
   /** Image size with related bee reference */

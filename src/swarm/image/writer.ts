@@ -1,9 +1,10 @@
+import { imageType } from "../../schemas/image"
 import { ImageSerializer } from "../../serializers"
 import { imageToBlurhash } from "../../utils/blurhash"
 import { bufferToDataURL, fileToBuffer } from "../../utils/buffer"
 import { resizeImage } from "../../utils/image"
 
-import type { ImageRaw, ImageRawSources } from "../.."
+import type { ImageRaw, ImageRawSources, ImageType } from "../.."
 import type { BatchId, BeeClient, Reference } from "../../clients"
 import type { WriterUploadOptions } from "../base-writer"
 
@@ -46,14 +47,13 @@ export default class ImageWriter {
     // upload files and retrieve the new reference
     let results: Reference[] = []
     let multipleCompletion = 0
-    const responsiveSources = Object.entries(responsiveSourcesData)
-    for (const [size, data] of responsiveSources) {
+    for (const { data } of responsiveSourcesData) {
       const result = await this.beeClient.bzz.upload(data, {
         batchId,
         onUploadProgress: completion => {
           if (options?.onUploadProgress) {
             multipleCompletion += completion
-            options.onUploadProgress(multipleCompletion / responsiveSources.length)
+            options.onUploadProgress(multipleCompletion / responsiveSourcesData.length)
           }
         },
         deferred: options?.deferred,
@@ -72,20 +72,17 @@ export default class ImageWriter {
     // clear memory
     this.preGenerateImages = undefined
 
-    const sources: ImageRawSources = Object.keys(responsiveSourcesData).reduce(
-      (obj, size, i) => ({
-        ...obj,
-        [size]: this.beeClient.bzz.url(results[i]!),
-      }),
-      {}
-    )
-
     const imageRaw = new ImageSerializer().serialize({
       aspectRatio: imageAspectRatio,
       blurhash,
-      sources,
+      sources: responsiveSourcesData.map((res, i) => ({
+        type: res.type,
+        width: res.width,
+        reference: results[i]!,
+        url: this.beeClient.bzz.url(results[i]!),
+      })),
+      url: this.beeClient.bzz.url(results[0]!),
       blurredBase64: "",
-      src: this.beeClient.bzz.url(results[0]!),
     })
 
     return imageRaw
@@ -102,12 +99,9 @@ export default class ImageWriter {
    * Pregenerate images and return the total size of the images,
    * used to calculate the best postage batch
    */
-  async pregenerateImages(): Promise<number> {
+  async pregenerateImages() {
     this.preGenerateImages = await this.generateImages()
-    return Object.values(this.preGenerateImages.responsiveSourcesData).reduce(
-      (acc, cur) => acc + cur.length,
-      0
-    )
+    return this.preGenerateImages
   }
 
   // Private methods
@@ -122,9 +116,19 @@ export default class ImageWriter {
     const blurhash = await imageToBlurhash(originalImageData, imageSize.width, imageSize.height)
     const imageAspectRatio = imageSize.width / imageSize.height
 
-    const responsiveSourcesData: { [size: `${number}w`]: Uint8Array } = {
-      [`${imageSize.width}w`]: new Uint8Array(originalImageData),
+    type ResponseSourceData = {
+      type: ImageType
+      data: Uint8Array
+      width: number
     }
+
+    const responsiveSourcesData: ResponseSourceData[] = [
+      {
+        type: imageType.parse(this.file.type.split("/")[1]),
+        width: imageSize.width,
+        data: new Uint8Array(originalImageData),
+      },
+    ]
 
     const inferiorSizes = this.responsiveSizes.filter(size => size < imageSize.width)
     if (inferiorSizes.length < 2 && inferiorSizes[0] !== imageSize.width) {
@@ -132,7 +136,11 @@ export default class ImageWriter {
     }
     for (const size of inferiorSizes) {
       const blob = await this.imageToResponsiveSize(this.file, size)
-      responsiveSourcesData[`${size}w`] = new Uint8Array(await blob?.arrayBuffer())
+      responsiveSourcesData.push({
+        type: imageType.parse(blob.type.split("/")[1]),
+        width: size,
+        data: new Uint8Array(await blob.arrayBuffer()),
+      })
     }
 
     return {

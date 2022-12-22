@@ -1,20 +1,17 @@
-import { extractReference } from "./bzz"
-
 import type { Reference } from "../clients"
 import type { Video } from "../schemas/video"
 
 export function extractVideoReferences(video: Video): Reference[] {
-  const thumbnailSources = Object.values(video.thumbnail?.sources ?? {}) as string[]
   const references = [
-    video.reference,
-    ...video.sources
+    video.preview.reference,
+    ...(video.details?.sources ?? [])
       .map(source => (source.type === "mp4" ? source.reference : null))
       .filter(Boolean),
-    ...thumbnailSources.map(src => extractReference(src)),
+    ...(video.preview.thumbnail?.sources ?? []).map(source => source.reference).filter(Boolean),
   ] as Reference[]
 
-  if (video.reference !== "0".repeat(64)) {
-    references.push(video.reference as Reference)
+  if (video.preview.reference !== "0".repeat(64)) {
+    references.push(video.preview.reference as Reference)
   }
 
   return references

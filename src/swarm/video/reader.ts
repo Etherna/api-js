@@ -2,7 +2,15 @@ import { beeReference } from "../../schemas/base"
 import { VideoDeserializer } from "../../serializers"
 import BaseReader from "../base-reader"
 
-import type { Video, VideoRaw, Profile } from "../.."
+import type {
+  Video,
+  Profile,
+  VideoPreview,
+  VideoDetailsRaw,
+  VideoPreviewRaw,
+  VideoSourceRaw,
+  VideoRaw,
+} from "../.."
 import type {
   BeeClient,
   EthernaIndexClient,
@@ -18,7 +26,9 @@ interface VideoReaderOptions extends ReaderOptions {
   prefetchedVideo?: Video
 }
 
-interface VideoReaderDownloadOptions extends ReaderDownloadOptions {}
+interface VideoReaderDownloadOptions extends ReaderDownloadOptions {
+  mode: "preview" | "full"
+}
 
 export default class VideoReader extends BaseReader<Video | null, string, VideoRaw | IndexVideo> {
   reference: Reference
@@ -46,7 +56,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
     this.prefetchedVideo = opts.prefetchedVideo
   }
 
-  async download(opts?: VideoReaderDownloadOptions): Promise<Video | null> {
+  async download(opts: VideoReaderDownloadOptions): Promise<Video | null> {
     if (this.prefetchedVideo) return this.prefetchedVideo
 
     let videoRaw: VideoRaw | null = null
@@ -66,50 +76,68 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
 
     if (!videoRaw) return null
 
-    const video = new VideoDeserializer(this.beeClient.url).deserialize(JSON.stringify(videoRaw), {
+    const deserializer = new VideoDeserializer(this.beeClient.url)
+    const preview = deserializer.deserializePreview(JSON.stringify(videoRaw.preview), {
+      reference: this.reference,
+    })
+    const details = deserializer.deserializeDetails(JSON.stringify(videoRaw.details), {
       reference: this.reference,
     })
 
     this.rawResponse = indexVideo ?? videoRaw
 
-    return video
+    return {
+      reference: this.reference,
+      preview,
+      details,
+    }
   }
 
   indexVideoToRaw(video: IndexVideo): VideoRaw {
-    const videoRaw = VideoReader.emptyVideo()
+    const videoPreviewRaw = VideoReader.emptyVideoPreview()
+    const videoDetailsRaw = VideoReader.emptyVideoDetails()
 
-    if (video.lastValidManifest && !this.isValidatingManifest(video.lastValidManifest)) {
-      videoRaw.v = "1.1"
-      videoRaw.createdAt = new Date(video.creationDateTime).getTime()
-      videoRaw.updatedAt = video.lastValidManifest.updatedAt
+    if (video.lastValidManifest && !VideoReader.isValidatingManifest(video.lastValidManifest)) {
+      videoPreviewRaw.v = "2.0"
+      videoPreviewRaw.title = video.lastValidManifest.title
+      videoPreviewRaw.duration = video.lastValidManifest.duration
+      videoPreviewRaw.thumbnail = video.lastValidManifest.thumbnail
+      videoPreviewRaw.ownerAddress = video.ownerAddress
+      videoPreviewRaw.createdAt = new Date(video.creationDateTime).getTime()
+      videoPreviewRaw.updatedAt = video.lastValidManifest.updatedAt
         ? new Date(video.lastValidManifest.updatedAt).getTime()
         : null
-      videoRaw.batchId = video.lastValidManifest.batchId
-      videoRaw.title = video.lastValidManifest.title
-      videoRaw.description = video.lastValidManifest.description
-      videoRaw.duration = video.lastValidManifest.duration
-      videoRaw.originalQuality = video.lastValidManifest.originalQuality
-      videoRaw.thumbnail = video.lastValidManifest.thumbnail
-      videoRaw.sources = video.lastValidManifest.sources
-      videoRaw.ownerAddress = video.ownerAddress
+      videoDetailsRaw.v = "2.0"
+      videoDetailsRaw.batchId = video.lastValidManifest.batchId
+      videoDetailsRaw.description = video.lastValidManifest.description
+      videoDetailsRaw.sources = video.lastValidManifest.sources
     }
 
-    return videoRaw
+    return {
+      preview: videoPreviewRaw,
+      details: videoDetailsRaw,
+    }
   }
 
-  static emptyVideo(): VideoRaw {
+  static emptyVideoPreview(): VideoPreviewRaw {
     return {
       title: "",
-      description: "",
-      originalQuality: "0p",
       duration: 0,
       thumbnail: null,
-      sources: [],
       ownerAddress: "0x0",
       createdAt: Date.now(),
-      updatedAt: null,
+      updatedAt: Date.now(),
+      v: "2.0",
+    }
+  }
+
+  static emptyVideoDetails(): VideoDetailsRaw {
+    return {
+      description: "",
+      aspectRatio: null,
+      sources: [],
       batchId: undefined,
-      v: "1.1",
+      v: "2.0",
     }
   }
 
@@ -122,7 +150,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         ? await this.indexClient.videos.fetchVideoFromId(this.indexReference)
         : await this.indexClient.videos.fetchVideoFromHash(this.reference)
 
-      if (this.isValidatingManifest(indexVideo.lastValidManifest)) return null
+      if (VideoReader.isValidatingManifest(indexVideo.lastValidManifest)) return null
 
       return indexVideo
     } catch (error) {
@@ -131,32 +159,55 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
     }
   }
 
-  private async fetchSwarmVideo(opts?: VideoReaderDownloadOptions): Promise<VideoRaw | null> {
+  private async fetchSwarmVideo(opts: VideoReaderDownloadOptions): Promise<VideoRaw | null> {
     if (!this.reference) return null
     try {
-      const resp = await this.beeClient.bzz.download(this.reference, {
-        headers: {
-          // "x-etherna-reason": "video-meta",
-        },
-        maxResponseSize: opts?.maxResponseSize,
-        onDownloadProgress: opts?.onDownloadProgress,
-      })
-      const videoRaw = resp.data.json() as VideoRaw
-      return videoRaw
+      const [previewResp, detailsResp] = await Promise.allSettled([
+        this.beeClient.bzz.download(this.reference, {
+          headers: {
+            // "x-etherna-reason": "video-preview-meta",
+          },
+          maxResponseSize: opts?.maxResponseSize,
+          onDownloadProgress: opts?.onDownloadProgress,
+        }),
+        opts.mode === "full"
+          ? this.beeClient.bzz.downloadPath(this.reference, "details", {
+              headers: {
+                // "x-etherna-reason": "video-details-meta",
+              },
+              maxResponseSize: opts?.maxResponseSize,
+              onDownloadProgress: opts?.onDownloadProgress,
+            })
+          : Promise.resolve(null),
+      ])
+
+      if (previewResp.status === "rejected") {
+        throw previewResp.reason
+      }
+
+      const preview = previewResp.value.data.json() as VideoPreviewRaw
+      const details =
+        detailsResp.status === "fulfilled"
+          ? (detailsResp.value?.data.json() as VideoDetailsRaw)
+          : undefined
+
+      return {
+        preview,
+        details,
+      }
     } catch (error) {
       console.error(error)
       return null
     }
   }
 
-  private isValidatingManifest(manifest: IndexVideoManifest | null): boolean {
+  static isValidatingManifest(manifest: IndexVideoManifest | null): boolean {
     if (!manifest) return true
     return (
       manifest.title === null &&
       manifest.description === null &&
       manifest.duration === null &&
       manifest.thumbnail === null &&
-      manifest.originalQuality === null &&
       manifest.sources.length === 0
     )
   }

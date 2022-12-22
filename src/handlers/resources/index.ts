@@ -1,7 +1,7 @@
 import { extractReference } from "../../utils"
 import { extractVideoReferences } from "../../utils/references"
 
-import type { Video } from "../.."
+import type { Video, VideoSource } from "../.."
 import type { EthernaGatewayClient, Reference } from "../../clients"
 import type { SwarmResourceStatus } from "./types"
 
@@ -89,11 +89,13 @@ export default class EthernaResourcesHandler {
     // is metadata?
     if (reference === video.reference) return "metadata"
     // is video source?
-    const videoSource = video.sources.find(source => source.reference === reference)
+    const videoSource = video.details?.sources.find(
+      source => source.type === "mp4" && source.reference === reference
+    )
     if (videoSource) return "video"
     // is thumb image source?
-    const thumbSource = Object.entries(video.thumbnail?.sources ?? {}).find(([_, thumbReference]) =>
-      thumbReference ? extractReference(thumbReference) === reference : false
+    const thumbSource = (video.preview.thumbnail?.sources ?? []).find(
+      source => source.reference === reference
     )
     if (thumbSource) return "thumb"
     // not found!
@@ -106,13 +108,18 @@ export default class EthernaResourcesHandler {
       case "metadata":
         return "Video metadata"
       case "video":
-        return `Source ${video.sources.find(source => source.reference === reference)!.quality}`
+        return `Source ${
+          (
+            video.details?.sources.find(
+              source => source.type === "mp4" && source.reference === reference
+            ) as VideoSource & { type: "mp4" }
+          ).quality
+        }`
       case "thumb":
         return `Thumbnail ${
-          Object.entries(video.thumbnail?.sources ?? {}).find(([_, thumbReference]) =>
-            thumbReference ? extractReference(thumbReference) === reference : false
-          )![0]
-        }`
+          (video.preview.thumbnail?.sources ?? []).find(source => source.reference === reference)!
+            .width
+        }w`
       default:
         return reference.slice(0, 8)
     }

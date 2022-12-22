@@ -24,6 +24,7 @@ export type { Profile, ProfileRaw } from "./schemas/profile"
 export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/user-playlists"
 export type {
   Video,
+  VideoRaw,
   VideoDetails,
   VideoPreview,
   VideoSource,

@@ -26,7 +26,8 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "skipDefaultLibCheck": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "typeRoots": ["./src/typings/"]
   },
   "include": ["src", "test"]
 }

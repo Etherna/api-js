@@ -1,5 +1,5 @@
 import type { EthAddress } from ".."
-import type { VideoRaw } from "../.."
+import type { VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
 
 export type PaginatedResult<T> = {
   elements: T[]
@@ -37,7 +37,10 @@ export type IndexVideo = {
   totUpvotes: number
 }
 
-export type IndexVideoManifest = Omit<VideoRaw & { v: "1.1" }, "createdAt" | "ownerAddress"> & {
+export type IndexVideoManifest = Omit<
+  VideoPreviewRaw & VideoDetailsRaw & { v: "2.0" },
+  "createdAt" | "ownerAddress"
+> & {
   hash: string
 }
 

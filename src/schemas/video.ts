@@ -3,6 +3,8 @@ import { z } from "zod"
 import { beeReference, ethAddress, slicedString } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 
+import type { Reference } from "../clients"
+
 const quality = z.custom<`${number}p`>(val => /^\d+p$/g.test(val as string))
 
 /**
@@ -151,4 +153,12 @@ export type VideoSource = z.infer<typeof VideoSourceSchema>
 export type VideoSourceRaw = z.infer<typeof VideoSourceRawSchema>
 export type VideoPreview = z.infer<typeof VideoPreviewSchema>
 export type VideoDetails = z.infer<typeof VideoDetailsSchema>
-export type Video = VideoPreview & VideoDetails
+export type Video = {
+  reference: Reference
+  preview: VideoPreview
+  details?: VideoDetails
+}
+export type VideoRaw = {
+  preview: VideoPreviewRaw
+  details?: VideoDetailsRaw
+}
