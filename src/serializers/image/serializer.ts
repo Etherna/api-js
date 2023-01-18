@@ -1,4 +1,4 @@
-import { ImageSchema } from "../../schemas/image"
+import { ImageRawSchema, ImageSchema } from "../../schemas/image"
 
 import type { ImageRaw, ImageRawSources, Image } from "../.."
 
@@ -23,11 +23,11 @@ export default class ImageSerializer {
       )
     )
 
-    const imageRaw: ImageRaw = {
+    const imageRaw = ImageRawSchema.parse({
       aspectRatio,
       blurhash,
       sources,
-    }
+    })
 
     return imageRaw
   }

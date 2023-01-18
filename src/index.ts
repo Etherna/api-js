@@ -33,3 +33,5 @@ export type {
   VideoPreviewRaw,
   VideoDetailsRaw,
 } from "./schemas/video"
+
+export type { ProcessedImage, ResponseSourceData } from "./swarm/image/writer"

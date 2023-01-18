@@ -6,7 +6,7 @@ import { toHexString, fromHexString } from "./bytes"
 import type { BeeClient, Reference } from "../clients"
 import type { Reference as BytesReference } from "../handlers/mantaray/types"
 
-export const ZeroHashReference = new Uint8Array(64).fill(0) as BytesReference
+export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
 export const RootPath = "/"
 export const WebsiteIndexDocumentSuffixKey = "website-index-document"
 export const EntryMetadataContentTypeKey = "Content-Type"
@@ -48,14 +48,17 @@ export const isZeroBytesReference = (ref: BytesReference | Reference): boolean =
 
 export async function getBzzNodeInfo(
   reference: Reference,
-  beeClient: BeeClient
+  beeClient: BeeClient,
+  signal?: AbortSignal
 ): Promise<{ entry: BytesReference; contentType?: string } | null> {
   try {
     const node = new MantarayNode()
     await node.load(async reference => {
-      const bmtData = await beeClient.bytes.download(toHexString(reference))
+      const bmtData = await beeClient.bytes.download(toHexString(reference), { signal })
       return bmtData
     }, referenceToBytesReference(reference))
+
+    if (signal?.aborted) return null
 
     const fork = node.getForkAtPath(encodePath(RootPath))
     const metadata = fork?.node.getMetadata
@@ -78,4 +81,30 @@ export async function getBzzNodeInfo(
   } catch (error) {
     return null
   }
+}
+
+export const getAllPaths = (node: MantarayNode) => {
+  const paths: Record<string, MantarayNode> = {}
+
+  for (const fork of Object.values(node.forks ?? {})) {
+    const prefix = decodePath(fork.prefix)
+    const isEnd = !fork.node.forks || Object.keys(fork.node.forks).length === 0
+
+    if (isEnd) {
+      paths[prefix] = fork.node
+    } else {
+      const subPaths = getAllPaths(fork.node)
+      for (const [subPath, subNode] of Object.entries(subPaths)) {
+        paths[prefix + subPath] = subNode
+      }
+    }
+  }
+
+  return paths
+}
+
+export const getNodesWithPrefix = (node: MantarayNode, prefix: string): MantarayNode[] => {
+  const allPaths = getAllPaths(node)
+  const entries = Object.entries(allPaths)
+  return entries.filter(([path]) => path.startsWith(prefix)).map(([_, node]) => node)
 }

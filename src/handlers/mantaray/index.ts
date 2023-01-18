@@ -281,7 +281,9 @@ export class MantarayNode {
 
   public get readable(): object {
     return {
+      type: this.type,
       entry: this.entry ? toHexString(this.entry) : undefined,
+      contentAddress: this.contentAddress ? toHexString(this.contentAddress) : undefined,
       metadata: this.metadata,
       forks: Object.keys(this.forks || {}).reduce(
         (acc, key) => ({

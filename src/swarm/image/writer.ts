@@ -4,9 +4,21 @@ import { imageToBlurhash } from "../../utils/blurhash"
 import { bufferToDataURL, fileToBuffer } from "../../utils/buffer"
 import { resizeImage } from "../../utils/image"
 
-import type { ImageRaw, ImageRawSources, ImageType } from "../.."
+import type { ImageRaw, ImageType } from "../.."
 import type { BatchId, BeeClient, Reference } from "../../clients"
 import type { WriterUploadOptions } from "../base-writer"
+
+export type ProcessedImage = {
+  blurhash: string
+  aspectRatio: number
+  responsiveSourcesData: ResponseSourceData[]
+}
+
+export type ResponseSourceData = {
+  type: ImageType
+  data: Uint8Array
+  width: number
+}
 
 interface ImageWriterOptions {
   beeClient: BeeClient
@@ -39,7 +51,7 @@ export default class ImageWriter {
    * @returns The raw image object
    */
   async upload(options?: WriterUploadOptions): Promise<ImageRaw> {
-    const { blurhash, imageAspectRatio, responsiveSourcesData } =
+    const { blurhash, aspectRatio, responsiveSourcesData } =
       this.preGenerateImages ?? (await this.generateImages())
 
     const batchId = this.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
@@ -73,7 +85,7 @@ export default class ImageWriter {
     this.preGenerateImages = undefined
 
     const imageRaw = new ImageSerializer().serialize({
-      aspectRatio: imageAspectRatio,
+      aspectRatio,
       blurhash,
       sources: responsiveSourcesData.map((res, i) => ({
         type: res.type,
@@ -109,18 +121,12 @@ export default class ImageWriter {
   /**
    * Generate the preview, base64 and responsive images from the selected file
    */
-  private async generateImages() {
+  private async generateImages(): Promise<ProcessedImage> {
     const originalImageData = await fileToBuffer(this.file)
     const imageSize = await this.getFileImageSize(originalImageData)
 
     const blurhash = await imageToBlurhash(originalImageData, imageSize.width, imageSize.height)
-    const imageAspectRatio = imageSize.width / imageSize.height
-
-    type ResponseSourceData = {
-      type: ImageType
-      data: Uint8Array
-      width: number
-    }
+    const aspectRatio = imageSize.width / imageSize.height
 
     const responsiveSourcesData: ResponseSourceData[] = [
       {
@@ -145,7 +151,7 @@ export default class ImageWriter {
 
     return {
       blurhash,
-      imageAspectRatio,
+      aspectRatio,
       responsiveSourcesData,
     }
   }

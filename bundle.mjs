@@ -58,7 +58,7 @@ for (const lib of entries) {
         formats: ["es"],
       },
       emptyOutDir: false,
-      sourcemap: false,
+      sourcemap: true,
       minify: "esbuild",
       target: "es2017",
       rollupOptions: {

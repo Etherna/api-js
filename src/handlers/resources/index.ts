@@ -1,8 +1,7 @@
-import { extractReference } from "../../utils"
 import { extractVideoReferences } from "../../utils/references"
 
-import type { Video, VideoSource } from "../.."
-import type { EthernaGatewayClient, Reference } from "../../clients"
+import type { Video, VideoPreview, VideoSource } from "../.."
+import type { EthernaGatewayClient, Reference, RequestOptions } from "../../clients"
 import type { SwarmResourceStatus } from "./types"
 
 interface EthernaResourcesHandlerOptions {
@@ -13,32 +12,34 @@ interface EthernaResourcesFetchOptions {
   withByWhom?: boolean
 }
 
+type AnyVideo = Video | VideoPreview
+
 export default class EthernaResourcesHandler {
   resourcesStatus?: SwarmResourceStatus[]
-  videos: Video[]
+  references: Reference[]
   private gatewayClient: EthernaGatewayClient
 
-  constructor(videos: Video[], opts: EthernaResourcesHandlerOptions) {
-    this.videos = videos
+  constructor(videos: AnyVideo[], opts: EthernaResourcesHandlerOptions)
+  constructor(references: Reference[], opts: EthernaResourcesHandlerOptions)
+  constructor(input: (AnyVideo | Reference)[], opts: EthernaResourcesHandlerOptions) {
+    this.references = input
+      .map(input => (typeof input === "string" ? [input] : extractVideoReferences(input)))
+      .flat()
+      .filter((reference, index, self) => self.indexOf(reference) === index)
     this.gatewayClient = opts.gatewayClient
   }
 
   async fetchOffers(opts?: EthernaResourcesFetchOptions) {
     const fetchByWhom = opts?.withByWhom ?? true
 
-    const references = this.videos
-      .map(video => extractVideoReferences(video))
-      .flat()
-      .filter((reference, index, self) => self.indexOf(reference) === index)
-
     this.resourcesStatus = []
 
     if (fetchByWhom) {
       const responses = await Promise.allSettled(
-        references.map(reference => this.gatewayClient.resources.fetchOffers(reference))
+        this.references.map(reference => this.gatewayClient.resources.fetchOffers(reference))
       )
 
-      for (const [index, reference] of references.entries()) {
+      for (const [index, reference] of this.references.entries()) {
         const response = responses[index]!
         this.resourcesStatus.push({
           reference,
@@ -47,7 +48,7 @@ export default class EthernaResourcesHandler {
         })
       }
     } else {
-      const results = await this.gatewayClient.resources.fetchAreOffered(references)
+      const results = await this.gatewayClient.resources.fetchAreOffered(this.references)
 
       for (const [reference, isOffered] of Object.entries(results)) {
         this.resourcesStatus.push({
@@ -59,17 +60,15 @@ export default class EthernaResourcesHandler {
     }
   }
 
-  async offerResources() {
-    const references = this.videos.map(video => extractVideoReferences(video)).flat()
+  async offerResources(opts?: RequestOptions) {
     await Promise.allSettled(
-      references.map(reference => this.gatewayClient.resources.offer(reference))
+      this.references.map(reference => this.gatewayClient.resources.offer(reference, opts))
     )
   }
 
-  async unofferResources() {
-    const references = this.videos.map(video => extractVideoReferences(video)).flat()
+  async unofferResources(opts?: RequestOptions) {
     await Promise.allSettled(
-      references.map(reference => this.gatewayClient.resources.cancelOffer(reference))
+      this.references.map(reference => this.gatewayClient.resources.cancelOffer(reference, opts))
     )
   }
 
@@ -85,7 +84,9 @@ export default class EthernaResourcesHandler {
   static videoReferenceType(
     video: Video,
     reference: string
-  ): "metadata" | "video" | "thumb" | null {
+  ): "all" | "metadata" | "video" | "thumb" | null {
+    // is folder metadata?
+    if (reference === video.reference && +video.preview.v >= 2) return "all"
     // is metadata?
     if (reference === video.reference) return "metadata"
     // is video source?
@@ -105,6 +106,8 @@ export default class EthernaResourcesHandler {
   static videoReferenceLabel(video: Video, reference: string) {
     const type = EthernaResourcesHandler.videoReferenceType(video, reference)
     switch (type) {
+      case "all":
+        return "Video"
       case "metadata":
         return "Video metadata"
       case "video":

@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { beeReference, ethAddress, slicedString } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
+import { MantarayNodeSchema } from "./mantaray"
 
 import type { Reference } from "../clients"
 
@@ -24,28 +25,35 @@ const quality = z.custom<`${number}p`>(val => /^\d+p$/g.test(val as string))
  *     /...
  */
 
-export const VideoSourceRawSchema = z.union([
-  z.object({
-    /** Source type */
-    type: z.literal("mp4").optional(),
-    /** Video resolution (eg: 1080p) */
-    quality: quality,
-    /** Path of the video (for folder based video manifest) */
-    path: z.string().optional(),
-    /** Swarm reference of the video */
-    reference: beeReference.optional(),
-    /** Video size in bytes */
-    size: z.number().min(0),
-    /** Video bitrate */
-    bitrate: z.number().min(0).optional(),
-  }),
-  z.object({
-    /** Source type */
-    type: z.enum(["dash", "hls"]),
-    /** Path of the source */
-    path: z.string().min(3),
-  }),
-])
+export const VideoSourceRawSchema = z
+  .union([
+    z.object({
+      /** Source type */
+      type: z.literal("mp4").optional(),
+      /** Video resolution (eg: 1080p) */
+      quality: quality,
+      /** Path of the video (for folder based video manifest) */
+      path: z.string().optional(),
+      /** Swarm reference of the video */
+      reference: beeReference.optional(),
+      /** Video size in bytes */
+      size: z.number().min(0),
+      /** Video bitrate */
+      bitrate: z.number().min(0).optional(),
+    }),
+    z.object({
+      /** Source type */
+      type: z.enum(["dash", "hls"]),
+      /** Path of the source */
+      path: z.string().min(3),
+    }),
+  ])
+  .transform(data => {
+    if ("reference" in data && data.path) {
+      delete data.reference
+    }
+    return data
+  })
 
 export const VideoPreviewRawSchema = z.object({
   /** Title of the video */
@@ -130,6 +138,8 @@ export const VideoPreviewSchema = z.object({
   duration: z.number().min(0),
   /** Thumbnail image data */
   thumbnail: ImageSchema.nullable(),
+  /** Schema version */
+  v: z.enum(["1.0", "1.1", "1.2", "2.0"]),
 })
 
 export const VideoDetailsSchema = z.object({
@@ -143,6 +153,13 @@ export const VideoDetailsSchema = z.object({
   personalData: z.string().max(200).optional(),
   /** batch id used (null if v < `1.1`) */
   batchId: beeReference.nullable(),
+})
+
+export const VideoBuilderSchema = z.object({
+  reference: beeReference,
+  previewMeta: VideoPreviewRawSchema,
+  detailsMeta: VideoDetailsRawSchema,
+  node: MantarayNodeSchema,
 })
 
 // Types
@@ -159,6 +176,7 @@ export type Video = {
   details?: VideoDetails
 }
 export type VideoRaw = {
-  preview: VideoPreviewRaw
+  preview?: VideoPreviewRaw
   details?: VideoDetailsRaw
 }
+export type SerializedVideoBuilder = z.infer<typeof VideoBuilderSchema>

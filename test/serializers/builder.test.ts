@@ -78,17 +78,13 @@ describe("builder", () => {
       videoOldManifest.data.text(),
       { reference: legacyVideoReference }
     )
+    videoDetails.batchId = batchId
 
-    const builder = new VideoBuilder({
-      ownerAddress: "0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246",
-      beeClient,
-      batchId,
-      previewMeta: videoPreview,
-      detailsMeta: videoDetails,
-    })
+    const builder = new VideoBuilder()
+    builder.initialize("0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246", videoPreview, videoDetails)
 
-    await builder.loadNode()
-    await builder.saveNode()
+    await builder.loadNode({ beeClient })
+    await builder.saveNode({ beeClient })
 
     folderVideoReference = builder.reference
   })
@@ -106,18 +102,13 @@ describe("builder", () => {
       videoDetailsManifest.data.text(),
       { reference }
     )
+    videoDetails.batchId = batchId
 
-    const builder = new VideoBuilder({
-      reference,
-      beeClient,
-      batchId,
-      ownerAddress: "0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246",
-      previewMeta: videoPreview,
-      detailsMeta: videoDetails,
-    })
+    const builder = new VideoBuilder()
+    builder.initialize("0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246", videoPreview, videoDetails)
 
-    await builder.loadNode()
-    await builder.saveNode()
+    await builder.loadNode({ beeClient })
+    await builder.saveNode({ beeClient })
   })
 
   it("should serialize and deserialize", async () => {
@@ -133,33 +124,26 @@ describe("builder", () => {
       videoDetailsManifest.data.text(),
       { reference }
     )
+    videoDetails.batchId = batchId
 
-    const builder = new VideoBuilder({
-      reference,
-      beeClient,
-      batchId,
-      ownerAddress: "0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246",
-      previewMeta: videoPreview,
-      detailsMeta: videoDetails,
-    })
+    const builder = new VideoBuilder()
+    builder.initialize("0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246", videoPreview, videoDetails)
 
-    await builder.loadNode()
+    await builder.loadNode({ beeClient })
 
     const initialPreview = builder.previewMeta
     const initialDetails = builder.detailsMeta
     const initialNode = builder.node.readable
 
-    const serializedString = builder.serialize()
+    const serialized = builder.serialize()
 
-    const builder2 = new VideoBuilder({
-      beeClient,
-      batchId,
-      ownerAddress: "0x6163C4b8264a03CCAc412B83cbD1B551B6c6C246",
-    })
-    builder2.deserialize(serializedString)
+    expect(serialized.node).toStrictEqual(initialNode)
 
-    expect(JSON.stringify(initialPreview)).toEqual(JSON.stringify(builder2.previewMeta))
-    expect(JSON.stringify(initialDetails)).toEqual(JSON.stringify(builder2.detailsMeta))
-    expect(JSON.stringify(initialNode)).toEqual(JSON.stringify(builder2.node.readable))
+    const builder2 = new VideoBuilder()
+    builder2.deserialize(serialized)
+
+    expect(builder2.previewMeta).toStrictEqual(initialPreview)
+    expect(builder2.detailsMeta).toStrictEqual(initialDetails)
+    expect(builder2.node.readable).toStrictEqual(initialNode)
   })
 })

@@ -1,4 +1,5 @@
 import { ImageDeserializer, ImageSerializer } from "../../serializers"
+import { isImageTypeSupported } from "../../utils/image"
 
 import type { Image, ImageRaw } from "../.."
 import type { BeeClient } from "../../clients"
@@ -19,5 +20,13 @@ export default class ImageReader {
       this.imageRaw = image
       this.image = new ImageDeserializer(opts.beeClient.url).deserialize(image)
     }
+  }
+
+  static getBestImageUrl(image: Image, width = Number.MAX_SAFE_INTEGER): string {
+    return (
+      image.sources
+        .filter(source => isImageTypeSupported(source.type))
+        .sort((a, b) => b.width - a.width)[0]?.url ?? image.url
+    )
   }
 }

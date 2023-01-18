@@ -18,7 +18,6 @@ export default class VideoDeserializer {
   constructor(private beeUrl: string) {}
 
   deserializePreview(data: string, opts: VideoDeserializerOptions): VideoPreview {
-    console.log(opts)
     const videoRaw = VideoPreviewRawSchema.parse(JSON.parse(data))
 
     const imageDeserializer = new ImageDeserializer(this.beeUrl)
@@ -33,6 +32,7 @@ export default class VideoDeserializer {
       thumbnail: videoRaw.thumbnail
         ? imageDeserializer.deserialize(videoRaw.thumbnail, { reference: opts.reference })
         : null,
+      v: videoRaw.v ?? "1.0",
     }
 
     return video

@@ -22,5 +22,18 @@ export {
 } from "./buffer"
 export { getBzzUrl, extractReference, isValidReference } from "./bzz"
 export { decryptData, encryptData } from "./crypto"
+export {
+  bytesReferenceToReference,
+  encodePath,
+  decodePath,
+  getAllPaths,
+  getNodesWithPrefix,
+  getBzzNodeInfo,
+  getReferenceFromData,
+  jsonToReference,
+  isZeroBytesReference,
+  referenceToBytesReference,
+} from "./mantaray"
+export { getBitrate, getVideoMeta } from "./media"
 export { extractVideoReferences } from "./references"
 export { composeUrl, isSafeURL, safeURL, urlHostname, urlOrigin, urlPath } from "./urls"

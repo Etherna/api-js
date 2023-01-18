@@ -1,16 +1,9 @@
 import { beeReference } from "../../schemas/base"
+import { VideoDetailsRawSchema, VideoPreviewRawSchema } from "../../schemas/video"
 import { VideoDeserializer } from "../../serializers"
 import BaseReader from "../base-reader"
 
-import type {
-  Video,
-  Profile,
-  VideoPreview,
-  VideoDetailsRaw,
-  VideoPreviewRaw,
-  VideoSourceRaw,
-  VideoRaw,
-} from "../.."
+import type { Video, Profile, VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
 import type {
   BeeClient,
   EthernaIndexClient,
@@ -18,6 +11,7 @@ import type {
   Reference,
   IndexVideoManifest,
 } from "../../clients"
+import type { VideoPreview } from "../../schemas/video"
 import type { ReaderOptions, ReaderDownloadOptions } from "../base-reader"
 
 interface VideoReaderOptions extends ReaderOptions {
@@ -27,7 +21,8 @@ interface VideoReaderOptions extends ReaderOptions {
 }
 
 interface VideoReaderDownloadOptions extends ReaderDownloadOptions {
-  mode: "preview" | "full"
+  mode: "preview" | "details" | "full"
+  previewData?: VideoPreview
 }
 
 export default class VideoReader extends BaseReader<Video | null, string, VideoRaw | IndexVideo> {
@@ -59,30 +54,41 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
   async download(opts: VideoReaderDownloadOptions): Promise<Video | null> {
     if (this.prefetchedVideo) return this.prefetchedVideo
 
+    if (opts.mode === "details" && !opts.previewData) {
+      throw new Error("Missing option 'previewData' when mode is 'details'")
+    }
+
     let videoRaw: VideoRaw | null = null
     let indexVideo: IndexVideo | null = null
 
     if (this.indexReference) {
-      indexVideo = await this.fetchIndexVideo()
+      indexVideo = await this.fetchIndexVideo(opts)
       const reference = indexVideo?.lastValidManifest?.hash as Reference
 
       if (reference) {
         videoRaw = this.indexVideoToRaw(indexVideo!)
         this.reference = reference
       }
-    } else {
+    }
+
+    if (!videoRaw) {
       videoRaw = await this.fetchSwarmVideo(opts)
     }
 
     if (!videoRaw) return null
 
     const deserializer = new VideoDeserializer(this.beeClient.url)
-    const preview = deserializer.deserializePreview(JSON.stringify(videoRaw.preview), {
-      reference: this.reference,
-    })
-    const details = deserializer.deserializeDetails(JSON.stringify(videoRaw.details), {
-      reference: this.reference,
-    })
+    const preview = deserializer.deserializePreview(
+      JSON.stringify(videoRaw.preview ?? opts.previewData ?? VideoReader.emptyVideoPreview),
+      {
+        reference: this.reference,
+      }
+    )
+    const details = videoRaw.details
+      ? deserializer.deserializeDetails(JSON.stringify(videoRaw.details), {
+          reference: this.reference,
+        })
+      : undefined
 
     this.rawResponse = indexVideo ?? videoRaw
 
@@ -98,7 +104,8 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
     const videoDetailsRaw = VideoReader.emptyVideoDetails()
 
     if (video.lastValidManifest && !VideoReader.isValidatingManifest(video.lastValidManifest)) {
-      videoPreviewRaw.v = "2.0"
+      const v = video.lastValidManifest.batchId ? "1.1" : "1.0"
+      videoPreviewRaw.v = v
       videoPreviewRaw.title = video.lastValidManifest.title
       videoPreviewRaw.duration = video.lastValidManifest.duration
       videoPreviewRaw.thumbnail = video.lastValidManifest.thumbnail
@@ -107,7 +114,9 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
       videoPreviewRaw.updatedAt = video.lastValidManifest.updatedAt
         ? new Date(video.lastValidManifest.updatedAt).getTime()
         : null
-      videoDetailsRaw.v = "2.0"
+
+      videoDetailsRaw.v = v
+      videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
       videoDetailsRaw.batchId = video.lastValidManifest.batchId
       videoDetailsRaw.description = video.lastValidManifest.description
       videoDetailsRaw.sources = video.lastValidManifest.sources
@@ -143,12 +152,16 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
 
   // Private methods
 
-  private async fetchIndexVideo(): Promise<IndexVideo | null> {
+  private async fetchIndexVideo(opts: VideoReaderDownloadOptions): Promise<IndexVideo | null> {
     if (!this.indexClient) return null
     try {
       const indexVideo = this.indexReference
-        ? await this.indexClient.videos.fetchVideoFromId(this.indexReference)
-        : await this.indexClient.videos.fetchVideoFromHash(this.reference)
+        ? await this.indexClient.videos.fetchVideoFromId(this.indexReference, {
+            signal: opts.signal,
+          })
+        : await this.indexClient.videos.fetchVideoFromHash(this.reference, {
+            signal: opts.signal,
+          })
 
       if (VideoReader.isValidatingManifest(indexVideo.lastValidManifest)) return null
 
@@ -162,34 +175,68 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
   private async fetchSwarmVideo(opts: VideoReaderDownloadOptions): Promise<VideoRaw | null> {
     if (!this.reference) return null
     try {
+      const downloadPreview = opts.mode === "preview" || opts.mode === "full"
+      const downloadDetails = opts.mode === "details" || opts.mode === "full"
+
       const [previewResp, detailsResp] = await Promise.allSettled([
-        this.beeClient.bzz.download(this.reference, {
-          headers: {
-            // "x-etherna-reason": "video-preview-meta",
-          },
-          maxResponseSize: opts?.maxResponseSize,
-          onDownloadProgress: opts?.onDownloadProgress,
-        }),
-        opts.mode === "full"
+        downloadPreview
+          ? this.beeClient.bzz.download(this.reference, {
+              headers: {
+                // "x-etherna-reason": "video-preview-meta",
+              },
+              maxResponseSize: opts?.maxResponseSize,
+              signal: opts?.signal,
+              onDownloadProgress: opts?.onDownloadProgress,
+            })
+          : Promise.resolve(null),
+        downloadDetails
           ? this.beeClient.bzz.downloadPath(this.reference, "details", {
               headers: {
                 // "x-etherna-reason": "video-details-meta",
               },
               maxResponseSize: opts?.maxResponseSize,
+              signal: opts?.signal,
               onDownloadProgress: opts?.onDownloadProgress,
             })
           : Promise.resolve(null),
       ])
 
-      if (previewResp.status === "rejected") {
-        throw previewResp.reason
+      const previewValue =
+        previewResp.status === "fulfilled" && previewResp.value ? previewResp.value : undefined
+      let detailsValue =
+        detailsResp.status === "fulfilled" && detailsResp.value ? detailsResp.value : undefined
+
+      if (downloadDetails && !detailsValue && !previewValue) {
+        // manifest version < 2.0, download root manifest
+        detailsValue = await this.beeClient.bzz.download(this.reference, {
+          headers: {
+            // "x-etherna-reason": "video-preview-meta",
+          },
+          maxResponseSize: opts?.maxResponseSize,
+          signal: opts?.signal,
+          onDownloadProgress: opts?.onDownloadProgress,
+        })
       }
 
-      const preview = previewResp.value.data.json() as VideoPreviewRaw
-      const details =
-        detailsResp.status === "fulfilled"
-          ? (detailsResp.value?.data.json() as VideoDetailsRaw)
-          : undefined
+      if (downloadPreview && previewResp.status === "rejected") {
+        throw previewResp.reason
+      }
+      if (downloadDetails && !detailsValue && !previewValue) {
+        throw previewResp.status === "rejected"
+          ? previewResp.reason
+          : detailsResp.status === "rejected"
+          ? detailsResp.reason
+          : new Error("Unknown error")
+      }
+
+      const preview = previewValue
+        ? VideoPreviewRawSchema.parse(previewValue.data.json())
+        : undefined
+      const details = detailsValue
+        ? VideoDetailsRawSchema.parse(detailsValue.data.json())
+        : downloadDetails && previewValue
+        ? VideoDetailsRawSchema.parse(previewValue.data.json())
+        : undefined
 
       return {
         preview,

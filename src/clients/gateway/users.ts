@@ -99,11 +99,16 @@ export default class UsersClient {
     }
 
     let resolver: (batch: GatewayBatch) => void
+    let rejecter: () => void
     let timeout: number
     let newBatchId: string
 
     const fetchBatch = async () => {
       clearTimeout(timeout)
+
+      if (opts?.signal?.aborted) {
+        return rejecter()
+      }
 
       timeout = window.setTimeout(async () => {
         try {
@@ -120,8 +125,9 @@ export default class UsersClient {
       }, 5000)
     }
 
-    return await new Promise<GatewayBatch>(resolve => {
+    return await new Promise<GatewayBatch>((resolve, reject) => {
       resolver = resolve
+      rejecter = reject
       fetchBatch()
     })
   }

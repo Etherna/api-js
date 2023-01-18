@@ -14,11 +14,16 @@ interface EthernaPinningFetchOptions {
 
 export default class EthernaPinningHandler {
   pinStatus?: SwarmResourcePinStatus[]
-  videos: Video[]
+  references: Reference[]
   private client: EthernaGatewayClient | BeeClient
 
-  constructor(videos: Video[], opts: EthernaResourcesHandlerOptions) {
-    this.videos = videos
+  constructor(videos: Video[], opts: EthernaResourcesHandlerOptions)
+  constructor(references: Reference[], opts: EthernaResourcesHandlerOptions)
+  constructor(input: (Video | Reference)[], opts: EthernaResourcesHandlerOptions) {
+    this.references = input
+      .map(input => (typeof input === "string" ? [input] : extractVideoReferences(input)))
+      .flat()
+      .filter((reference, index, self) => self.indexOf(reference) === index)
     this.client = opts.client
   }
 
@@ -29,15 +34,10 @@ export default class EthernaPinningHandler {
   async fetchPins(opts?: EthernaPinningFetchOptions) {
     const fetchByWhom = opts?.withByWhom ?? false
 
-    const references = this.videos
-      .map(video => extractVideoReferences(video))
-      .flat()
-      .filter((reference, index, self) => self.indexOf(reference) === index)
-
     this.pinStatus = []
 
     const responses = await Promise.allSettled(
-      references.map(reference =>
+      this.references.map(reference =>
         this.isGatewayClient(this.client)
           ? fetchByWhom
             ? this.client.resources.fetchPinUsers(reference)
@@ -46,7 +46,7 @@ export default class EthernaPinningHandler {
       )
     )
 
-    for (const [index, reference] of references.entries()) {
+    for (const [index, reference] of this.references.entries()) {
       const response = responses[index]!
       const pinStatus: SwarmResourcePinStatus = {
         reference,
@@ -72,9 +72,8 @@ export default class EthernaPinningHandler {
   }
 
   async pinResources(opts?: RequestOptions) {
-    const references = this.videos.map(video => extractVideoReferences(video)).flat()
     await Promise.allSettled(
-      references.map(reference =>
+      this.references.map(reference =>
         this.isGatewayClient(this.client)
           ? this.client.resources.pin(reference, opts)
           : this.client.pins.pin(reference, opts)
@@ -83,9 +82,8 @@ export default class EthernaPinningHandler {
   }
 
   async unpinResources(opts?: RequestOptions) {
-    const references = this.videos.map(video => extractVideoReferences(video)).flat()
     await Promise.allSettled(
-      references.map(reference =>
+      this.references.map(reference =>
         this.isGatewayClient(this.client)
           ? this.client.resources.unpin(reference, opts)
           : this.client.pins.unpin(reference, opts)

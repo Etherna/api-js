@@ -29,9 +29,22 @@ export const ethAddress = z.string().regex(/^0x[a-fA-F0-9]{40}$/, {
   message: "must be a valid ethereum address",
 })
 
+export const ethSafeAddress = z.string().transform(v => {
+  if (ethAddress.safeParse(v).success) return v.toLowerCase()
+  return "0x" + "0".repeat(40)
+})
+
 export const beeReference = z.string().regex(/^[a-fA-F0-9]{64}$/, {
   message: "must be a valid bee reference",
 })
+
+export const beeSafeReference = z
+  .string()
+  .nullable()
+  .transform(v => {
+    if (beeReference.safeParse(v).success) return v!.toLowerCase()
+    return "0".repeat(64)
+  })
 
 export const nonEmptyRecord = <Keys extends z.ZodTypeAny, Values extends z.ZodTypeAny>(
   key: Keys,

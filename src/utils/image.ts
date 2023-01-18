@@ -1,3 +1,5 @@
+import type { ImageType } from "../schemas/image"
+
 export {}
 
 declare global {
@@ -41,6 +43,30 @@ export const resizeImage = async (
   }
 
   throw new Error("Cannot create blob from canvas")
+}
+
+export const isImageTypeSupported = (type: ImageType) => {
+  switch (type) {
+    case "jpeg":
+    case "png":
+      return true
+    case "webp":
+      return isWebpSupported()
+    case "avif":
+      return isAvifSupported()
+    default:
+      return false
+  }
+}
+
+export const isAvifSupported = () => {
+  const canvas = document.createElement("canvas")
+  return canvas.toDataURL("image/avif").indexOf("data:image/avif") === 0
+}
+
+export const isWebpSupported = () => {
+  const canvas = document.createElement("canvas")
+  return canvas.toDataURL("image/webp").indexOf("data:image/webp") === 0
 }
 
 const createImage = (blob: File | Blob) =>

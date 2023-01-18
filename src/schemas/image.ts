@@ -19,7 +19,7 @@ export const ImageRawLegacySourcesSchema = nonEmptyRecord(
   return sources
 })
 
-export const ImageRawSourceSchema = z.object({
+export const ImageRawSourceBaseSchema = z.object({
   /** Image scaled width */
   width: z.number(),
   /** Image type */
@@ -30,7 +30,14 @@ export const ImageRawSourceSchema = z.object({
   reference: beeReference.optional(),
 })
 
-export const ImageSourceSchema = ImageRawSourceSchema.extend({
+export const ImageRawSourceSchema = ImageRawSourceBaseSchema.transform(data => {
+  if ("reference" in data && data.path) {
+    delete data.reference
+  }
+  return data
+})
+
+export const ImageSourceSchema = ImageRawSourceBaseSchema.extend({
   /** Image URL */
   url: z.string().url(),
 })

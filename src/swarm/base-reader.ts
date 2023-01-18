@@ -6,6 +6,7 @@ export interface ReaderOptions {
 
 export interface ReaderDownloadOptions {
   maxResponseSize?: number
+  signal?: AbortSignal
   onDownloadProgress?(completion: number): void
 }
 

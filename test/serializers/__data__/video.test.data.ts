@@ -118,6 +118,7 @@ export const testVideoDetailsRaw_2_0: VideoDetailsRaw = {
 }
 
 export const testVideoPreviewParsed_1_0: VideoPreview = {
+  v: "1.0",
   reference: videoReference,
   title: "test video",
   thumbnail: null,
@@ -143,6 +144,7 @@ export const testVideoDetailsParsed_1_0: VideoDetails = {
 }
 
 export const testVideoPreviewParsed_1_1: VideoPreview = {
+  v: "1.1",
   reference: videoReference,
   title: "test video",
   thumbnail: testImageParsed,
@@ -168,6 +170,7 @@ export const testVideoDetailsParsed_1_1: VideoDetails = {
 }
 
 export const testVideoPreviewIndexParsed: VideoPreview = {
+  v: "1.0", // since no versione is returned, we assume 1.0
   reference: videoReference,
   title: "test video",
   thumbnail: testImageParsed,
@@ -194,6 +197,7 @@ export const testVideoDetailsIndexParsed: VideoDetails = {
 }
 
 export const testVideoPreviewParsed_1_1_2_0: VideoPreview = {
+  v: "1.1",
   reference: videoReference,
   title: "test video",
   thumbnail: testImageParsed,
@@ -219,6 +223,7 @@ export const testVideoDetailsParsed_1_1_2_0: VideoDetails = {
 }
 
 export const testVideoPreviewParsed_2_0: VideoPreview = {
+  v: "2.0",
   reference: videoReference,
   title: "test video",
   thumbnail: testImageParsed,

@@ -3,6 +3,7 @@ import { calcDilutedTTL, getBatchCapacity, getBatchSpace, ttlToAmount } from "..
 import FlagEnumManager from "../FlagEnumManager"
 
 import type { BeeClient, EthernaGatewayClient, BatchId, PostageBatch } from "../../clients"
+import type { VideoSource, VideoSourceRaw } from "../../schemas/video"
 import type { UpdatingBatch } from "../../stores/batches"
 import type { AnyBatch } from "./types"
 
@@ -207,9 +208,14 @@ export default class BatchesHandler {
    *
    * @param size Batch min size
    * @param ttl Batch expiration in seconds
+   * @param signal Abort signal
    * @returns The created batch
    */
-  async createBatchForSize(size: number, ttl = DEFAULT_TTL): Promise<AnyBatch> {
+  async createBatchForSize(
+    size: number,
+    ttl = DEFAULT_TTL,
+    signal?: AbortSignal
+  ): Promise<AnyBatch> {
     const { depth, amount } = await this.calcDepthAmount(size, ttl)
 
     this.onBatchCreating?.()
@@ -217,9 +223,13 @@ export default class BatchesHandler {
     let batch: AnyBatch
 
     if (this.gatewayType === "etherna-gateway") {
-      batch = await this.gatewayClient.users.createBatch(depth, amount)
+      batch = await this.gatewayClient.users.createBatch(depth, amount, {
+        signal,
+      })
     } else {
-      const batchId = await this.beeClient.stamps.create(depth, amount)
+      const batchId = await this.beeClient.stamps.create(depth, amount, {
+        signal,
+      })
       batch = await this.fetchBatch(batchId)
     }
 
@@ -409,6 +419,24 @@ export default class BatchesHandler {
     const marginBytes = 2 ** 20 * 100 // 100mb
 
     return extraSpaceNeeded + videoSizeInBytes + marginBytes
+  }
+
+  calcBatchSizeForVideoSources(sources: (VideoSource | VideoSourceRaw)[], duration: number) {
+    return (
+      sources.reduce((sum, s) => {
+        if (s.type === "mp4") {
+          return sum + s.size
+        } else if (s.type === "dash") {
+          // average 2.5MB per second
+          return sum + duration! * 2.5 * 2 ** 20
+        } else if (s.type === "hls") {
+          // average 2MB per second
+          return sum + duration! * 2 * 2 ** 20
+        }
+        return sum
+      }, 0) +
+      2 ** 20 * 100
+    ) // 100mb extra
   }
 
   async fetchPrice(): Promise<number> {
