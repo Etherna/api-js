@@ -17,3 +17,7 @@ export function extractVideoReferences(video: Video | VideoPreview): Reference[]
 
   return references.filter((ref, i, self) => self.indexOf(ref) === i)
 }
+
+export function isEmptyReference(ref: Reference): boolean {
+  return Array.from(ref).every(char => char === "0")
+}
