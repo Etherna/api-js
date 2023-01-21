@@ -56,6 +56,8 @@ export const VideoSourceRawSchema = z
   })
 
 export const VideoPreviewRawSchema = z.object({
+  /** Schema version */
+  v: z.enum(["1.0", "1.1", "1.2", "2.0"]).optional(),
   /** Title of the video */
   title: slicedString(150),
   /** Video creation timestamp */
@@ -68,8 +70,6 @@ export const VideoPreviewRawSchema = z.object({
   duration: z.number().min(0),
   /** Thumbnail raw image */
   thumbnail: ImageRawSchema.nullable(),
-  /** Schema version */
-  v: z.enum(["1.0", "1.1", "1.2", "2.0"]).optional(),
 })
 
 export const VideoDetailsRawSchema = z.object({
@@ -83,8 +83,6 @@ export const VideoDetailsRawSchema = z.object({
   batchId: beeReference.nullable().optional(),
   /** Optional extra data */
   personalData: z.string().max(200).optional(),
-  /** Schema version */
-  v: z.enum(["1.0", "1.1", "1.2", "2.0"]).optional(),
 })
 
 export const VideoSourceSchema = z

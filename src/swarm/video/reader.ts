@@ -115,7 +115,6 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         ? new Date(video.lastValidManifest.updatedAt).getTime()
         : null
 
-      videoDetailsRaw.v = v
       videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
       videoDetailsRaw.batchId = video.lastValidManifest.batchId
       videoDetailsRaw.description = video.lastValidManifest.description
@@ -146,7 +145,6 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
       aspectRatio: null,
       sources: [],
       batchId: undefined,
-      v: "2.0",
     }
   }
 

@@ -34,7 +34,6 @@ export default class VideoSerializer {
     const videoDetails = VideoDetailsSchema.parse(detailsItem)
 
     const videoRaw: VideoDetailsRaw = VideoDetailsRawSchema.parse({
-      v: "2.0",
       description: videoDetails.description,
       aspectRatio: videoDetails.aspectRatio,
       personalData: videoDetails.personalData,
