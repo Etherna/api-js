@@ -79,6 +79,8 @@ export default class ImageWriter extends BaseWriter<Playlist> {
       reference = feedManifest
     }
 
+    this.playlist.reference = reference
+
     PlaylistCache.set(reference, this.playlist)
     PlaylistCache.set(`${this.playlist.owner}/${this.playlist.id}`, this.playlist)
 

@@ -64,7 +64,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
   static defaultChannelPlaylists(owner: string): Playlist {
     return {
       id: PlaylistReader.channelPlaylistId,
-      reference: "",
+      reference: "0".repeat(64),
       type: "public",
       owner,
       videos: [],
@@ -78,7 +78,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
   static defaultSavedPlaylists(owner: string): Playlist {
     return {
       id: PlaylistReader.savedPlaylistId,
-      reference: "",
+      reference: "0".repeat(64),
       type: "unlisted",
       owner,
       videos: [],
