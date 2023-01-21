@@ -23,7 +23,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
   }
 
   async upload(opts?: UserPlaylistsWriterUploadOptions): Promise<Reference> {
-    const batchId = await this.beeClient.stamps.fetchBestBatchId()
+    const batchId = opts?.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
     const playlistsRaw = new UserPlaylistsSerializer().serialize(this.playlists)
 
     const { reference } = await this.beeClient.bzz.upload(playlistsRaw, {

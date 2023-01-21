@@ -10,6 +10,7 @@ export interface WriterUploadOptions {
   deferred?: boolean
   encrypt?: boolean
   tag?: string
+  batchId?: string
   onUploadProgress?(completion: number): void
 }
 

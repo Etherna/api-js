@@ -30,7 +30,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
 
     this.playlist.updatedAt = Date.now()
 
-    const batchId = await this.beeClient.stamps.fetchBestBatchId()
+    const batchId = opts?.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
     const rawPlaylist = new PlaylistSerializer().serialize(this.playlist, opts?.encryptionPassword)
 
     let { reference } = await this.beeClient.bzz.upload(rawPlaylist, {
