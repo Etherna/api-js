@@ -18,7 +18,7 @@ import type {
   Index,
   ReferenceResponse,
 } from "./types"
-import type { AxiosError, AxiosResponseHeaders } from "axios"
+import type { AxiosError, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios"
 
 const feedEndpoint = "/feeds"
 
@@ -152,7 +152,7 @@ export default class Feed {
   }
 
   private readFeedUpdateHeaders(
-    headers: AxiosResponseHeaders | Partial<Record<string, string>>
+    headers: RawAxiosResponseHeaders | AxiosResponseHeaders | Partial<Record<string, string>>
   ): FeedUpdateHeaders {
     const feedIndex = headers["swarm-feed-index"]
     const feedIndexNext = headers["swarm-feed-index-next"]
