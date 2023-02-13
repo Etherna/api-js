@@ -61,22 +61,22 @@ export async function getBzzNodeInfo(
     if (signal?.aborted) return null
 
     const fork = node.getForkAtPath(encodePath(RootPath))
-    const metadata = fork?.node.getMetadata
+    const metadata = fork?.node.metadata
     const indexEntry = metadata?.[WebsiteIndexDocumentSuffixKey]
 
-    if (!fork?.node.getEntry) {
+    if (!fork?.node.entry) {
       throw new Error("No root fork found")
     }
 
-    const isZero = isZeroBytesReference(fork.node.getEntry)
+    const isZero = isZeroBytesReference(fork.node.entry)
 
     if (isZero && !indexEntry) {
       throw new Error("No root entry found")
     }
 
     return {
-      entry: isZero ? referenceToBytesReference(indexEntry as Reference) : fork.node.getEntry,
-      contentType: fork.node.getMetadata?.[EntryMetadataContentTypeKey],
+      entry: isZero ? referenceToBytesReference(indexEntry as Reference) : fork.node.entry,
+      contentType: fork.node.metadata?.[EntryMetadataContentTypeKey],
     }
   } catch (error) {
     return null

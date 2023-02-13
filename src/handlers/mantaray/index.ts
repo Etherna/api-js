@@ -1,3 +1,4 @@
+import { decodePath, getNodesWithPrefix as getNodesWithPrefixString } from "../../utils"
 import { toHexString } from "../../utils/bytes"
 import { NodeType } from "./types"
 import {
@@ -114,7 +115,7 @@ export class MantarayFork {
   }
 
   public serialize(): Uint8Array {
-    const nodeType = this.node.getType
+    const nodeType = this.node.type
 
     const prefixLengthBytes = new Uint8Array(1)
     prefixLengthBytes[0] = this.prefix.length
@@ -122,14 +123,14 @@ export class MantarayFork {
     const prefixBytes = new Uint8Array(nodeForkSizes.prefixMaxSize())
     prefixBytes.set(this.prefix)
 
-    const entry: Reference | undefined = this.node.getContentAddress
+    const entry: Reference | undefined = this.node.contentAddress
 
     if (!entry) throw Error("cannot serialize MantarayFork because it does not have contentAddress")
 
     const data = new Uint8Array([nodeType, ...prefixLengthBytes, ...prefixBytes, ...entry])
 
     if (this.node.IsWithMetadataType()) {
-      const jsonString = JSON.stringify(this.node.getMetadata)
+      const jsonString = JSON.stringify(this.node.metadata)
       const metadataBytes = new TextEncoder().encode(jsonString)
 
       const metadataSizeWithSize = metadataBytes.length + nodeForkSizes.metadata
@@ -165,7 +166,7 @@ export class MantarayFork {
     const headerSize = nodeForkSizes.header()
     const prefix = data.slice(headerSize, headerSize + prefixLength)
     const node = new MantarayNode()
-    node.setObfuscationKey = obfuscationKey
+    node.obfuscationKey = obfuscationKey
 
     const withMetadata = options?.withMetadata
 
@@ -173,7 +174,7 @@ export class MantarayFork {
       const { refBytesSize, metadataByteSize } = withMetadata
 
       if (metadataByteSize > 0) {
-        node.setEntry = data.slice(
+        node.entry = data.slice(
           nodeForkSizes.preReference,
           nodeForkSizes.preReference + refBytesSize
         ) as Bytes<32> | Bytes<64>
@@ -182,12 +183,12 @@ export class MantarayFork {
         const metadataBytes = data.slice(startMetadata, startMetadata + metadataByteSize)
 
         const jsonString = new TextDecoder().decode(metadataBytes)
-        node.setMetadata = JSON.parse(jsonString)
+        node.metadata = JSON.parse(jsonString)
       }
     } else {
-      node.setEntry = data.slice(nodeForkSizes.preReference) as Bytes<32> | Bytes<64>
+      node.entry = data.slice(nodeForkSizes.preReference) as Bytes<32> | Bytes<64>
     }
-    node.setType = nodeType
+    node.type = nodeType
 
     return new MantarayFork(prefix, node)
   }
@@ -195,41 +196,58 @@ export class MantarayFork {
 
 export class MantarayNode {
   /** Used with NodeType type */
-  private type?: number
-  private obfuscationKey?: Bytes<32>
+  private _type?: number
+  private _obfuscationKey?: Bytes<32>
   /** reference of a loaded manifest node. if undefined, the node can be handled as `dirty` */
-  private contentAddress?: Reference
+  private _contentAddress?: Reference
   /** reference of an content that the manifest refers to */
-  private entry?: Reference
-  private metadata?: MetadataMapping
+  private _entry?: Reference
+  private _metadata?: MetadataMapping
   /** Forks of the manifest. Has to be initialized with `{}` on load even if there were no forks */
   public forks?: ForkMapping
 
   /// Setters/getters
 
-  public set setContentAddress(contentAddress: Reference) {
+  // @ts-ignore
+  public get contentAddress(): Reference | undefined {
+    return this._contentAddress
+  }
+  public set contentAddress(contentAddress: Reference) {
     checkReference(contentAddress)
 
-    this.contentAddress = contentAddress
+    this._contentAddress = contentAddress
   }
-
-  public set setEntry(entry: Reference) {
+  // @ts-ignore
+  public get entry(): Reference | undefined {
+    return this._entry
+  }
+  public set entry(entry: Reference) {
     checkReference(entry)
 
-    this.entry = entry
+    this._entry = entry
 
     if (!equalBytes(entry, new Uint8Array(entry.length))) this.makeValue()
 
     this.makeDirty()
   }
+  // @ts-ignore
+  public get type(): number {
+    if (this._type === undefined) throw PropertyIsUndefined
 
-  public set setType(type: number) {
+    if (this._type > 255) throw 'Property "type" in Node is greater than 255'
+
+    return this._type
+  }
+  public set type(type: number) {
     if (type > 255) throw Error(`Node type representation cannot be greater than 255`)
 
-    this.type = type
+    this._type = type
   }
-
-  public set setObfuscationKey(obfuscationKey: Bytes<32>) {
+  // @ts-ignore
+  public get obfuscationKey(): Bytes<32> | undefined {
+    return this._obfuscationKey
+  }
+  public set obfuscationKey(obfuscationKey: Bytes<32>) {
     if (!(obfuscationKey instanceof Uint8Array)) {
       throw new Error("Given obfuscationKey is not an Uint8Array instance.")
     }
@@ -238,12 +256,15 @@ export class MantarayNode {
       throw new Error(`Wrong obfuscationKey length. Entry only can be 32 length in bytes`)
     }
 
-    this.obfuscationKey = obfuscationKey
+    this._obfuscationKey = obfuscationKey
     this.makeDirty()
   }
-
-  public set setMetadata(metadata: MetadataMapping) {
-    this.metadata = metadata
+  // @ts-ignore
+  public get metadata(): MetadataMapping | undefined {
+    return this._metadata
+  }
+  public set metadata(metadata: MetadataMapping) {
+    this._metadata = metadata
     this.makeWithMetadata()
 
     // TODO: when the mantaray node is a pointer by its metadata then
@@ -255,36 +276,12 @@ export class MantarayNode {
     this.makeDirty()
   }
 
-  public get getObfuscationKey(): Bytes<32> | undefined {
-    return this.obfuscationKey
-  }
-
-  public get getEntry(): Reference | undefined {
-    return this.entry
-  }
-
-  public get getContentAddress(): Reference | undefined {
-    return this.contentAddress
-  }
-
-  public get getMetadata(): MetadataMapping | undefined {
-    return this.metadata
-  }
-
-  public get getType(): number {
-    if (this.type === undefined) throw PropertyIsUndefined
-
-    if (this.type > 255) throw 'Property "type" in Node is greater than 255'
-
-    return this.type
-  }
-
   public get readable(): object {
     return {
-      type: this.type,
-      entry: this.entry ? toHexString(this.entry) : undefined,
-      contentAddress: this.contentAddress ? toHexString(this.contentAddress) : undefined,
-      metadata: this.metadata,
+      type: this._type,
+      entry: this._entry ? toHexString(this._entry) : undefined,
+      contentAddress: this._contentAddress ? toHexString(this._contentAddress) : undefined,
+      metadata: this._metadata,
       forks: Object.keys(this.forks || {}).reduce(
         (acc, key) => ({
           ...acc,
@@ -302,56 +299,56 @@ export class MantarayNode {
   /// dirty flag is not necessary to be set
 
   public isValueType(): boolean {
-    if (!this.type) throw PropertyIsUndefined
-    const typeMask = this.type & NodeType.value
+    if (!this._type) throw PropertyIsUndefined
+    const typeMask = this._type & NodeType.value
 
     return typeMask === NodeType.value
   }
 
   public isEdgeType(): boolean {
-    if (!this.type) throw PropertyIsUndefined
-    const typeMask = this.type & NodeType.edge
+    if (!this._type) throw PropertyIsUndefined
+    const typeMask = this._type & NodeType.edge
 
     return typeMask === NodeType.edge
   }
 
   public isWithPathSeparatorType(): boolean {
-    if (!this.type) throw PropertyIsUndefined
-    const typeMask = this.type & NodeType.withPathSeparator
+    if (!this._type) throw PropertyIsUndefined
+    const typeMask = this._type & NodeType.withPathSeparator
 
     return typeMask === NodeType.withPathSeparator
   }
 
   public IsWithMetadataType(): boolean {
-    if (!this.type) throw PropertyIsUndefined
-    const typeMask = this.type & NodeType.withMetadata
+    if (!this._type) throw PropertyIsUndefined
+    const typeMask = this._type & NodeType.withMetadata
 
     return typeMask === NodeType.withMetadata
   }
 
   private makeValue() {
-    if (!this.type) this.type = NodeType.value
-    this.type |= NodeType.value
+    if (!this._type) this._type = NodeType.value
+    this._type |= NodeType.value
   }
 
   private makeEdge() {
-    if (!this.type) this.type = NodeType.edge
-    this.type |= NodeType.edge
+    if (!this._type) this._type = NodeType.edge
+    this._type |= NodeType.edge
   }
 
   private makeWithPathSeparator() {
-    if (!this.type) this.type = NodeType.withPathSeparator
-    this.type |= NodeType.withPathSeparator
+    if (!this._type) this._type = NodeType.withPathSeparator
+    this._type |= NodeType.withPathSeparator
   }
 
   private makeWithMetadata() {
-    if (!this.type) this.type = NodeType.withMetadata
-    this.type |= NodeType.withMetadata
+    if (!this._type) this._type = NodeType.withMetadata
+    this._type |= NodeType.withMetadata
   }
 
   private makeNotWithPathSeparator() {
-    if (!this.type) throw PropertyIsUndefined
-    this.type = (NodeType.mask ^ NodeType.withPathSeparator) & this.type
+    if (!this._type) throw PropertyIsUndefined
+    this._type = (NodeType.mask ^ NodeType.withPathSeparator) & this._type
   }
 
   private updateWithPathSeparator(path: Uint8Array) {
@@ -375,10 +372,10 @@ export class MantarayNode {
    */
   public addFork(path: Uint8Array, entry: Reference, metadata: MetadataMapping = {}): void {
     if (path.length === 0) {
-      this.setEntry = entry
+      this.entry = entry
 
       if (Object.keys(metadata).length > 0) {
-        this.setMetadata = metadata
+        this.metadata = metadata
       }
       this.makeDirty()
 
@@ -394,8 +391,8 @@ export class MantarayNode {
     if (!fork) {
       const newNode = new MantarayNode()
 
-      if (this.obfuscationKey) {
-        newNode.setObfuscationKey = this.obfuscationKey
+      if (this._obfuscationKey) {
+        newNode.obfuscationKey = this._obfuscationKey
       }
 
       if (path.length > nodeForkSizes.prefixMaxSize()) {
@@ -410,10 +407,10 @@ export class MantarayNode {
         return
       }
 
-      newNode.setEntry = entry
+      newNode.entry = entry
 
       if (Object.keys(metadata).length > 0) {
-        newNode.setMetadata = metadata
+        newNode.metadata = metadata
       }
 
       newNode.updateWithPathSeparator(path)
@@ -431,7 +428,7 @@ export class MantarayNode {
     if (restPath.length > 0) {
       // move current common prefix node
       newNode = new MantarayNode()
-      newNode.setObfuscationKey = this.obfuscationKey || (new Uint8Array(32) as Bytes<32>)
+      newNode.obfuscationKey = this._obfuscationKey || (new Uint8Array(32) as Bytes<32>)
 
       fork.node.updateWithPathSeparator(restPath)
       newNode.forks = {}
@@ -485,6 +482,41 @@ export class MantarayNode {
   }
 
   /**
+   * Check if node exists under the given path
+   *
+   * @param path valid path within the MantarayNode
+   * @returns True if exists, false otherwise
+   */
+  public hasForkAtPath(path: Uint8Array): boolean {
+    if (path.length === 0) throw EmptyPathError
+
+    if (!this.forks) throw Error(`Fork mapping is not defined in the manifest`)
+
+    const fork = this.forks[path[0]!]
+
+    if (!fork) return false
+
+    const prefixIndex = findIndexOfArray(path, fork.prefix)
+
+    if (prefixIndex === -1) return false
+
+    const rest = path.slice(fork.prefix.length)
+
+    if (rest.length === 0) return true
+
+    return fork.node.hasForkAtPath(rest)
+  }
+
+  /**
+   * Get all forks with a path prefix
+   * @param prefix path prefix
+   * @returns List of forks
+   */
+  public getNodesWithPrefix(prefix: Uint8Array): MantarayNode[] {
+    return getNodesWithPrefixString(this, decodePath(prefix))
+  }
+
+  /**
    * Removes a path from the node
    *
    * @param path Uint8Array of the path of the node intended to remove
@@ -520,7 +552,7 @@ export class MantarayNode {
 
     await this.recursiveLoad(storageLoader, reference)
 
-    this.setContentAddress = reference
+    this.contentAddress = reference
   }
 
   /**
@@ -534,27 +566,27 @@ export class MantarayNode {
   }
 
   public isDirty(): boolean {
-    return this.contentAddress === undefined
+    return this._contentAddress === undefined
   }
 
   public makeDirty(): void {
-    this.contentAddress = undefined
+    this._contentAddress = undefined
   }
 
   public serialize(): Uint8Array {
-    if (!this.obfuscationKey) this.setObfuscationKey = new Uint8Array(32) as Bytes<32>
+    if (!this._obfuscationKey) this.obfuscationKey = new Uint8Array(32) as Bytes<32>
 
     if (!this.forks) {
-      if (!this.entry) throw new UndefinedField("entry")
+      if (!this._entry) throw new UndefinedField("entry")
       this.forks = {} //if there were no forks initialized it is not indended to be
     }
 
-    if (!this.entry) this.entry = new Uint8Array(32) as Bytes<32> // at directoties
+    if (!this._entry) this._entry = new Uint8Array(32) as Bytes<32> // at directoties
 
     /// Header
     const version: MarshalVersion = "0.2"
     const versionBytes: Bytes<31> = serializeVersion(version)
-    const referenceLengthBytes: Bytes<1> = serializeReferenceLength(this.entry)
+    const referenceLengthBytes: Bytes<1> = serializeReferenceLength(this._entry)
 
     /// Entry is already in byte version
 
@@ -576,17 +608,17 @@ export class MantarayNode {
     })
 
     const bytes = new Uint8Array([
-      ...this.obfuscationKey!,
+      ...this._obfuscationKey!,
       ...versionBytes,
       ...referenceLengthBytes,
-      ...this.entry,
+      ...this._entry,
       ...indexBytes,
       ...flattenBytesArray(forkSerializations),
     ])
 
     /// Encryption
     /// perform XOR encryption on bytes after obfuscation key
-    encryptDecrypt(this.obfuscationKey!, bytes, this.obfuscationKey!.length)
+    encryptDecrypt(this._obfuscationKey!, bytes, this._obfuscationKey!.length)
 
     return bytes
   }
@@ -596,9 +628,11 @@ export class MantarayNode {
 
     if (data.length < nodeHeaderSize) throw Error("The serialised input is too short")
 
-    this.obfuscationKey = new Uint8Array(data.slice(0, nodeHeaderSizes.obfuscationKey)) as Bytes<32>
+    this._obfuscationKey = new Uint8Array(
+      data.slice(0, nodeHeaderSizes.obfuscationKey)
+    ) as Bytes<32>
     // perform XOR decryption on bytes after obfuscation key
-    encryptDecrypt(this.obfuscationKey, data, this.obfuscationKey.length)
+    encryptDecrypt(this._obfuscationKey, data, this._obfuscationKey.length)
 
     const versionHash = data.slice(
       nodeHeaderSizes.obfuscationKey,
@@ -614,7 +648,7 @@ export class MantarayNode {
       if (refBytesSize === 0) {
         entry = new Uint8Array(32)
       }
-      this.setEntry = entry as Reference
+      this.entry = entry as Reference
       let offset = nodeHeaderSize + refBytesSize
       const indexBytes = data.slice(offset, offset + 32) as Bytes<32>
 
@@ -655,7 +689,7 @@ export class MantarayNode {
 
           fork = MantarayFork.deserialize(
             data.slice(offset, offset + nodeForkSize),
-            this.obfuscationKey!,
+            this._obfuscationKey!,
             {
               withMetadata: { refBytesSize, metadataByteSize },
             }
@@ -667,7 +701,7 @@ export class MantarayNode {
 
           fork = MantarayFork.deserialize(
             data.slice(offset, offset + nodeForkSize),
-            this.obfuscationKey!
+            this._obfuscationKey!
           )
         }
 
@@ -687,10 +721,10 @@ export class MantarayNode {
     const data = await storageLoader(reference)
     this.deserialize(data)
 
-    if (!this.forks) return this.entry
+    if (!this.forks) return this._entry
 
     for (const fork in this.forks) {
-      const contentAddress = this.forks[fork]!.node.entry
+      const contentAddress = this.forks[fork]!.node._entry
 
       if (!contentAddress) throw Error("contentAddress is not defined")
 
@@ -698,11 +732,11 @@ export class MantarayNode {
 
       if (!entry) throw Error("entry is not defined")
 
-      this.forks[fork]!.node.setContentAddress = contentAddress
-      this.forks[fork]!.node.setEntry = entry
+      this.forks[fork]!.node.contentAddress = contentAddress
+      this.forks[fork]!.node.entry = entry
     }
 
-    return this.entry
+    return this._entry
   }
 
   private async recursiveSave(storageSaver: StorageSaver): Promise<RecursiveSaveReturnType> {
@@ -715,15 +749,15 @@ export class MantarayNode {
     }
     const savedReturns = await Promise.all(savePromises)
 
-    if (this.contentAddress && savedReturns.every(v => !v.changed)) {
-      return { reference: this.contentAddress, changed: false }
+    if (this._contentAddress && savedReturns.every(v => !v.changed)) {
+      return { reference: this._contentAddress, changed: false }
     }
 
     // save the actual manifest as well
     const data = this.serialize()
     const reference = await storageSaver(data)
 
-    this.setContentAddress = reference
+    this.contentAddress = reference
 
     return { reference, changed: true }
   }
@@ -777,7 +811,7 @@ export async function loadAllNodes(
   if (!node.forks) return
 
   for (const fork of Object.values(node.forks)) {
-    if (fork.node.getEntry) await fork.node.load(storageLoader, fork.node.getEntry)
+    if (fork.node.entry) await fork.node.load(storageLoader, fork.node.entry)
     await loadAllNodes(storageLoader, fork.node)
   }
 }
@@ -796,25 +830,25 @@ export const equalNodes = (
   accumulatedPrefix = ""
 ): void | never => {
   // node type comparisation
-  if (a.getType !== b.getType) {
+  if (a.type !== b.type) {
     throw Error(
-      `Nodes do not have same type at prefix "${accumulatedPrefix}"\na: ${a.getType} <-> b: ${b.getType}`
+      `Nodes do not have same type at prefix "${accumulatedPrefix}"\na: ${a.type} <-> b: ${b.type}`
     )
   }
 
   // node metadata comparisation
-  if (!a.getMetadata !== !b.getMetadata) {
+  if (!a.metadata !== !b.metadata) {
     throw Error(
-      `One of the nodes do not have metadata defined. \n a: ${a.getMetadata} \n b: ${b.getMetadata}`
+      `One of the nodes do not have metadata defined. \n a: ${a.metadata} \n b: ${b.metadata}`
     )
-  } else if (a.getMetadata && b.getMetadata) {
+  } else if (a.metadata && b.metadata) {
     let aMetadata, bMetadata: string
     try {
-      aMetadata = JSON.stringify(a.getMetadata)
-      bMetadata = JSON.stringify(b.getMetadata)
+      aMetadata = JSON.stringify(a.metadata)
+      bMetadata = JSON.stringify(b.metadata)
     } catch (e) {
       throw Error(
-        `Either of the nodes has invalid JSON metadata. \n a: ${a.getMetadata} \n b: ${b.getMetadata}`
+        `Either of the nodes has invalid JSON metadata. \n a: ${a.metadata} \n b: ${b.metadata}`
       )
     }
 
@@ -824,8 +858,8 @@ export const equalNodes = (
   }
 
   // node entry comparisation
-  if (a.getEntry === b.getEntry) {
-    throw Error(`Nodes do not have same entries. \n a: ${a.getEntry} \n b: ${a.getEntry}`)
+  if (a.entry === b.entry) {
+    throw Error(`Nodes do not have same entries. \n a: ${a.entry} \n b: ${a.entry}`)
   }
 
   if (!a.forks) return

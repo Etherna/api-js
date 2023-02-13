@@ -26,6 +26,7 @@ import {
   bytesReferenceToReference,
   getBzzNodeInfo,
   isZeroBytesReference,
+  getAllPaths,
 } from "../../utils/mantaray"
 import { getVideoMeta } from "../../utils/media"
 
@@ -243,6 +244,43 @@ export default class VideoBuilder {
     this.detailsMeta.sources.push(source)
   }
 
+  async addAdaptiveSource(type: "dash" | "hls", data: Uint8Array, filename: string) {
+    const path = this.getAdaptivePath(filename, type)
+    const [meta] = await Promise.allSettled([getVideoMeta(data)])
+    const exists = this.node.hasForkAtPath(encodePath(path))
+
+    if (exists) {
+      throw new Error(`Adaptive source '${filename}' already added`)
+    }
+
+    if (!this.previewMeta.duration && meta.status === "fulfilled") {
+      this.previewMeta.duration = meta.value.duration
+    }
+    if (!this.detailsMeta.aspectRatio && meta.status === "fulfilled") {
+      this.detailsMeta.aspectRatio = meta.value.width / meta.value.height
+    }
+
+    const isManifest = filename.endsWith(".mpd") || filename.endsWith(".m3u8")
+    const contentType = this.getSourceContentType(filename)
+    const lastPathFilename = path.split("/").pop()!
+    this.addFile(lastPathFilename, path, contentType, getReferenceFromData(data))
+
+    if (isManifest) {
+      this.detailsMeta.sources.push({
+        type,
+        path,
+      })
+    }
+  }
+
+  removeAdapterSources(type: "dash" | "hls") {
+    const basePath = this.getAdaptivePath("", type)
+    const paths = Object.keys(getAllPaths(this.node)).filter(path => path.startsWith(basePath))
+    for (const path of paths) {
+      this.node.removePath(encodePath(path))
+    }
+  }
+
   async addThumbnailSource(data: Uint8Array, width: number, type: ImageType) {
     if (!this.previewMeta.thumbnail) {
       throw new Error("Thumbnail is missing")
@@ -328,16 +366,16 @@ export default class VideoBuilder {
       const mantarayNode = new MantarayNode()
 
       if (node.type) {
-        mantarayNode.setType = node.type
+        mantarayNode.type = node.type
       }
       if (node.entry) {
-        mantarayNode.setEntry = referenceToBytesReference(node.entry as Reference)
+        mantarayNode.entry = referenceToBytesReference(node.entry as Reference)
       }
       if (node.contentAddress) {
-        mantarayNode.setContentAddress = referenceToBytesReference(node.contentAddress as Reference)
+        mantarayNode.contentAddress = referenceToBytesReference(node.contentAddress as Reference)
       }
       if (node.metadata) {
-        mantarayNode.setMetadata = node.metadata
+        mantarayNode.metadata = node.metadata
       }
       if (Object.keys(node.forks).length > 0) {
         mantarayNode.forks = Object.entries(node.forks).reduce((acc, [path, value]) => {
@@ -395,6 +433,14 @@ export default class VideoBuilder {
     }
   }
 
+  private addFile(filename: string, path: string, contentType: string | null, entry: Reference) {
+    this.node.addFork(encodePath(path), referenceToBytesReference(entry), {
+      [EntryMetadataFilenameKey]: filename,
+      ...(contentType ? { [EntryMetadataContentTypeKey]: contentType } : {}),
+    })
+    this.updateNode()
+  }
+
   private addThumbSource(width: number, type: ImageType, entry: Reference): ImageRawSource {
     const path = this.getThumbPath(width, type)
 
@@ -417,6 +463,26 @@ export default class VideoBuilder {
 
   private getVideoPath(quality: VideoQuality) {
     return `sources/${quality}`
+  }
+
+  private getAdaptivePath(filename: string, type: "dash" | "hls") {
+    return `sources/${type}/${filename}`.replace(/\/$/, "/")
+  }
+
+  private getSourceContentType(filename: string) {
+    const extension = filename.split(".").pop()
+    switch (extension) {
+      case "mp4":
+        return "video/mp4"
+      case "m3u8":
+        return "application/x-mpegURL"
+      case "mpd":
+        return "application/xml"
+      case "ts":
+        return "video/MP2T"
+      default:
+        return null
+    }
   }
 
   private updateNode() {

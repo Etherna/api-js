@@ -19,7 +19,7 @@ export default class Auth {
     if (typeof window === "undefined") return memoryToken
 
     const token = cookie.get(TOKEN_COOKIE_NAME) as string | null
-    return token
+    return token || memoryToken
   }
 
   public get tokenExpiration(): Date | null {
@@ -113,10 +113,9 @@ export default class Auth {
   // Utils
 
   private saveToken(token: string | null, expiry = 3600 * 24) {
-    if (typeof window === "undefined") {
-      memoryToken = token
-      return
-    }
+    memoryToken = token
+
+    if (typeof window === "undefined") return
 
     if (!token) {
       // cookie.remove(TOKEN_COOKIE_NAME)

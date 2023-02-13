@@ -15,15 +15,14 @@ export function getVideoMeta(data: Uint8Array): Promise<VideoMeta> {
     video.onloadedmetadata = () => {
       try {
         window.URL.revokeObjectURL(video.src)
-        resolve({
-          duration: video.duration,
-          width: video.videoWidth,
-          height: video.videoHeight,
-          bitrate: getBitrate(data.length, video.duration),
-        })
-      } catch (error: any) {
-        reject(error)
-      }
+      } catch {}
+
+      resolve({
+        duration: video.duration,
+        width: video.videoWidth,
+        height: video.videoHeight,
+        bitrate: getBitrate(data.length, video.duration),
+      })
     }
     video.src = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
   })

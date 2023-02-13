@@ -1,6 +1,7 @@
 export { default as BatchesHandler } from "./batches"
 export { default as EthernaPinningHandler } from "./pinning"
 export { default as EthernaResourcesHandler } from "./resources"
+export { MantarayNode, MantarayFork } from "./mantaray"
 export { default as FlagEnumManager } from "./FlagEnumManager"
 
 // types
