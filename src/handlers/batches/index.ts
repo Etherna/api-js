@@ -10,7 +10,7 @@ import type { AnyBatch } from "./types"
 const DEFAULT_TTL = 60 * 60 * 24 * 365 * 2 // 2 years
 const DEFAULT_SIZE = 2 ** 16 // 65kb - basic manifest
 
-const MIN_BATCH_DEPTH = 20
+const MIN_BATCH_DEPTH = 17
 const MAX_BATCH_DEPTH = 30
 const MAX_ETHERNA_BATCH_DEPTH = 20
 
@@ -458,7 +458,7 @@ export default class BatchesHandler {
     } catch (error) {
       this.cachedPrice = {
         url,
-        price: 4, // hardcoded price
+        price: 6000, // hardcoded price
       }
     }
 
