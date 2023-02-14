@@ -132,15 +132,25 @@ export function fromBigEndian(bytes: Uint8Array): number {
   return numbers.reduce((bigEndian, num) => (bigEndian |= num))
 }
 
-/** Tested only with Uint16 BigEndian */
 export function toBigEndianFromUint16(value: number): Bytes<2> {
   if (value < 0) throw Error(`toBigEndianFromUint16 got lesser than 0 value: ${value}`)
   const maxValue = (1 << 16) - 1
-
   if (value > maxValue)
     throw Error(`toBigEndianFromUint16 got greater value then ${maxValue}: ${value} `)
 
-  return new Uint8Array([value >> 8, value]) as Bytes<2>
+  const buffer = new ArrayBuffer(2)
+  const view = new DataView(buffer)
+  view.setUint16(0, value, false)
+  return new Uint8Array(buffer) as Bytes<2>
+}
+
+export function toBigEndianFromUint32(value: number): Bytes<4> {
+  if (value < 0) throw Error(`toBigEndianFromUint32 got lesser than 0 value: ${value}`)
+
+  const buffer = new ArrayBuffer(4)
+  const view = new DataView(buffer)
+  view.setUint32(0, value, false)
+  return new Uint8Array(buffer) as Bytes<4>
 }
 
 /** It returns the common bytes of the two given byte arrays until the first byte difference */
