@@ -153,6 +153,15 @@ export function toBigEndianFromUint32(value: number): Bytes<4> {
   return new Uint8Array(buffer) as Bytes<4>
 }
 
+export function toBigEndianFromBigInt64(value: bigint): Bytes<8> {
+  if (value < 0) throw Error(`toBigEndianFromBigInt64 got lesser than 0 value: ${value}`)
+
+  const buffer = new ArrayBuffer(8)
+  const view = new DataView(buffer)
+  view.setBigUint64(0, value, false)
+  return new Uint8Array(buffer) as Bytes<8>
+}
+
 /** It returns the common bytes of the two given byte arrays until the first byte difference */
 export function common(a: Uint8Array, b: Uint8Array): Uint8Array {
   let c = new Uint8Array(0)

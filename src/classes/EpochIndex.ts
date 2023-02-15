@@ -1,37 +1,36 @@
-import { keccak256Hash, toBigEndianFromUint32 } from "../handlers/mantaray/utils"
+import { keccak256Hash, toBigEndianFromBigInt64 } from "../handlers/mantaray/utils"
 
 export default class EpochIndex {
   static maxLevel = 32 // valid from 01/01/1970 to 16/03/2242
+  static maxStart = 2 ** (this.maxLevel + 1) - 1 // 16/03/2242
 
   /** Epoch start in seconds */
-  start: number
+  start: bigint
   /** Epoch level (32 to 0) */
   level: number
 
-  constructor(start: number, level: number) {
-    if (start >= 1 << (EpochIndex.maxLevel + 1)) {
+  constructor(start: number | bigint, level: number) {
+    if (BigInt(start) >= BigInt(1) << BigInt(EpochIndex.maxLevel + 1)) {
       throw new Error("'start' is too big")
     }
     if (level > EpochIndex.maxLevel) {
       throw new Error("'level' is too big")
     }
 
-    //normalize start clearing less relevent bits
-    start = (start >> level) << level
-
     this.level = level
-    this.start = start
+    //normalize start clearing less relevent bits
+    this.start = (BigInt(start) >> BigInt(level)) << BigInt(level)
   }
 
   // props
   public get isLeft(): boolean {
-    return (this.start & this.length) === 0
+    return (BigInt(this.start) & BigInt(this.length)) === BigInt(0)
   }
-  public get length(): number {
-    return 1 << this.level
+  public get length(): bigint {
+    return BigInt(1) << BigInt(this.level)
   }
   public get marshalBinary(): Uint8Array {
-    const epochBytes = toBigEndianFromUint32(this.start)
+    const epochBytes = toBigEndianFromBigInt64(this.start)
     const newArray = new Uint8Array([...epochBytes, this.level])
     return keccak256Hash(newArray)
   }
@@ -43,12 +42,13 @@ export default class EpochIndex {
   }
 
   // methods
-  public getChildAt(at: number): EpochIndex {
+  public getChildAt(at: number | bigint): EpochIndex {
     if (this.level === 0) throw new Error("'level' must be greater than 0")
     if (at < this.start || at >= this.start + this.length) throw new Error("'at' is out of range")
 
+    at = BigInt(at)
     var childStart = this.start
-    var childLength = this.length >> 1
+    var childLength = this.length >> 1n
 
     if ((at & childLength) > 0) childStart |= childLength
 
@@ -67,7 +67,7 @@ export default class EpochIndex {
     if (this.level === EpochIndex.maxLevel) throw new Error("'level' is too big")
 
     var parentLevel = this.level + 1
-    var parentStart = (this.start >> parentLevel) << parentLevel
+    var parentStart = (this.start >> BigInt(parentLevel)) << BigInt(parentLevel)
     return new EpochIndex(parentStart, parentLevel)
   }
 
@@ -79,13 +79,15 @@ export default class EpochIndex {
    * @param t1
    * @returns  Lowest common ancestor epoch index
    */
-  public static lowestCommonAncestor(t0: number, t1: number): EpochIndex {
+  public static lowestCommonAncestor(t0: number | bigint, t1: number | bigint): EpochIndex {
     let level = 0
-    while (t0 >> level != t1 >> level) {
+    t0 = BigInt(t0)
+    t1 = BigInt(t1)
+    while (t0 >> BigInt(level) != t1 >> BigInt(level)) {
       level++
       if (level > EpochIndex.maxLevel) throw new Error("Epochs are too far apart")
     }
-    const start = (t1 >> level) << level
+    const start = (t1 >> BigInt(level)) << BigInt(level)
     return new EpochIndex(start, level)
   }
 
