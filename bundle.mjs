@@ -64,7 +64,7 @@ for (const lib of entries) {
       emptyOutDir: false,
       sourcemap: true,
       minify: "esbuild",
-      target: "es2017",
+      target: "es2020",
       rollupOptions: {
         external: Object.keys(packageJson.peerDependencies),
         treeshake: true,
