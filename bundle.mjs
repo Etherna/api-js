@@ -12,6 +12,10 @@ const entries = [
     fileName: "index",
   },
   {
+    entry: path.resolve("src/classes/index.ts"),
+    fileName: "classes/index",
+  },
+  {
     entry: path.resolve("src/clients/index.ts"),
     fileName: "clients/index",
   },

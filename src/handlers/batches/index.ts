@@ -1,13 +1,13 @@
+import { FlagEnumManager } from "../../classes"
 import batchesStore, { BatchUpdateType } from "../../stores/batches"
 import { calcDilutedTTL, getBatchCapacity, getBatchSpace, ttlToAmount } from "../../utils/batches"
-import FlagEnumManager from "../FlagEnumManager"
 
 import type { BeeClient, EthernaGatewayClient, BatchId, PostageBatch } from "../../clients"
 import type { VideoSource, VideoSourceRaw } from "../../schemas/video"
 import type { UpdatingBatch } from "../../stores/batches"
 import type { AnyBatch } from "./types"
 
-const DEFAULT_TTL = 60 * 60 * 24 * 365 * 2 // 2 years
+const DEFAULT_TTL = 60 * 60 * 24 * 365 * 1 // 1 years
 const DEFAULT_SIZE = 2 ** 16 // 65kb - basic manifest
 
 const MIN_BATCH_DEPTH = 17
@@ -17,7 +17,6 @@ const MAX_ETHERNA_BATCH_DEPTH = 20
 let lastPriceFetched: { url: string; price: number } | undefined
 
 export interface BatchesHandlerOptions {
-  address: string
   gatewayType: "etherna-gateway" | "bee"
   beeClient: BeeClient
   gatewayClient: EthernaGatewayClient
@@ -39,12 +38,10 @@ export default class BatchesHandler {
   protected gatewayClient: EthernaGatewayClient
   protected gatewayType: BatchesHandlerOptions["gatewayType"]
   protected network: BatchesHandlerOptions["network"]
-  protected address: string
 
   defaultBlockTime: number
 
   constructor(opts: BatchesHandlerOptions) {
-    this.address = opts.address
     this.gatewayType = opts.gatewayType
     this.beeClient = opts.beeClient
     this.gatewayClient = opts.gatewayClient
@@ -84,17 +81,15 @@ export default class BatchesHandler {
     const batches = await Promise.allSettled(batchIds.map(id => this.fetchBatch(id, true)))
 
     this.batches = batches
-      // @ts-ignore
-      .filter<PromiseFulfilledResult<AnyBatch>>(batch => batch.status === "fulfilled")
-      .map(batch => batch.value)
+      .filter(batch => batch.status === "fulfilled")
+      .map(batch => (batch as PromiseFulfilledResult<AnyBatch>).value)
 
     this.onBatchesLoaded?.(this.batches)
 
     batches
-      // @ts-ignore
-      .filter<PromiseRejectedResult>(batch => batch.status === "rejected")
+      .filter(batch => batch.status === "rejected")
       .forEach((result, i) => {
-        this.onBatchLoadError?.(batchIds[i]!, result.reason)
+        this.onBatchLoadError?.(batchIds[i]!, (result as PromiseRejectedResult).reason)
       })
 
     return this.batches
@@ -247,27 +242,16 @@ export default class BatchesHandler {
    * @param addSize Size to add to the batch
    */
   async increaseBatchSize(batch: AnyBatch, addSize: number) {
+    const { depth, amount } = await this.calcDepthAmountForBatch(batch, addSize)
     const batchId = this.getBatchId(batch)
 
-    const newSize = getBatchSpace(batch).total + addSize
+    // topup batch (before dilute to avoid possible expiration)
+    await this.topupBatch(batchId, amount)
+    await this.waitBatchPropagation(batch, BatchUpdateType.Topup)
 
-    let depth = batch.depth + 1
-    while (newSize > getBatchCapacity(batch)) {
-      depth += 1
-    }
-
+    // dilute batch
     await this.diluteBatch(batchId, depth)
-
-    // bee returns error until dilute has finished
     await this.waitBatchPropagation(batch, BatchUpdateType.Dilute)
-
-    const newTTL = calcDilutedTTL(batch.batchTTL, batch.depth, depth)
-
-    // topup batch
-    const price = await this.fetchPrice()
-    const ttl = Math.abs(batch.batchTTL - newTTL)
-    const byAmount = ttlToAmount(ttl, price, this.defaultBlockTime).toString()
-    await this.topupBatch(batchId, byAmount)
 
     return true
   }
@@ -392,6 +376,27 @@ export default class BatchesHandler {
     while (size > getBatchCapacity(depth) && depth < maxDepth) {
       depth += 1
     }
+
+    return {
+      amount,
+      depth,
+    }
+  }
+
+  async calcDepthAmountForBatch(batch: AnyBatch, additionalSize: number) {
+    const newSize = getBatchSpace(batch).total + additionalSize
+
+    // dilute
+    let depth = batch.depth + 1
+    while (newSize > getBatchCapacity(depth)) {
+      depth += 1
+    }
+
+    // topup
+    const price = await this.fetchPrice()
+    const newTTL = calcDilutedTTL(batch.batchTTL, batch.depth, depth)
+    const ttl = Math.abs(batch.batchTTL - newTTL)
+    const amount = ttlToAmount(ttl, price, this.defaultBlockTime).toString()
 
     return {
       amount,
