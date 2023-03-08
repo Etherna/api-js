@@ -1,5 +1,5 @@
-import create from "zustand"
-import { persist, devtools } from "zustand/middleware"
+import { create } from "zustand"
+import { persist, devtools, createJSONStorage } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 
 import type { BatchId, PostageBatch, GatewayBatch } from "../clients"
@@ -60,7 +60,7 @@ const useBatchesStore = create<BatchesState>()(
       })),
       {
         name: "etherna:batches",
-        getStorage: () => localStorage,
+        storage: createJSONStorage(() => localStorage),
       }
     ),
     {

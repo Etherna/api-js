@@ -32,6 +32,8 @@ export const resizeImage = async (
   canvas.height = height
 
   const ctx = canvas.getContext("2d")!
+  ctx.fillStyle = "white"
+  ctx.fillRect(0, 0, width, height)
   ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height)
 
   URL.revokeObjectURL(image.src)

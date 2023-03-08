@@ -156,7 +156,9 @@ export const VideoDetailsSchema = z.object({
 export const VideoBuilderSchema = z.object({
   reference: beeReference,
   previewMeta: VideoPreviewRawSchema,
-  detailsMeta: VideoDetailsRawSchema,
+  detailsMeta: VideoDetailsRawSchema.omit({ sources: true }).extend({
+    sources: z.array(VideoSourceRawSchema),
+  }),
   node: MantarayNodeSchema,
 })
 

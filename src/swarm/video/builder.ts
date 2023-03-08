@@ -191,7 +191,7 @@ export default class VideoBuilder {
           { reference: "0".repeat(64) }
         )
       )
-    )
+    ) as VideoPreviewRaw
     this.detailsMeta = JSON.parse(
       new VideoSerializer().serializeDetails(
         new VideoDeserializer("http://doesntmatter.com").deserializeDetails(
@@ -199,7 +199,7 @@ export default class VideoBuilder {
           { reference: "0".repeat(64) }
         )
       )
-    )
+    ) as VideoDetailsRaw
 
     this.updateNode()
 
@@ -359,8 +359,8 @@ export default class VideoBuilder {
     const model = VideoBuilderSchema.parse(value)
 
     this.reference = beeReference.parse(model.reference) as Reference
-    this.previewMeta = VideoPreviewRawSchema.parse(model.previewMeta)
-    this.detailsMeta = VideoDetailsRawSchema.parse(model.detailsMeta)
+    this.previewMeta = model.previewMeta
+    this.detailsMeta = model.detailsMeta
 
     const recursiveLoadNode = (node: MantarayNodeType): MantarayNode => {
       const mantarayNode = new MantarayNode()
@@ -392,13 +392,6 @@ export default class VideoBuilder {
 
     const node = MantarayNodeSchema.parse(model.node)
     this.node = recursiveLoadNode(node)
-
-    return JSON.stringify({
-      reference: this.reference,
-      previewMeta: this.previewMeta,
-      detailsMeta: this.detailsMeta,
-      node: this.node.readable,
-    })
   }
 
   // private
