@@ -12,6 +12,7 @@ export default class Stamps {
   async create(
     depth = STAMPS_DEPTH_MIN,
     amount: bigint | string = "10000000",
+    label?: string,
     options?: RequestOptions
   ): Promise<BatchId> {
     const token = this.instance.auth.token
@@ -20,6 +21,9 @@ export default class Stamps {
       `${stampsEndpoint}/${amount}/${depth}`,
       null,
       {
+        params: {
+          label,
+        },
         headers: {
           Authorization: `Bearer ${token}`,
           ...options?.headers,
@@ -50,7 +54,7 @@ export default class Stamps {
     return postageResp.data
   }
 
-  async downloadAll(options?: RequestOptions): Promise<PostageBatch[]> {
+  async downloadAll(labelQuery?: string, options?: RequestOptions): Promise<PostageBatch[]> {
     const token = this.instance.auth.token
 
     const postageResp = await this.instance.request.get<{ stamps: PostageBatch[] }>(
@@ -64,7 +68,9 @@ export default class Stamps {
         signal: options?.signal,
       }
     )
-    return postageResp.data.stamps
+    return postageResp.data.stamps.filter(
+      batch => !labelQuery || batch.label.toLowerCase().includes(labelQuery.toLowerCase())
+    )
   }
 
   async fetchBestBatchId(): Promise<BatchId> {
