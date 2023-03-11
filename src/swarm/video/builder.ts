@@ -246,18 +246,10 @@ export default class VideoBuilder {
 
   async addAdaptiveSource(type: "dash" | "hls", data: Uint8Array, filename: string) {
     const path = this.getAdaptivePath(filename, type)
-    const [meta] = await Promise.allSettled([getVideoMeta(data)])
     const exists = this.node.hasForkAtPath(encodePath(path))
 
     if (exists) {
       throw new Error(`Adaptive source '${filename}' already added`)
-    }
-
-    if (!this.previewMeta.duration && meta.status === "fulfilled") {
-      this.previewMeta.duration = meta.value.duration
-    }
-    if (!this.detailsMeta.aspectRatio && meta.status === "fulfilled") {
-      this.detailsMeta.aspectRatio = meta.value.width / meta.value.height
     }
 
     const isManifest = filename.endsWith(".mpd") || filename.endsWith(".m3u8")
