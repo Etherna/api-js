@@ -60,9 +60,12 @@ export default class UsersClient {
    *
    * @returns User's list of batches
    */
-  async fetchBatches(opts?: RequestOptions) {
+  async fetchBatches(labelQuery?: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<GatewayBatchPreview[]>(`/users/current/batches`, {
       ...this.instance.prepareAxiosConfig(opts),
+      params: {
+        labelContainsFilter: labelQuery,
+      },
     })
 
     if (!Array.isArray(resp.data)) {
@@ -82,6 +85,7 @@ export default class UsersClient {
   async createBatch(
     depth: number,
     amount: bigint | string,
+    label?: string,
     opts?: RequestOptions
   ): Promise<GatewayBatch> {
     const resp = await this.instance.request.post<string>(`/users/current/batches`, null, {
@@ -89,6 +93,7 @@ export default class UsersClient {
       params: {
         depth,
         amount,
+        label,
       },
     })
 
