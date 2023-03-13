@@ -218,11 +218,11 @@ export default class BatchesHandler {
     let batch: AnyBatch
 
     if (this.gatewayType === "etherna-gateway") {
-      batch = await this.gatewayClient.users.createBatch(depth, amount, {
+      batch = await this.gatewayClient.users.createBatch(depth, amount, undefined, {
         signal,
       })
     } else {
-      const batchId = await this.beeClient.stamps.create(depth, amount, {
+      const batchId = await this.beeClient.stamps.create(depth, amount, undefined, {
         signal,
       })
       batch = await this.fetchBatch(batchId)
