@@ -252,7 +252,7 @@ export default class VideoBuilder {
       throw new Error(`Adaptive source '${filename}' already added`)
     }
 
-    const isManifest = filename.endsWith(".mpd") || filename.endsWith(".m3u8")
+    const isManifest = filename.endsWith("manifest.mpd") || filename.endsWith("manifest.m3u8")
     const contentType = this.getSourceContentType(filename)
     const lastPathFilename = path.split("/").pop()!
     this.addFile(lastPathFilename, path, contentType, getReferenceFromData(data))
