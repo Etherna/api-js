@@ -36,3 +36,7 @@ export type GatewayPin = {
   isPinningInProgress: boolean
   isPinningRequired: boolean
 }
+
+export type GatewayWelcomeStatus = {
+  isFreePostageBatchConsumed: boolean
+}

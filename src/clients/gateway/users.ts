@@ -1,6 +1,12 @@
 import type EthernaGatewayClient from "."
 import type { RequestOptions } from ".."
-import type { GatewayBatch, GatewayBatchPreview, GatewayCredit, GatewayCurrentUser } from "./types"
+import type {
+  GatewayBatch,
+  GatewayBatchPreview,
+  GatewayCredit,
+  GatewayCurrentUser,
+  GatewayWelcomeStatus,
+} from "./types"
 
 export default class UsersClient {
   constructor(private instance: EthernaGatewayClient) {}
@@ -73,6 +79,22 @@ export default class UsersClient {
     }
 
     return resp.data
+  }
+
+  /**
+   * Fetch the current user's welcome status
+   *
+   * @param opts Request options
+   * @returns User's welcome status
+   */
+  async fetchWelcome(opts?: RequestOptions) {
+    const resp = await this.instance.request.get<GatewayWelcomeStatus>(`/users/current/welcome`, {
+      ...this.instance.prepareAxiosConfig(opts),
+    })
+
+    return {
+      isFreePostageBatchConsumed: resp.data.isFreePostageBatchConsumed ?? false,
+    }
   }
 
   /**
@@ -181,6 +203,20 @@ export default class UsersClient {
     }
 
     return resp.data
+  }
+
+  /**
+   * Request the creations of the offered postage batch (only for new users)
+   *
+   * @param opts Request options
+   * @returns 'true' if the request was successful
+   */
+  async requestWelcomePostage(opts?: RequestOptions) {
+    await this.instance.request.post(`/users/current/welcome`, null, {
+      ...this.instance.prepareAxiosConfig(opts),
+    })
+
+    return true
   }
 
   // SYSTEM
