@@ -2,10 +2,10 @@ import { testImageParsed, testImageRaw } from "./image.test.data"
 
 import type {
   Video,
-  VideoPreviewRaw,
+  VideoDetails,
   VideoDetailsRaw,
   VideoPreview,
-  VideoDetails,
+  VideoPreviewRaw,
 } from "../../../src"
 
 export const beeUrl = "http://localhost:1633"
@@ -73,7 +73,6 @@ export const testVideoRawDetails_1_1_2_0: VideoDetailsRaw = {
     },
   ],
   batchId: "0123456789012345678901234567890123456789012345678901234567890123",
-  v: "2.0",
 }
 
 export const testVideoIndex: VideoPreviewRaw & VideoDetailsRaw & { originalQuality: string } = {
@@ -111,10 +110,10 @@ export const testVideoDetailsRaw_2_0: VideoDetailsRaw = {
     {
       type: "dash",
       path: "dash/manifest.mpd",
+      size: 0,
     },
   ],
   batchId: "0123456789012345678901234567890123456789012345678901234567890123",
-  v: "2.0",
 }
 
 export const testVideoPreviewParsed_1_0: VideoPreview = {
@@ -240,6 +239,9 @@ export const testVideoDetailsParsed_2_0: VideoDetails = {
       type: "dash",
       path: "dash/manifest.mpd",
       url: "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123/dash/manifest.mpd",
+      size: 0,
+      isAudio: false,
+      isMaster: true,
     },
   ],
   batchId: "0123456789012345678901234567890123456789012345678901234567890123",

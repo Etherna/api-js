@@ -14,37 +14,37 @@ import {
 import { VideoDeserializer, VideoSerializer } from "../../serializers"
 import { isValidReference } from "../../utils"
 import {
-  jsonToReference,
+  bytesReferenceToReference,
   encodePath,
   EntryMetadataContentTypeKey,
   EntryMetadataFilenameKey,
+  getAllPaths,
+  getBzzNodeInfo,
   getReferenceFromData,
+  isZeroBytesReference,
+  jsonToReference,
+  referenceToBytesReference,
   RootPath,
   WebsiteIndexDocumentSuffixKey,
   ZeroHashReference,
-  referenceToBytesReference,
-  bytesReferenceToReference,
-  getBzzNodeInfo,
-  isZeroBytesReference,
-  getAllPaths,
 } from "../../utils/mantaray"
 import { getVideoMeta } from "../../utils/media"
 
 import type {
   ImageType,
+  MantarayNode as MantarayNodeType,
   VideoDetails,
   VideoPreview,
   VideoQuality,
-  MantarayNode as MantarayNodeType,
 } from "../.."
 import type { BatchId, BeeClient, Reference } from "../../clients"
 import type { ImageRawSource } from "../../schemas/image"
 import type {
+  SerializedVideoBuilder,
+  Video,
   VideoDetailsRaw,
   VideoPreviewRaw,
   VideoSourceRaw,
-  Video,
-  SerializedVideoBuilder,
 } from "../../schemas/video"
 
 interface VideoBuilderRequestOptions {
@@ -244,7 +244,12 @@ export default class VideoBuilder {
     this.detailsMeta.sources.push(source)
   }
 
-  async addAdaptiveSource(type: "dash" | "hls", data: Uint8Array, filename: string) {
+  async addAdaptiveSource(
+    type: "dash" | "hls",
+    data: Uint8Array,
+    filename: string,
+    fullSize: number
+  ) {
     const path = this.getAdaptivePath(filename, type)
     const exists = this.node.hasForkAtPath(encodePath(path))
 
@@ -252,7 +257,7 @@ export default class VideoBuilder {
       throw new Error(`Adaptive source '${filename}' already added`)
     }
 
-    const isManifest = filename.endsWith("manifest.mpd") || filename.endsWith("manifest.m3u8")
+    const isManifest = filename.match(/\.(mpd|m3u8)$/)
     const contentType = this.getSourceContentType(filename)
     const lastPathFilename = path.split("/").pop()!
     this.addFile(lastPathFilename, path, contentType, getReferenceFromData(data))
@@ -261,6 +266,7 @@ export default class VideoBuilder {
       this.detailsMeta.sources.push({
         type,
         path,
+        size: fullSize,
       })
     }
   }

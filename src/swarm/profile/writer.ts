@@ -1,6 +1,6 @@
 import { ProfileSerializer } from "../../serializers"
 import BaseWriter from "../base-writer"
-import { ProfileCache, PROFILE_TOPIC } from "./reader"
+import { PROFILE_TOPIC, ProfileCache } from "./reader"
 
 import type { Profile } from "../.."
 import type { BeeClient, EthAddress, Reference } from "../../clients"

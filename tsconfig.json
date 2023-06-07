@@ -29,5 +29,5 @@
     "skipLibCheck": true,
     "typeRoots": ["./src/typings/"]
   },
-  "include": ["src", "test", "env.d.ts"]
+  "include": ["src", "test*.*", "env.d.ts"]
 }

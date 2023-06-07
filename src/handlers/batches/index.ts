@@ -2,7 +2,7 @@ import { FlagEnumManager } from "../../classes"
 import batchesStore, { BatchUpdateType } from "../../stores/batches"
 import { calcDilutedTTL, getBatchCapacity, getBatchSpace, ttlToAmount } from "../../utils/batches"
 
-import type { BeeClient, EthernaGatewayClient, BatchId, PostageBatch } from "../../clients"
+import type { BatchId, BeeClient, EthernaGatewayClient, PostageBatch } from "../../clients"
 import type { VideoSource, VideoSourceRaw } from "../../schemas/video"
 import type { UpdatingBatch } from "../../stores/batches"
 import type { AnyBatch } from "./types"

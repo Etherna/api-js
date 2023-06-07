@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { UserPlaylistsDeserializer, UserPlaylistsSerializer } from "../../src/serializers"
-import { userPlaylistsRaw, testProfileParsed } from "./__data__/user-playlists.test.data"
+import { testProfileParsed, userPlaylistsRaw } from "./__data__/user-playlists.test.data"
 
 describe("user playlists deserializer", () => {
   const deserializer = new UserPlaylistsDeserializer()

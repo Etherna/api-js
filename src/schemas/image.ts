@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { nonEmptyRecord, beeReference } from "./base"
+import { beeReference, nonEmptyRecord } from "./base"
 
 export const imageSize = z.custom<`${number}w`>(val => /^\d+w$/g.test(val as string))
 

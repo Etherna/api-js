@@ -183,7 +183,7 @@ export class MantarayFork {
         const metadataBytes = data.slice(startMetadata, startMetadata + metadataByteSize)
 
         const jsonString = new TextDecoder().decode(metadataBytes)
-        node.metadata = JSON.parse(jsonString)
+        node.metadata = JSON.parse(jsonString) as any
       }
     } else {
       node.entry = data.slice(nodeForkSizes.preReference) as Bytes<32> | Bytes<64>

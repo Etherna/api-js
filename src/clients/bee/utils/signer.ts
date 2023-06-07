@@ -1,4 +1,4 @@
-import { utils, getPublicKey, sign, Signature, recoverPublicKey } from "@noble/secp256k1"
+import { getPublicKey, recoverPublicKey, sign, Signature, utils } from "@noble/secp256k1"
 
 import { keccak256Hash } from "./hash"
 import { makeHexString } from "./hex"

@@ -3,16 +3,16 @@ import { VideoDetailsRawSchema, VideoPreviewRawSchema } from "../../schemas/vide
 import { VideoDeserializer } from "../../serializers"
 import BaseReader from "../base-reader"
 
-import type { Video, Profile, VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
+import type { Profile, Video, VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
 import type {
   BeeClient,
   EthernaIndexClient,
   IndexVideo,
-  Reference,
   IndexVideoManifest,
+  Reference,
 } from "../../clients"
 import type { VideoPreview } from "../../schemas/video"
-import type { ReaderOptions, ReaderDownloadOptions } from "../base-reader"
+import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
 
 interface VideoReaderOptions extends ReaderOptions {
   indexClient?: EthernaIndexClient

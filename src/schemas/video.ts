@@ -46,6 +46,8 @@ export const VideoSourceRawSchema = z
       type: z.enum(["dash", "hls"]),
       /** Path of the source */
       path: z.string().min(3),
+      /** Video size in bytes */
+      size: z.number().min(0),
     }),
   ])
   .transform(data => {
@@ -103,14 +105,22 @@ export const VideoSourceSchema = z
       /** source url */
       url: z.string().url(),
     }),
-    z.object({
-      /** Source type */
-      type: z.enum(["dash", "hls"]),
-      /** Path of the source */
-      path: z.string().min(3),
-      /** source url */
-      url: z.string().url(),
-    }),
+    z
+      .object({
+        /** Source type */
+        type: z.enum(["dash", "hls"]),
+        /** Path of the source */
+        path: z.string().min(3),
+        /** Video size in bytes */
+        size: z.number().min(0),
+        /** source url */
+        url: z.string().url(),
+      })
+      .transform(data => ({
+        ...data,
+        isMaster: data.path.endsWith("manifest.mpd") || data.path.endsWith("manifest.m3u8"),
+        isAudio: data.path.endsWith("audio.mpd") || data.path.endsWith("audio.m3u8"),
+      })),
   ])
   .superRefine((data, ctx) => {
     if (data.type === "mp4" && !data.reference && !data.path) {

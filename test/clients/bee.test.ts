@@ -1,10 +1,10 @@
 import { utils } from "@noble/secp256k1"
-import { describe, it, expect, beforeAll, afterAll } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
+import { createPostaBatch, startBee } from "../__utils__/bee-process"
 import { BeeClient } from "../../src/clients"
 import { makeContentAddressedChunk } from "../../src/clients/bee/utils/chunk"
 import { keccak256Hash } from "../../src/clients/bee/utils/hash"
-import { createPostaBatch, startBee } from "../__utils__/bee-process"
 
 import type { ChildProcess } from "../__utils__/bee-process"
 

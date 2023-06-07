@@ -15,6 +15,8 @@ export default class ImageDeserializer {
 
   deserialize(item: object, opts?: ImageDeserializerOptions): Image {
     const imageRaw = ImageRawSchema.parse(item)
+    console.log(imageRaw)
+
     const rawSources = imageRaw.sources
     const sources = rawSources
       .map(source => ({

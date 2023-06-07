@@ -1,3 +1,3 @@
-import type { PostageBatch, GatewayBatch } from "../../clients"
+import type { GatewayBatch, PostageBatch } from "../../clients"
 
 export type AnyBatch = PostageBatch | GatewayBatch

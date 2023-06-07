@@ -1,8 +1,8 @@
 import { create } from "zustand"
-import { persist, devtools, createJSONStorage } from "zustand/middleware"
+import { createJSONStorage, devtools, persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 
-import type { BatchId, PostageBatch, GatewayBatch } from "../clients"
+import type { BatchId, GatewayBatch, PostageBatch } from "../clients"
 
 export enum BatchUpdateType {
   Create = 1,
