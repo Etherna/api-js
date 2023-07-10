@@ -490,7 +490,7 @@ export class MantarayNode {
   public hasForkAtPath(path: Uint8Array): boolean {
     if (path.length === 0) throw EmptyPathError
 
-    if (!this.forks) throw Error(`Fork mapping is not defined in the manifest`)
+    if (!this.forks) return false
 
     const fork = this.forks[path[0]!]
 

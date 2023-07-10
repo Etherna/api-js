@@ -33,6 +33,11 @@ export {
   jsonToReference,
   isZeroBytesReference,
   referenceToBytesReference,
+  RootPath,
+  ZeroHashReference,
+  EntryMetadataContentTypeKey,
+  EntryMetadataFilenameKey,
+  WebsiteIndexDocumentSuffixKey,
 } from "./mantaray"
 export { getBitrate, getVideoMeta } from "./media"
 export { extractVideoReferences, isEmptyReference } from "./references"
