@@ -1,7 +1,7 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
 import { MantarayNode } from "../handlers/mantaray"
-import { toHexString, fromHexString } from "./bytes"
+import { fromHexString, toHexString } from "./bytes"
 
 import type { BeeClient, Reference } from "../clients"
 import type { Reference as BytesReference } from "../handlers/mantaray/types"

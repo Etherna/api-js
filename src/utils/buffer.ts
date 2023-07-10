@@ -76,3 +76,7 @@ export const stringToBase64 = (str: string): string => {
     return window.btoa(str)
   }
 }
+
+export const buffersEquals = (a: Uint8Array, b: Uint8Array) => {
+  return a.length === b.length && a.every((value, index) => value === b[index])
+}

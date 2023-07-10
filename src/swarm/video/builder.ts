@@ -14,37 +14,37 @@ import {
 import { VideoDeserializer, VideoSerializer } from "../../serializers"
 import { isValidReference } from "../../utils"
 import {
-  jsonToReference,
+  bytesReferenceToReference,
   encodePath,
   EntryMetadataContentTypeKey,
   EntryMetadataFilenameKey,
+  getAllPaths,
+  getBzzNodeInfo,
   getReferenceFromData,
+  isZeroBytesReference,
+  jsonToReference,
+  referenceToBytesReference,
   RootPath,
   WebsiteIndexDocumentSuffixKey,
   ZeroHashReference,
-  referenceToBytesReference,
-  bytesReferenceToReference,
-  getBzzNodeInfo,
-  isZeroBytesReference,
-  getAllPaths,
 } from "../../utils/mantaray"
 import { getVideoMeta } from "../../utils/media"
 
 import type {
   ImageType,
+  MantarayNode as MantarayNodeType,
   VideoDetails,
   VideoPreview,
   VideoQuality,
-  MantarayNode as MantarayNodeType,
 } from "../.."
 import type { BatchId, BeeClient, Reference } from "../../clients"
 import type { ImageRawSource } from "../../schemas/image"
 import type {
+  SerializedVideoBuilder,
+  Video,
   VideoDetailsRaw,
   VideoPreviewRaw,
   VideoSourceRaw,
-  Video,
-  SerializedVideoBuilder,
 } from "../../schemas/video"
 
 interface VideoBuilderRequestOptions {
