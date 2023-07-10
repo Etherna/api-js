@@ -9,6 +9,7 @@ import type { Reference as BytesReference } from "../handlers/mantaray/types"
 export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
 export const RootPath = "/"
 export const WebsiteIndexDocumentSuffixKey = "website-index-document"
+export const WebsiteErrorDocumentPathKey = "website-error-document"
 export const EntryMetadataContentTypeKey = "Content-Type"
 export const EntryMetadataFilenameKey = "Filename"
 

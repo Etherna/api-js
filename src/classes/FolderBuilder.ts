@@ -9,6 +9,7 @@ import {
   getReferenceFromData,
   referenceToBytesReference,
   RootPath,
+  WebsiteErrorDocumentPathKey,
   WebsiteIndexDocumentSuffixKey,
   ZeroHashReference,
 } from "../utils/mantaray"
@@ -21,6 +22,7 @@ export interface FolderBuilderConfig {
   batchId: BatchId
   concurrentTasks?: number
   indexDocument?: string
+  errorDocument?: string
 }
 
 export default abstract class FolderBuilder {
@@ -46,9 +48,16 @@ export default abstract class FolderBuilder {
   }
 
   async save() {
-    this.node.addFork(encodePath(RootPath), ZeroHashReference, {
-      [WebsiteIndexDocumentSuffixKey]: "index.html",
-    })
+    const metadata: Record<string, string> = {}
+
+    if (this.config.indexDocument) {
+      metadata[WebsiteIndexDocumentSuffixKey] = this.config.indexDocument
+    }
+    if (this.config.errorDocument) {
+      metadata[WebsiteErrorDocumentPathKey] = this.config.errorDocument
+    }
+
+    this.node.addFork(encodePath(RootPath), ZeroHashReference, metadata)
     const reference = await this.node.save(async data => {
       return this.enqueueData(data)
     })
