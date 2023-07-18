@@ -52,8 +52,8 @@ if (fs.existsSync(DIST_PATH)) {
 
 const watch = process.argv.includes("--watch")
 
-for (const lib of entries) {
-  await build({
+const results = await Promise.all(
+  entries.map(lib => build({
     mode: watch ? "development" : "production",
     build: {
       outDir: "./dist",
@@ -70,8 +70,17 @@ for (const lib of entries) {
         treeshake: true,
       }
     },
-  });
-}
+  }))
+)
+
+results.forEach(result => {
+  if (Array.isArray(result)) return
+  if ("output" in result) return
+
+  result.on("change", path => {
+    console.log(`File ${path} has been changed`)
+  })
+})
 
 // Copy & edit package.json / README
 
@@ -89,3 +98,7 @@ fs.writeFileSync(path.join(DIST_PATH, "package.json"), Buffer.from(JSON.stringif
 
 // README.md
 fs.writeFileSync(path.join(DIST_PATH, "README.md"), fs.readFileSync(path.resolve("README.md")))
+
+if (watch) {
+  process.stdin.resume();
+}

@@ -1,6 +1,6 @@
-import { create } from "zustand"
 import { createJSONStorage, devtools, persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
+import { createStore } from "zustand/vanilla"
 
 import type { BatchId, GatewayBatch, PostageBatch } from "../clients"
 
@@ -23,7 +23,7 @@ export type BatchesState = {
   removeBatchUpdate(batchId: BatchId): void
 }
 
-const useBatchesStore = create<BatchesState>()(
+const batchesStore = createStore<BatchesState>()(
   devtools(
     persist(
       immer(set => ({
@@ -69,4 +69,4 @@ const useBatchesStore = create<BatchesState>()(
   )
 )
 
-export default useBatchesStore
+export default batchesStore
