@@ -1,4 +1,4 @@
-import { utils } from "@noble/secp256k1"
+import { etc } from "@noble/secp256k1"
 
 import type { Data } from "../types"
 
@@ -77,7 +77,7 @@ export function wrapBytesWithHelpers<T extends Record<string, unknown> = Record<
     json<J = T>() {
       return JSON.parse(new TextDecoder("utf-8").decode(data)) as J
     },
-    hex: () => utils.bytesToHex(data),
+    hex: () => etc.bytesToHex(data),
   })
 }
 

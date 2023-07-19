@@ -1,4 +1,4 @@
-import { utils } from "@noble/secp256k1"
+import { etc } from "@noble/secp256k1"
 
 import { bmtHash } from "./utils/bmt"
 import { bytesAtOffset, bytesEqual, flexBytesAtOffset, serializeBytes } from "./utils/bytes"
@@ -33,9 +33,9 @@ export default class Soc {
   constructor(private instance: BeeClient) {}
 
   async download(identifier: Uint8Array, ownerAddress: EthAddress, options?: RequestOptions) {
-    const addressBytes = utils.hexToBytes(makeHexString(ownerAddress))
+    const addressBytes = etc.hexToBytes(makeHexString(ownerAddress))
     const address = this.makeSOCAddress(identifier, addressBytes)
-    const data = await this.instance.chunk.download(utils.bytesToHex(address), options)
+    const data = await this.instance.chunk.download(etc.bytesToHex(address), options)
 
     return this.makeSingleOwnerChunkFromData(data, address)
   }
@@ -44,10 +44,10 @@ export default class Soc {
     const cac = makeContentAddressedChunk(data)
     const soc = await this.makeSingleOwnerChunk(cac, identifier)
 
-    const owner = utils.bytesToHex(soc.owner())
-    const signature = utils.bytesToHex(soc.signature())
+    const owner = etc.bytesToHex(soc.owner())
+    const signature = etc.bytesToHex(soc.signature())
     const payload = serializeBytes(soc.span(), soc.payload())
-    const hexIdentifier = utils.bytesToHex(identifier)
+    const hexIdentifier = etc.bytesToHex(identifier)
 
     const resp = await this.instance.request.post<ReferenceResponse>(
       `${socEndpoint}/${owner}/${hexIdentifier}`,
@@ -84,9 +84,9 @@ export default class Soc {
     const chunkAddress = chunk.address()
 
     const digest = keccak256Hash(identifier, chunkAddress)
-    const signature = utils.hexToBytes(makeHexString(await this.instance.signer.sign(digest)))
+    const signature = etc.hexToBytes(makeHexString(await this.instance.signer.sign(digest)))
     const data = serializeBytes(identifier, signature, chunk.span(), chunk.payload())
-    const signerAddress = utils.hexToBytes(makeHexString(this.instance.signer!.address))
+    const signerAddress = etc.hexToBytes(makeHexString(this.instance.signer!.address))
     const address = this.makeSOCAddress(identifier, signerAddress)
 
     return {

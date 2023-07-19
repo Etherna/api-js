@@ -1,4 +1,4 @@
-import { utils } from "@noble/secp256k1"
+import { etc } from "@noble/secp256k1"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { createPostaBatch, startBee } from "../__utils__/bee-process"
@@ -51,8 +51,8 @@ describe("bee client", () => {
     const identifier = keccak256Hash("etherna")
     const soc = await bee.soc.makeSingleOwnerChunk(cac, identifier)
 
-    expect(utils.bytesToHex(soc.data)).toEqual(socData)
-    expect(utils.bytesToHex(soc.signature())).toEqual(socSignature)
+    expect(etc.bytesToHex(soc.data)).toEqual(socData)
+    expect(etc.bytesToHex(soc.signature())).toEqual(socSignature)
   })
 
   it("should upload a single owner chunk", async () => {
@@ -66,7 +66,7 @@ describe("bee client", () => {
 
     const socData = await bee.soc.download(identifier, bee.signer!.address)
 
-    expect(utils.bytesToHex(socData.payload())).toEqual(utils.bytesToHex(messageData))
+    expect(etc.bytesToHex(socData.payload())).toEqual(etc.bytesToHex(messageData))
   })
 
   it("should upload raw data", async () => {

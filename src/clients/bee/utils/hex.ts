@@ -1,4 +1,4 @@
-import { utils } from "@noble/secp256k1"
+import { etc } from "@noble/secp256k1"
 
 import type { EthAddress } from "../types"
 
@@ -13,7 +13,7 @@ export function makeHexString(input: string | number | Uint8Array | EthAddress):
   }
 
   if (input instanceof Uint8Array) {
-    return utils.bytesToHex(input)
+    return etc.bytesToHex(input)
   }
 
   if (typeof input === "string") {
