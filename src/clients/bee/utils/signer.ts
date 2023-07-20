@@ -34,7 +34,7 @@ export async function defaultSign(
   privateKey: Uint8Array
 ): Promise<string> {
   // fix nodejs crypto
-  if (typeof window === "undefined" && !globalThis.crypto) {
+  if (typeof window === "undefined") {
     const hmac = await import("@noble/hashes/hmac").then(mod => mod.hmac)
     const sha256 = await import("@noble/hashes/sha256").then(mod => mod.sha256)
 
