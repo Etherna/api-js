@@ -1,4 +1,4 @@
-import { etc, getPublicKey, signAsync, Signature, utils } from "@noble/secp256k1"
+import { etc, getPublicKey, signAsync, Signature } from "@noble/secp256k1"
 
 import { keccak256Hash } from "./hash"
 import { makeHexString } from "./hex"
@@ -33,6 +33,15 @@ export async function defaultSign(
   data: Uint8Array | string,
   privateKey: Uint8Array
 ): Promise<string> {
+  // fix nodejs crypto
+  if (typeof window === "undefined" && !globalThis.crypto) {
+    const hmac = await import("@noble/hashes/hmac").then(mod => mod.hmac)
+    const sha256 = await import("@noble/hashes/sha256").then(mod => mod.sha256)
+
+    etc.hmacSha256Sync = (k, ...m) => hmac(sha256, k, etc.concatBytes(...m))
+    etc.hmacSha256Async = (k, ...m) => Promise.resolve(etc.hmacSha256Sync!(k, ...m))
+  }
+
   const hashedDigest = hashWithEthereumPrefix(
     typeof data === "string" ? new TextEncoder().encode(data) : data
   )
