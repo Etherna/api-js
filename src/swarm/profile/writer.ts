@@ -1,6 +1,6 @@
 import { ProfileSerializer } from "../../serializers"
 import BaseWriter from "../base-writer"
-import { ProfileCache, PROFILE_TOPIC } from "./reader"
+import { PROFILE_TOPIC, ProfileCache } from "./reader"
 
 import type { Profile } from "../.."
 import type { BeeClient, EthAddress, Reference } from "../../clients"
@@ -22,7 +22,8 @@ export default class ProfileWriter extends BaseWriter<Profile> {
   async upload(opts?: WriterUploadOptions): Promise<Reference> {
     if (!this.beeClient.signer) throw new Error("Enable your wallet to update your profile")
 
-    const batchId = opts?.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
+    const batchId =
+      opts?.batchId ?? this.profile.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
     const rawProfile = new ProfileSerializer().serialize(this.profile)
 
     // Upload json

@@ -1,6 +1,6 @@
 import { ImageRawSchema, ImageSchema } from "../../schemas/image"
 
-import type { ImageRaw, ImageRawSources, Image } from "../.."
+import type { Image, ImageRaw, ImageRawSources } from "../.."
 
 export default class ImageSerializer {
   constructor() {}

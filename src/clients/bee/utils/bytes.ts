@@ -1,4 +1,4 @@
-import { utils } from "@noble/secp256k1"
+import { etc } from "@noble/secp256k1"
 
 import type { Data } from "../types"
 
@@ -69,11 +69,15 @@ export function flexBytesAtOffset(data: Uint8Array, offset: number): Uint8Array 
   return data.slice(offset)
 }
 
-export function wrapBytesWithHelpers(data: Uint8Array): Data {
+export function wrapBytesWithHelpers<T extends Record<string, unknown> = Record<string, unknown>>(
+  data: Uint8Array
+): Data {
   return Object.assign(data, {
     text: () => new TextDecoder("utf-8").decode(data),
-    json: () => JSON.parse(new TextDecoder("utf-8").decode(data)),
-    hex: () => utils.bytesToHex(data),
+    json<J = T>() {
+      return JSON.parse(new TextDecoder("utf-8").decode(data)) as J
+    },
+    hex: () => etc.bytesToHex(data),
   })
 }
 

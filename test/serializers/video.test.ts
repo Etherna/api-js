@@ -1,26 +1,26 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { VideoDeserializer, VideoSerializer } from "../../src/serializers"
 import {
   beeUrl,
-  testVideoRaw_1_0,
-  testVideoRaw_1_1,
-  testVideoPreviewParsed_1_0,
+  testVideoDetailsIndexParsed,
   testVideoDetailsParsed_1_0,
-  testVideoPreviewParsed_1_1,
   testVideoDetailsParsed_1_1,
-  videoReference,
+  testVideoDetailsParsed_1_1_2_0,
+  testVideoDetailsParsed_2_0,
+  testVideoDetailsRaw_2_0,
   testVideoIndex,
   testVideoPreviewIndexParsed,
-  testVideoDetailsIndexParsed,
-  testVideoPreviewParsed_2_0,
-  testVideoDetailsParsed_2_0,
+  testVideoPreviewParsed_1_0,
+  testVideoPreviewParsed_1_1,
   testVideoPreviewParsed_1_1_2_0,
-  testVideoDetailsParsed_1_1_2_0,
-  testVideoRawPreview_1_1_2_0,
-  testVideoRawDetails_1_1_2_0,
+  testVideoPreviewParsed_2_0,
   testVideoPreviewRaw_2_0,
-  testVideoDetailsRaw_2_0,
+  testVideoRaw_1_0,
+  testVideoRaw_1_1,
+  testVideoRawDetails_1_1_2_0,
+  testVideoRawPreview_1_1_2_0,
+  videoReference,
 } from "./__data__/video.test.data"
 
 describe("video deserializer", () => {

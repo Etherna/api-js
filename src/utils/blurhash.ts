@@ -157,7 +157,7 @@ function generatePng(width: number, height: number, rgbaString: string) {
     scanline = NO_FILTER
     if (Array.isArray(rgbaString)) {
       for (let x = 0; x < width * 4; x++) {
-        scanline += String.fromCharCode(rgbaString[y + x] & 0xff)
+        scanline += String.fromCharCode(+rgbaString[y + x]! & 0xff)
       }
     } else {
       scanline += rgbaString.substr(y, width * 4)

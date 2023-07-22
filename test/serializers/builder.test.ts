@@ -1,15 +1,15 @@
 import fs from "fs"
 import { resolve } from "node:path"
-import { describe, it, expect, beforeAll, afterAll } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
+import { createPostaBatch, startBee } from "../__utils__/bee-process"
 import { BeeClient } from "../../src/clients"
 import { VideoDeserializer } from "../../src/serializers"
 import VideoBuilder from "../../src/swarm/video/builder"
-import { createPostaBatch, startBee } from "../__utils__/bee-process"
 import { testVideoRaw_1_1 } from "./__data__/video.test.data"
 
-import type { BatchId, Reference } from "../../src/clients"
 import type { ChildProcess } from "../__utils__/bee-process"
+import type { BatchId, Reference } from "../../src/clients"
 
 describe("builder", () => {
   const beeClient = new BeeClient("http://localhost:1633")

@@ -1,4 +1,4 @@
-import { utils } from "@noble/secp256k1"
+import { etc } from "@noble/secp256k1"
 
 import { makeBytes, serializeBytes } from "./utils/bytes"
 import { keccak256Hash } from "./utils/hash"
@@ -31,7 +31,7 @@ export default class Feed {
     type: "sequence" | "epoch" = "sequence"
   ): FeedInfo {
     return {
-      topic: utils.bytesToHex(keccak256Hash(topicName)),
+      topic: etc.bytesToHex(keccak256Hash(topicName)),
       owner: makeHexString(owner),
       type,
     }
@@ -145,7 +145,7 @@ export default class Feed {
       const error = e as AxiosError
 
       if (error.response?.status === 404) {
-        return utils.bytesToHex(makeBytes(8))
+        return etc.bytesToHex(makeBytes(8))
       }
       throw e
     }
@@ -190,7 +190,7 @@ export default class Feed {
   }
 
   private hashFeedIdentifier(topic: string, index: Uint8Array): Uint8Array {
-    return keccak256Hash(utils.hexToBytes(topic), index)
+    return keccak256Hash(etc.hexToBytes(topic), index)
   }
 
   private makeSequentialFeedIdentifier(topic: string, index: number): Uint8Array {
@@ -202,6 +202,6 @@ export default class Feed {
   private makeFeedIndexBytes(s: string): Uint8Array {
     const hex = makeHexString(s)
 
-    return utils.hexToBytes(hex)
+    return etc.hexToBytes(hex)
   }
 }

@@ -4,7 +4,7 @@
  * @param file File to convert
  * @returns The array buffer data
  */
-export const fileToBuffer = (file: File) => {
+export const fileToBuffer = (file: File | Blob) => {
   return new Promise<ArrayBuffer>((resolve, reject) => {
     let fr = new FileReader()
     fr.onload = () => {

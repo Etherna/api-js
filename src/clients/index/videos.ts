@@ -1,10 +1,10 @@
 import type EthernaIndexClient from "."
 import type {
-  RequestOptions,
   IndexVideo,
   IndexVideoComment,
   IndexVideoManifest,
   IndexVideoValidation,
+  RequestOptions,
   VoteValue,
 } from ".."
 

@@ -1,6 +1,7 @@
-import type { AxiosError } from "axios"
-import axios from "axios"
 import { exec } from "child_process"
+import axios from "axios"
+
+import type { AxiosError } from "axios"
 
 export type ChildProcess = ReturnType<typeof exec>
 

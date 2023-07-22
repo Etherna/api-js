@@ -1,8 +1,8 @@
-import create from "zustand"
-import { persist, devtools } from "zustand/middleware"
+import { createJSONStorage, devtools, persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
+import { createStore } from "zustand/vanilla"
 
-import type { BatchId, PostageBatch, GatewayBatch } from "../clients"
+import type { BatchId, GatewayBatch, PostageBatch } from "../clients"
 
 export enum BatchUpdateType {
   Create = 1,
@@ -23,7 +23,7 @@ export type BatchesState = {
   removeBatchUpdate(batchId: BatchId): void
 }
 
-const useBatchesStore = create<BatchesState>()(
+const batchesStore = createStore<BatchesState>()(
   devtools(
     persist(
       immer(set => ({
@@ -60,7 +60,7 @@ const useBatchesStore = create<BatchesState>()(
       })),
       {
         name: "etherna:batches",
-        getStorage: () => localStorage,
+        storage: createJSONStorage(() => localStorage),
       }
     ),
     {
@@ -69,4 +69,4 @@ const useBatchesStore = create<BatchesState>()(
   )
 )
 
-export default useBatchesStore
+export default batchesStore

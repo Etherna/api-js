@@ -191,7 +191,7 @@ export default class VideoBuilder {
           { reference: "0".repeat(64) }
         )
       )
-    )
+    ) as VideoPreviewRaw
     this.detailsMeta = JSON.parse(
       new VideoSerializer().serializeDetails(
         new VideoDeserializer("http://doesntmatter.com").deserializeDetails(
@@ -199,7 +199,7 @@ export default class VideoBuilder {
           { reference: "0".repeat(64) }
         )
       )
-    )
+    ) as VideoDetailsRaw
 
     this.updateNode()
 
@@ -244,23 +244,20 @@ export default class VideoBuilder {
     this.detailsMeta.sources.push(source)
   }
 
-  async addAdaptiveSource(type: "dash" | "hls", data: Uint8Array, filename: string) {
+  async addAdaptiveSource(
+    type: "dash" | "hls",
+    data: Uint8Array,
+    filename: string,
+    fullSize: number
+  ) {
     const path = this.getAdaptivePath(filename, type)
-    const [meta] = await Promise.allSettled([getVideoMeta(data)])
     const exists = this.node.hasForkAtPath(encodePath(path))
 
     if (exists) {
       throw new Error(`Adaptive source '${filename}' already added`)
     }
 
-    if (!this.previewMeta.duration && meta.status === "fulfilled") {
-      this.previewMeta.duration = meta.value.duration
-    }
-    if (!this.detailsMeta.aspectRatio && meta.status === "fulfilled") {
-      this.detailsMeta.aspectRatio = meta.value.width / meta.value.height
-    }
-
-    const isManifest = filename.endsWith(".mpd") || filename.endsWith(".m3u8")
+    const isManifest = filename.match(/\.(mpd|m3u8)$/)
     const contentType = this.getSourceContentType(filename)
     const lastPathFilename = path.split("/").pop()!
     this.addFile(lastPathFilename, path, contentType, getReferenceFromData(data))
@@ -269,6 +266,7 @@ export default class VideoBuilder {
       this.detailsMeta.sources.push({
         type,
         path,
+        size: fullSize,
       })
     }
   }
@@ -359,8 +357,8 @@ export default class VideoBuilder {
     const model = VideoBuilderSchema.parse(value)
 
     this.reference = beeReference.parse(model.reference) as Reference
-    this.previewMeta = VideoPreviewRawSchema.parse(model.previewMeta)
-    this.detailsMeta = VideoDetailsRawSchema.parse(model.detailsMeta)
+    this.previewMeta = model.previewMeta
+    this.detailsMeta = model.detailsMeta
 
     const recursiveLoadNode = (node: MantarayNodeType): MantarayNode => {
       const mantarayNode = new MantarayNode()
@@ -392,13 +390,6 @@ export default class VideoBuilder {
 
     const node = MantarayNodeSchema.parse(model.node)
     this.node = recursiveLoadNode(node)
-
-    return JSON.stringify({
-      reference: this.reference,
-      previewMeta: this.previewMeta,
-      detailsMeta: this.detailsMeta,
-      node: this.node.readable,
-    })
   }
 
   // private

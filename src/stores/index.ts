@@ -1,4 +1,4 @@
-export { default as useBatchesStore, BatchUpdateType } from "./batches"
+export { default as batchesStore, BatchUpdateType } from "./batches"
 
 // types
 export type { BatchesState, UpdatingBatch } from "./batches"

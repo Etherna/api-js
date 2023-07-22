@@ -1,9 +1,9 @@
 import { beeReference } from "../../schemas/base"
 import {
-  VideoPreviewSchema,
-  VideoDetailsSchema,
   VideoDetailsRawSchema,
+  VideoDetailsSchema,
   VideoPreviewRawSchema,
+  VideoPreviewSchema,
 } from "../../schemas/video"
 import ImageSerializer from "../image/serializer"
 
@@ -40,9 +40,9 @@ export default class VideoSerializer {
       sources: videoDetails.sources.map(source => ({
         type: source.type,
         path: source.path,
+        size: source.size,
         reference: source.type === "mp4" ? source.reference : undefined,
         quality: source.type === "mp4" ? source.quality : undefined,
-        size: source.type === "mp4" ? source.size : undefined,
         bitrate: source.type === "mp4" ? source.bitrate : undefined,
       })),
       batchId: beeReference.parse(videoDetails.batchId),

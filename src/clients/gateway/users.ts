@@ -1,6 +1,12 @@
 import type EthernaGatewayClient from "."
 import type { RequestOptions } from ".."
-import type { GatewayBatch, GatewayBatchPreview, GatewayCredit, GatewayCurrentUser } from "./types"
+import type {
+  GatewayBatch,
+  GatewayBatchPreview,
+  GatewayCredit,
+  GatewayCurrentUser,
+  GatewayWelcomeStatus,
+} from "./types"
 
 export default class UsersClient {
   constructor(private instance: EthernaGatewayClient) {}
@@ -60,9 +66,12 @@ export default class UsersClient {
    *
    * @returns User's list of batches
    */
-  async fetchBatches(opts?: RequestOptions) {
+  async fetchBatches(labelQuery?: string, opts?: RequestOptions) {
     const resp = await this.instance.request.get<GatewayBatchPreview[]>(`/users/current/batches`, {
       ...this.instance.prepareAxiosConfig(opts),
+      params: {
+        labelContainsFilter: labelQuery,
+      },
     })
 
     if (!Array.isArray(resp.data)) {
@@ -70,6 +79,22 @@ export default class UsersClient {
     }
 
     return resp.data
+  }
+
+  /**
+   * Fetch the current user's welcome status
+   *
+   * @param opts Request options
+   * @returns User's welcome status
+   */
+  async fetchWelcome(opts?: RequestOptions) {
+    const resp = await this.instance.request.get<GatewayWelcomeStatus>(`/users/current/welcome`, {
+      ...this.instance.prepareAxiosConfig(opts),
+    })
+
+    return {
+      isFreePostageBatchConsumed: resp.data.isFreePostageBatchConsumed ?? false,
+    }
   }
 
   /**
@@ -82,6 +107,7 @@ export default class UsersClient {
   async createBatch(
     depth: number,
     amount: bigint | string,
+    label?: string,
     opts?: RequestOptions
   ): Promise<GatewayBatch> {
     const resp = await this.instance.request.post<string>(`/users/current/batches`, null, {
@@ -89,6 +115,7 @@ export default class UsersClient {
       params: {
         depth,
         amount,
+        label,
       },
     })
 
@@ -182,6 +209,20 @@ export default class UsersClient {
     }
 
     return resp.data
+  }
+
+  /**
+   * Request the creations of the offered postage batch (only for new users)
+   *
+   * @param opts Request options
+   * @returns 'true' if the request was successful
+   */
+  async requestWelcomePostage(opts?: RequestOptions) {
+    await this.instance.request.post(`/users/current/welcome`, null, {
+      ...this.instance.prepareAxiosConfig(opts),
+    })
+
+    return true
   }
 
   // SYSTEM

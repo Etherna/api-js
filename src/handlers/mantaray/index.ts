@@ -183,7 +183,7 @@ export class MantarayFork {
         const metadataBytes = data.slice(startMetadata, startMetadata + metadataByteSize)
 
         const jsonString = new TextDecoder().decode(metadataBytes)
-        node.metadata = JSON.parse(jsonString)
+        node.metadata = JSON.parse(jsonString) as any
       }
     } else {
       node.entry = data.slice(nodeForkSizes.preReference) as Bytes<32> | Bytes<64>
@@ -490,7 +490,7 @@ export class MantarayNode {
   public hasForkAtPath(path: Uint8Array): boolean {
     if (path.length === 0) throw EmptyPathError
 
-    if (!this.forks) throw Error(`Fork mapping is not defined in the manifest`)
+    if (!this.forks) return false
 
     const fork = this.forks[path[0]!]
 

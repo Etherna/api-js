@@ -1,4 +1,4 @@
-import { utils, getPublicKey, sign, Signature, recoverPublicKey } from "@noble/secp256k1"
+import { etc, getPublicKey, signAsync, Signature } from "@noble/secp256k1"
 
 import { keccak256Hash } from "./hash"
 import { makeHexString } from "./hex"
@@ -13,13 +13,11 @@ const UNCOMPRESSED_RECOVERY_ID = 27
  * @param privateKey The private key
  */
 export function makePrivateKeySigner(privateKey: string): Signer {
-  const privKey = utils.hexToBytes(privateKey.replace(/^0x/, ""))
-  const pubKey = getPublicKey(privKey)
-
+  const pubKey = getPublicKey(privateKey, false)
   const address = publicKeyToAddress(pubKey)
 
   return {
-    sign: digest => defaultSign(digest, privKey),
+    sign: digest => defaultSign(digest, etc.hexToBytes(privateKey)),
     address,
   }
 }
@@ -35,22 +33,24 @@ export async function defaultSign(
   data: Uint8Array | string,
   privateKey: Uint8Array
 ): Promise<string> {
+  // fix nodejs crypto
+  if (typeof window === "undefined") {
+    const hmac = await import("@noble/hashes/hmac").then(mod => mod.hmac)
+    const sha256 = await import("@noble/hashes/sha256").then(mod => mod.sha256)
+
+    etc.hmacSha256Sync = (k, ...m) => hmac(sha256, k, etc.concatBytes(...m))
+    etc.hmacSha256Async = (k, ...m) => Promise.resolve(etc.hmacSha256Sync!(k, ...m))
+  }
+
   const hashedDigest = hashWithEthereumPrefix(
     typeof data === "string" ? new TextEncoder().encode(data) : data
   )
-  const [sigRaw, recovery] = await sign(hashedDigest, privateKey, {
-    canonical: true,
-    // der: true,
-    recovered: true,
-  })
-  const signatureRaw = Signature.fromDER(sigRaw)
+  const sig = await signAsync(hashedDigest, privateKey, {})
+  const rawSig = sig.toCompactRawBytes()
 
-  const signature = new Uint8Array([
-    ...signatureRaw.toCompactRawBytes(),
-    recovery + UNCOMPRESSED_RECOVERY_ID,
-  ])
+  const signature = new Uint8Array([...rawSig, sig.recovery! + UNCOMPRESSED_RECOVERY_ID])
 
-  return utils.bytesToHex(signature)
+  return etc.bytesToHex(signature)
 }
 
 /**
@@ -67,15 +67,18 @@ export async function defaultSign(
 export function recoverAddress(signature: Uint8Array, digest: Uint8Array): Uint8Array {
   const recoveryParam = signature[64]! - UNCOMPRESSED_RECOVERY_ID
   const hash = hashWithEthereumPrefix(digest)
-  const recPubKey = recoverPublicKey(hash, signature.slice(0, 64), recoveryParam)
-  const address = makeHexString(publicKeyToAddress(recPubKey))
+  const r = etc.bytesToNumberBE(signature.slice(0, 32))
+  const s = etc.bytesToNumberBE(signature.slice(32, 64))
+  const sign = new Signature(r, s, recoveryParam)
+  const recPubKey = sign.recoverPublicKey(hash)
+  const address = makeHexString(publicKeyToAddress(recPubKey.toRawBytes(false)))
 
-  return utils.hexToBytes(address)
+  return etc.hexToBytes(address)
 }
 
 function publicKeyToAddress(pubKey: Uint8Array): EthAddress {
   const addressBytes = keccak256Hash(pubKey.slice(1)).slice(12)
-  const address = utils.bytesToHex(addressBytes).replace(/^0x/, "")
+  const address = etc.bytesToHex(addressBytes).replace(/^0x/, "")
   return `0x${address}`
 }
 

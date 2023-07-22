@@ -12,7 +12,6 @@ export type {
   MarshalVersion,
   MetadataMapping,
   NodeType,
-  Reference,
   StorageHandler,
   StorageLoader,
   StorageSaver,

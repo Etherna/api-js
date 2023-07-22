@@ -1,4 +1,4 @@
-import type { PostageBatch, GatewayBatch } from "../clients"
+import type { GatewayBatch, PostageBatch } from "../clients"
 
 /**
  * Get postage batch space utilization (in bytes)

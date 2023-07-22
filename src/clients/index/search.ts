@@ -1,5 +1,5 @@
 import type EthernaIndexClient from "."
-import type { RequestOptions, IndexVideo } from ".."
+import type { IndexVideo, RequestOptions } from ".."
 
 export default class IndexSearch {
   constructor(private instance: EthernaIndexClient) {}

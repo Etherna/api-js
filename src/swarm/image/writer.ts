@@ -28,14 +28,14 @@ interface ImageWriterOptions {
 export default class ImageWriter {
   private beeClient: BeeClient
   private responsiveSizes: number[]
-  private file: File
+  private file: File | Blob
   private preGenerateImages?: Awaited<ReturnType<typeof this.generateImages>>
 
   static defaultResponsiveSizes = [480, 768, 1024, 1280, 1800]
   static avatarResponsiveSizes = [128, 256, 512]
   static thumbnailResponsiveSizes = [480, 960, 1280]
 
-  constructor(file: File, opts: ImageWriterOptions) {
+  constructor(file: File | Blob, opts: ImageWriterOptions) {
     this.beeClient = opts.beeClient
     this.responsiveSizes = opts.responsiveSizes ?? ImageWriter.defaultResponsiveSizes
     this.file = file

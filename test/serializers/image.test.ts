@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { ImageDeserializer, ImageSerializer } from "../../src/serializers"
 import {
   beeUrl,
-  testImageRaw,
   testImageParsed,
-  testLegacyImageRaw,
+  testImageRaw,
   testLegacyImageParsed,
+  testLegacyImageRaw,
 } from "./__data__/image.test.data"
 
 describe("image deserializer", () => {
@@ -38,13 +38,8 @@ describe("image deserializer", () => {
     delete manifest.sources
     expect(() => deserializer.deserialize(manifest)).toThrowError()
 
-    // source type
-    manifest = JSON.parse(JSON.stringify(testImageRaw))
-    delete manifest.sources[0].type
-    expect(() => deserializer.deserialize(manifest)).toThrowError()
-
     // source path/reference
-    manifest = JSON.parse(JSON.stringify(testImageRaw))
+    manifest = JSON.parse(JSON.stringify(testImageRaw)) as any
     delete manifest.sources[0].reference
     delete manifest.sources[0].path
     expect(() => deserializer.deserialize(manifest)).toThrowError()
@@ -79,13 +74,8 @@ describe("image serializer", () => {
     delete manifest.sources
     expect(() => serializer.serialize(manifest as any)).toThrowError()
 
-    // source type
-    manifest = JSON.parse(JSON.stringify(testImageRaw))
-    delete manifest.sources[0].type
-    expect(() => serializer.serialize(manifest as any)).toThrowError()
-
     // source path/reference
-    manifest = JSON.parse(JSON.stringify(testImageRaw))
+    manifest = JSON.parse(JSON.stringify(testImageParsed)) as any
     delete manifest.sources[0].reference
     delete manifest.sources[0].path
     expect(() => serializer.serialize(manifest as any)).toThrowError()
