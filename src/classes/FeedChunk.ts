@@ -5,16 +5,70 @@ import { fromHexString, toHexString } from "../utils/bytes"
 import type { Reference } from "../clients"
 import type EpochIndex from "./EpochIndex"
 
+// extend UInt8Array / Date / BigInt
+declare global {
+  interface Uint8Array {
+    toUnixTimestamp(): bigint
+    toUnixDate(): Date
+  }
+  interface Date {
+    toUnixTimestamp(): bigint
+    toBytes(): Uint8Array
+  }
+  interface BigInt {
+    toDate(): Date
+  }
+}
+
+Uint8Array.prototype.toUnixTimestamp = function () {
+  if (this.length !== FeedChunk.TimeStampByteSize) {
+    throw new Error("Invalid date time byte array length")
+  }
+
+  const fixedDateTimeByteArray = new Uint8Array(this.length)
+  fixedDateTimeByteArray.set(this, 0)
+  if (new DataView(new ArrayBuffer(1)).getUint8(0) === 0) {
+    fixedDateTimeByteArray.reverse()
+  }
+
+  const dataView = new DataView(fixedDateTimeByteArray.buffer)
+
+  return dataView.getBigUint64(0, true)
+}
+Uint8Array.prototype.toUnixDate = function () {
+  return new Date(Number(this.toUnixTimestamp() * 1000n))
+}
+Date.prototype.toBytes = function () {
+  const timestamp = BigInt(Math.floor(this.getTime() / 1000))
+  const timestampBytes = new Uint8Array(FeedChunk.TimeStampByteSize)
+  const dataView = new DataView(timestampBytes.buffer)
+
+  dataView.setBigUint64(0, timestamp, true)
+
+  if (new DataView(new ArrayBuffer(1)).getUint8(0) === 0) {
+    timestampBytes.reverse()
+  }
+
+  return timestampBytes
+}
+Date.prototype.toUnixTimestamp = function () {
+  return BigInt(Math.floor(this.getTime() / 1000))
+}
+BigInt.prototype.toDate = function () {
+  return new Date(Number(this) * 1000)
+}
+
 export default class FeedChunk {
-  public static AccountBytesLength = 20
-  public static IdentifierBytesLength = 32
-  public static IndexBytesLength = 32
-  public static MaxPayloadBytesSize = 4096 //4kB
-  public static ReferenceHashRegex = /^[A-Fa-f0-9]{64}$/
-  public static TimeStampByteSize = 8
-  public static TopicBytesLength = 32
-  public static MinPayloadByteSize = this.TimeStampByteSize
-  public static MaxContentPayloadBytesSize = this.MaxPayloadBytesSize - this.TimeStampByteSize //creation timestamp
+  public static readonly AccountBytesLength = 20
+  public static readonly IdentifierBytesLength = 32
+  public static readonly IndexBytesLength = 32
+  public static readonly MaxPayloadBytesSize = 4096 //4kB
+  public static readonly ReferenceHashRegex = /^[A-Fa-f0-9]{64}$/
+  public static readonly TimeStampByteSize = 8
+  public static readonly TopicBytesLength = 32
+  public static readonly MinPayloadByteSize = this.TimeStampByteSize
+  public static readonly MaxContentPayloadBytesSize =
+    this.MaxPayloadBytesSize - this.TimeStampByteSize //creation timestamp
 
   constructor(
     public index: EpochIndex,
@@ -42,12 +96,9 @@ export default class FeedChunk {
     return this.payload.slice(FeedChunk.TimeStampByteSize)
   }
 
-  public getTimeStamp() {
+  public getTimestamp() {
     const timestampBytes = this.payload.slice(0, FeedChunk.TimeStampByteSize)
-    const dataView = new DataView(timestampBytes.buffer)
-    const timestamp = dataView.getBigUint64(0, true)
-    const unixTimeStamp = Number(timestamp) / 1000000 // convert from microseconds to seconds
-    return new Date(unixTimeStamp * 1000)
+    return timestampBytes.toUnixDate()
   }
 
   // Static helpers.
@@ -60,15 +111,19 @@ export default class FeedChunk {
         `Content payload can't be longer than ${this.MaxContentPayloadBytesSize} bytes`
       )
 
+    /**
+     * var chunkPayload = new byte[TimeStampByteSize + contentPayload.Length];
+            timestamp ??= (ulong)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            timestamp.Value.UnixDateTimeToByteArray().CopyTo(chunkPayload, 0);
+            contentPayload.CopyTo(chunkPayload, TimeStampByteSize);
+
+            return chunkPayload;
+     */
+
+    const date = timestamp?.toDate() ?? new Date()
+
     const chunkPayload = new Uint8Array(this.TimeStampByteSize + contentPayload.length)
-
-    timestamp ??= BigInt(Math.floor(Date.now() / 1000))
-
-    const timestampBytes = new DataView(new ArrayBuffer(this.TimeStampByteSize))
-    timestampBytes.setBigUint64(0, BigInt(timestamp), true)
-
-    new Uint8Array(timestampBytes.buffer).copyWithin(0, 0, this.TimeStampByteSize)
-    chunkPayload.set(new Uint8Array(timestampBytes.buffer), 0)
+    chunkPayload.set(date.toBytes(), 0)
     chunkPayload.set(contentPayload, this.TimeStampByteSize)
 
     return chunkPayload
@@ -93,16 +148,22 @@ export default class FeedChunk {
   ): Reference {
     if (!index) {
       // check if address is an eth address
-      if (!/^0x[0-9a-f]{40}$/i.test(account))
+      if (!/^0x[0-9a-f]{40}$/i.test(account)) {
         throw new Error("Value is not a valid ethereum account")
+      }
 
-      if (account.length != this.AccountBytesLength) throw new Error("Invalid account length")
-      if (topicOrIdentifier.length != this.IdentifierBytesLength)
+      const accountBytes = fromHexString(account.replace(/^0x/, ""))
+
+      if (accountBytes.length != this.AccountBytesLength) {
+        throw new Error("Invalid account length")
+      }
+      if (topicOrIdentifier.length != this.IdentifierBytesLength) {
         throw new Error("Invalid identifier length")
+      }
 
       const newArray = new Uint8Array(this.IdentifierBytesLength + this.AccountBytesLength)
       newArray.set(topicOrIdentifier, 0)
-      newArray.set(fromHexString(account.replace(/^0x/, "")), this.IdentifierBytesLength)
+      newArray.set(accountBytes, this.IdentifierBytesLength)
 
       return toHexString(keccak256Hash(newArray)) as Reference
     } else {

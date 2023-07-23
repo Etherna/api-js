@@ -70,6 +70,9 @@ const results = await Promise.all(
         treeshake: true,
       }
     },
+    resolve: {
+      alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }]
+    }
   }))
 )
 

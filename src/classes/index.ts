@@ -1,4 +1,5 @@
 export { default as EpochIndex } from "./EpochIndex"
+export { default as FeedChunk } from "./FeedChunk"
 export { default as FlagEnumManager } from "./FlagEnumManager"
 export { default as Queue } from "./Queue"
 export { default as ChunksUploader } from "./ChunksUploader"

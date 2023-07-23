@@ -3,17 +3,17 @@ import { describe, expect, it } from "vitest"
 import { EpochIndex } from "../../src/classes"
 
 describe("epoch index", () => {
-  it("should throw when start or level is out of range", () => {
+  it.concurrent("should throw when start or level is out of range", () => {
     expect(() => {
-      new EpochIndex(EpochIndex.maxStart + 1, 0)
+      new EpochIndex(EpochIndex.maxStart + 1n, 0)
     }).toThrow()
 
     expect(() => {
-      new EpochIndex(0, EpochIndex.maxLevel + 1)
+      new EpochIndex(0, EpochIndex.maxLevel + 1n)
     }).toThrow()
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 0, 0n],
     [2_147_483_648, 31, 2_147_483_648n],
     [3_456_789_012, 31, 2_147_483_648n],
@@ -26,7 +26,7 @@ describe("epoch index", () => {
     expect(index.start).toEqual(expected)
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 0, true],
     [1, 0, false],
     [2, 1, false],
@@ -38,7 +38,7 @@ describe("epoch index", () => {
     expect(index.isLeft).toEqual(expected)
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 0, 0n, 0],
     [1, 0, 0n, 0],
     [2, 1, 0n, 1],
@@ -52,7 +52,7 @@ describe("epoch index", () => {
     expect(leftIndex.level).toEqual(expectedLevel)
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 0, 1n, 0],
     [1, 0, 1n, 0],
     [2, 1, 2n, 1],
@@ -66,7 +66,7 @@ describe("epoch index", () => {
     expect(rightIndex.level).toEqual(expectedLevel)
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 0, 1n],
     [0, 1, 2n],
     [0, 32, 4_294_967_296n],
@@ -75,7 +75,7 @@ describe("epoch index", () => {
     expect(index.length).toEqual(expected)
   })
 
-  it.each([
+  it.concurrent.each([
     [
       0,
       0,
@@ -129,7 +129,7 @@ describe("epoch index", () => {
     expect(index.marshalBinary).toEqual(expected)
   })
 
-  it.each([
+  it.concurrent.each([
     [2, 1, 1],
     [2, 1, 4],
   ])("should throw when get child at main level for %i at %i, %i", (start, level, at) => {
@@ -139,7 +139,7 @@ describe("epoch index", () => {
     }).toThrow()
   })
 
-  it.each([
+  it.concurrent.each([
     [2, 1, 2, 2n, 0],
     [2, 1, 3, 3n, 0],
     [0, 32, 2000000000, 0n, 31],
@@ -156,14 +156,14 @@ describe("epoch index", () => {
     }
   )
 
-  it("should throw when next index is not higher than start", () => {
+  it.concurrent("should throw when next index is not higher than start", () => {
     expect(() => {
       const index = new EpochIndex(2, 1)
       index.getNext(1)
     }).toThrow()
   })
 
-  it.each([
+  it.concurrent.each([
     [2, 1, 2, 2n, 0],
     [2, 1, 3, 3n, 0],
     [2, 1, 4, 4n, 2],
@@ -174,14 +174,14 @@ describe("epoch index", () => {
     expect(nextIndex.level).toEqual(expectedLevel)
   })
 
-  it("should throw when parent is higher than max level", () => {
+  it.concurrent("should throw when parent is higher than max level", () => {
     expect(() => {
       const index = new EpochIndex(0, 32)
       index.getParent()
     }).toThrow()
   })
 
-  it.each([
+  it.concurrent.each([
     [2, 1, 0n, 2],
     [4, 1, 4n, 2],
   ])("should get parent index for %i at %i", (start, level, expectedStart, expectedLevel) => {
@@ -191,7 +191,7 @@ describe("epoch index", () => {
     expect(parentIndex.level).toEqual(expectedLevel)
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 8_589_934_591],
     [4_294_967_295, 4_294_967_296],
   ])("should throw lowest common anchestor is out of range for (%i, %i)", (t0, t1) => {
@@ -200,7 +200,7 @@ describe("epoch index", () => {
     }).toThrow()
   })
 
-  it.each([
+  it.concurrent.each([
     [0, 0, 0n, 0],
     [0, 1, 0n, 1],
     [0, 2, 0n, 2],
