@@ -1,12 +1,12 @@
 import { etc } from "@noble/secp256k1"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
-import { createPostaBatch, startBee } from "../__utils__/bee-process"
+import { createPostageBatch, startBee } from "../__utils__/bee-process"
 import { BeeClient } from "../../src/clients"
 import { makeContentAddressedChunk } from "../../src/clients/bee/utils/chunk"
 import { keccak256Hash } from "../../src/clients/bee/utils/hash"
 
-import type { ChildProcess } from "../__utils__/bee-process"
+import type { BeeProcess } from "../__utils__/bee-process"
 
 describe("bee client", () => {
   const privateKey = "f6379d2f0229ca418812cf65cc5e26e727c968912442721139b74455dd7a0095"
@@ -26,12 +26,12 @@ describe("bee client", () => {
     signer: privateKey,
   })
 
-  let beeProcess: ChildProcess
+  let beeProcess: BeeProcess
   let batchId: string
 
   beforeAll(async () => {
     beeProcess = await startBee()
-    batchId = await createPostaBatch()
+    batchId = await createPostageBatch(beeProcess)
   })
 
   afterAll(() => {

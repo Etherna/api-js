@@ -12,17 +12,17 @@ export default class EpochIndex {
   /** Epoch level (32 to 0) */
   level: number
 
-  constructor(start: number | bigint, level: number | bigint) {
-    if (BigInt(start) >= BigInt(1) << (EpochIndex.maxLevel + 1n)) {
+  constructor(start: bigint, level: number | bigint) {
+    if (start >= 1n << (EpochIndex.maxLevel + 1n)) {
       throw new Error("'start' is too big")
     }
-    if (level > EpochIndex.maxLevel) {
+    if (BigInt(level) > EpochIndex.maxLevel) {
       throw new Error("'level' is too big")
     }
 
     this.level = Number(level)
     //normalize start clearing less relevent bits
-    this.start = (BigInt(start) >> BigInt(level)) << BigInt(level)
+    this.start = (start >> BigInt(level)) << BigInt(level)
   }
 
   // props
@@ -33,7 +33,7 @@ export default class EpochIndex {
     return !this.isLeft
   }
   public get length(): bigint {
-    return BigInt(1) << BigInt(this.level)
+    return 1n << BigInt(this.level)
   }
   public get marshalBinary(): Uint8Array {
     const epochBytes = toBigEndianFromBigInt64(this.start)
@@ -44,35 +44,37 @@ export default class EpochIndex {
     return this.isLeft ? this : new EpochIndex(this.start - this.length, this.level)
   }
   public get right(): EpochIndex {
-    return !this.isLeft ? this : new EpochIndex(this.start + this.length, this.level)
+    return this.isRight ? this : new EpochIndex(this.start + this.length, this.level)
   }
 
   // methods
 
-  public ContainsTime(at: Date | number | bigint) {
-    at = BigInt(at instanceof Date ? at.getTime() : at)
-    return at >= this.start && at < this.start + this.length
+  public containsTime(at: Date) {
+    const timestamp = at.toUnixTimestamp().normalized()
+    return timestamp >= this.start && timestamp < this.start + this.length
   }
 
-  public getChildAt(at: number | bigint): EpochIndex {
+  public getChildAt(at: Date): EpochIndex {
+    const timestamp = at.toUnixTimestamp().normalized()
     if (this.level === 0) throw new Error("'level' must be greater than 0")
-    if (at < this.start || at >= this.start + this.length) throw new Error("'at' is out of range")
+    if (timestamp < this.start) throw new Error("'at' is before start")
+    if (timestamp >= this.start + this.length) throw new Error("'at' is out of level")
 
-    at = BigInt(at)
     let childStart = this.start
     let childLength = this.length >> 1n
 
-    if ((at & childLength) > 0) childStart |= childLength
+    if ((timestamp & childLength) > 0) childStart |= childLength
 
     return new EpochIndex(childStart, this.level - 1)
   }
 
-  public getNext(at: number | bigint) {
-    if (BigInt(at) < this.start) throw new Error("'at' must be greater  or equal than 'start'")
+  public getNext(at: Date) {
+    const timestamp = at.toUnixTimestamp().normalized()
+    if (timestamp < this.start) throw new Error("'at' must be greater  or equal than 'start'")
 
-    return this.start + this.length > at
+    return this.start + this.length > timestamp
       ? this.getChildAt(at)
-      : EpochIndex.lowestCommonAncestor(this.start, at).getChildAt(at)
+      : EpochIndex.lowestCommonAncestor(this.start, timestamp).getChildAt(at)
   }
 
   public getParent(): EpochIndex {
@@ -95,10 +97,8 @@ export default class EpochIndex {
    * @param t1
    * @returns  Lowest common ancestor epoch index
    */
-  public static lowestCommonAncestor(t0: number | bigint, t1: number | bigint): EpochIndex {
+  public static lowestCommonAncestor(t0: bigint, t1: bigint): EpochIndex {
     let level = 0
-    t0 = BigInt(t0)
-    t1 = BigInt(t1)
     while (t0 >> BigInt(level) != t1 >> BigInt(level)) {
       level++
       if (BigInt(level) > EpochIndex.maxLevel) throw new Error("Epochs are too far apart")

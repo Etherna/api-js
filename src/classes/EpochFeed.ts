@@ -20,10 +20,10 @@ export default class EpochFeed {
     // Define next epoch index.
     let nextEpochIndex: EpochIndex
     if (!lastEpochFeedChunk) {
-      nextEpochIndex = new EpochIndex(0, EpochIndex.maxLevel)
-      if (!nextEpochIndex.ContainsTime(at)) nextEpochIndex = nextEpochIndex.right
+      nextEpochIndex = new EpochIndex(0n, EpochIndex.maxLevel)
+      if (!nextEpochIndex.containsTime(at)) nextEpochIndex = nextEpochIndex.right
     } else {
-      nextEpochIndex = lastEpochFeedChunk.index.getNext(at.toUnixTimestamp())
+      nextEpochIndex = lastEpochFeedChunk.index.getNext(at)
     }
 
     // Create new chunk.
@@ -125,7 +125,7 @@ export default class EpochFeed {
 
     try {
       const chunkStream = await this.beeClient.chunk.download(accountOrReference)
-      return new FeedChunk(index!, chunkStream, accountOrReference as Reference)
+      return new FeedChunk(topicOrIndex, chunkStream, accountOrReference as Reference)
     } catch (err: any) {
       return null
     }
@@ -141,30 +141,28 @@ export default class EpochFeed {
   ): Promise<FeedChunk> {
     // If currentChunk is at max resolution, return it.
     const currentIndex = currentChunk.index
-    if (BigInt(currentIndex.level) === EpochIndex.minLevel) return currentChunk
 
-    let timestamp = at.toUnixTimestamp()
+    if (BigInt(currentIndex.level) === EpochIndex.minLevel) {
+      return currentChunk
+    }
 
     // Normalize "at" date. Possibile if we are trying a left epoch, but date is contained at right.
-    if (!currentIndex.ContainsTime(at)) {
-      timestamp = currentIndex.right.start - 1n
+    if (!currentIndex.containsTime(at)) {
+      const timestamp = (currentIndex.right.start - 1n) * 1000n
       at = timestamp.toDate()
     }
 
     // Try chunk on child epoch at date.
-    const childIndexAtDate = currentIndex.getChildAt(timestamp)
+    const childIndexAtDate = currentIndex.getChildAt(at)
     const childChunkAtDate = await this.tryGetFeedChunk(account, topic, childIndexAtDate)
-    if (
-      childChunkAtDate !== null &&
-      BigInt(childChunkAtDate.getTimestamp().toUnixTimestamp()) <= timestamp
-    ) {
+    if (childChunkAtDate && childChunkAtDate.getTimestamp() <= at) {
       return await this.findLastEpochChunkBeforeDate(account, topic, at, childChunkAtDate)
     }
 
     // Try left brother if different.
     if (childIndexAtDate.isRight) {
       const childLeftChunk = await this.tryGetFeedChunk(account, topic, childIndexAtDate.left)
-      if (childLeftChunk !== null) {
+      if (childLeftChunk) {
         // to check timestamp is superfluous in this case
         return await this.findLastEpochChunkBeforeDate(account, topic, at, childLeftChunk)
       }
@@ -183,17 +181,17 @@ export default class EpochFeed {
     let startEpoch = knownNearEpoch
     if (startEpoch) {
       // traverse parents until find a common ancestor
-      while (BigInt(startEpoch.level) != EpochIndex.maxLevel && !startEpoch.ContainsTime(at)) {
+      while (BigInt(startEpoch.level) != EpochIndex.maxLevel && !startEpoch.containsTime(at)) {
         startEpoch = startEpoch.getParent()
       }
 
       // if max level is reached and start epoch still doesn't contain the time, drop it
-      if (!startEpoch.ContainsTime(at)) startEpoch = null
+      if (!startEpoch.containsTime(at)) startEpoch = null
     }
 
     // if start epoch is null (known near was null or max epoch level is hit)
-    startEpoch ??= new EpochIndex(0, EpochIndex.maxLevel)
-    if (!startEpoch.ContainsTime(at)) {
+    startEpoch ??= new EpochIndex(0n, EpochIndex.maxLevel)
+    if (!startEpoch.containsTime(at)) {
       startEpoch = startEpoch.right
     }
     return startEpoch
@@ -209,8 +207,9 @@ export default class EpochFeed {
     const chunk = await this.tryGetFeedChunk(account, topic, epochIndex)
 
     // If chunk exists and date is prior.
-    if (chunk !== null && BigInt(chunk.getTimestamp().toUnixTimestamp()) <= at.toUnixTimestamp())
+    if (chunk && chunk.getTimestamp().toUnixTimestamp() <= at.toUnixTimestamp()) {
       return chunk
+    }
 
     // Else, if chunk is not found, or if chunk timestamp is later than target date.
     if (epochIndex.isRight) {

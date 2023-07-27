@@ -1,4 +1,3 @@
-import { etc } from "@noble/secp256k1"
 import { describe, expect, it } from "vitest"
 
 import { EpochIndex, FeedChunk } from "../../src/classes"
@@ -9,7 +8,7 @@ import type { Reference } from "../../src/clients"
 describe("epoch feed chunk", () => {
   it.concurrent("should return the coorect content payload", () => {
     const chunk = new FeedChunk(
-      new EpochIndex(0, 0),
+      new EpochIndex(0n, 0),
       new Uint8Array([0, 0, 0, 1, 2, 3, 4, 5, 6, 7]),
       "aeef03dde6685d5a1c9ae5af374cce84b25aab391222801d8c4dc5d108929592" as Reference
     )
@@ -19,7 +18,7 @@ describe("epoch feed chunk", () => {
 
   it.concurrent("should return the correct timestamp", () => {
     const chunk = new FeedChunk(
-      new EpochIndex(0, 0),
+      new EpochIndex(0n, 0),
       new Uint8Array([0, 0, 0, 1, 2, 3, 4, 5, 6, 7]),
       "aeef03dde6685d5a1c9ae5af374cce84b25aab391222801d8c4dc5d108929592" as Reference
     )
@@ -51,7 +50,7 @@ describe("epoch feed chunk", () => {
 
   it.concurrent("should throw when topic length is wrong", () => {
     const topic = new Uint8Array([1, 2, 3])
-    const index = new EpochIndex(0, 0)
+    const index = new EpochIndex(0n, 0)
 
     expect(() => FeedChunk.buildIdentifier(topic, index)).toThrow()
   })
@@ -61,7 +60,7 @@ describe("epoch feed chunk", () => {
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
       26, 27, 28, 29, 30, 31,
     ])
-    const index = new EpochIndex(2, 1)
+    const index = new EpochIndex(2n, 1)
 
     const result = FeedChunk.buildIdentifier(topic, index)
 

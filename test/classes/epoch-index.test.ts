@@ -9,42 +9,42 @@ describe("epoch index", () => {
     }).toThrow()
 
     expect(() => {
-      new EpochIndex(0, EpochIndex.maxLevel + 1n)
+      new EpochIndex(0n, EpochIndex.maxLevel + 1n)
     }).toThrow()
   })
 
   it.concurrent.each([
-    [0, 0, 0n],
-    [2_147_483_648, 31, 2_147_483_648n],
-    [3_456_789_012, 31, 2_147_483_648n],
-    [0, 32, 0n],
-    [2_147_483_648, 32, 0n],
-    [4_294_967_296, 32, 4_294_967_296n],
-    [8_589_934_591, 32, 4_294_967_296n],
+    [0n, 0, 0n],
+    [2_147_483_648n, 31, 2_147_483_648n],
+    [3_456_789_012n, 31, 2_147_483_648n],
+    [0n, 32, 0n],
+    [2_147_483_648n, 32, 0n],
+    [4_294_967_296n, 32, 4_294_967_296n],
+    [8_589_934_591n, 32, 4_294_967_296n],
   ])("should normalize start %i at %i", (start, level, expected) => {
     const index = new EpochIndex(start, level)
     expect(index.start).toEqual(expected)
   })
 
   it.concurrent.each([
-    [0, 0, true],
-    [1, 0, false],
-    [2, 1, false],
-    [4, 1, true],
-    [0, 32, true],
-    [4_294_967_296, 32, false],
+    [0n, 0, true],
+    [1n, 0, false],
+    [2n, 1, false],
+    [4n, 1, true],
+    [0n, 32, true],
+    [4_294_967_296n, 32, false],
   ])("should validate if %i at %i is %s", (start, level, expected) => {
     const index = new EpochIndex(start, level)
     expect(index.isLeft).toEqual(expected)
   })
 
   it.concurrent.each([
-    [0, 0, 0n, 0],
-    [1, 0, 0n, 0],
-    [2, 1, 0n, 1],
-    [4, 1, 4n, 1],
-    [0, 32, 0n, 32],
-    [4_294_967_296, 32, 0n, 32],
+    [0n, 0, 0n, 0],
+    [1n, 0, 0n, 0],
+    [2n, 1, 0n, 1],
+    [4n, 1, 4n, 1],
+    [0n, 32, 0n, 32],
+    [4_294_967_296n, 32, 0n, 32],
   ])("should validate left index for %i at %i", (start, level, expectedStart, expectedLevel) => {
     const index = new EpochIndex(start, level)
     const leftIndex = index.left
@@ -53,12 +53,12 @@ describe("epoch index", () => {
   })
 
   it.concurrent.each([
-    [0, 0, 1n, 0],
-    [1, 0, 1n, 0],
-    [2, 1, 2n, 1],
-    [4, 1, 6n, 1],
-    [0, 32, 4_294_967_296n, 32],
-    [4_294_967_296, 32, 4_294_967_296n, 32],
+    [0n, 0, 1n, 0],
+    [1n, 0, 1n, 0],
+    [2n, 1, 2n, 1],
+    [4n, 1, 6n, 1],
+    [0n, 32, 4_294_967_296n, 32],
+    [4_294_967_296n, 32, 4_294_967_296n, 32],
   ])("should validate right index for %i at %i", (start, level, expectedStart, expectedLevel) => {
     const index = new EpochIndex(start, level)
     const rightIndex = index.right
@@ -67,9 +67,9 @@ describe("epoch index", () => {
   })
 
   it.concurrent.each([
-    [0, 0, 1n],
-    [0, 1, 2n],
-    [0, 32, 4_294_967_296n],
+    [0n, 0, 1n],
+    [0n, 1, 2n],
+    [0n, 32, 4_294_967_296n],
   ])("should have the right length for %i at %i", (start, level, expected) => {
     const index = new EpochIndex(start, level)
     expect(index.length).toEqual(expected)
@@ -77,7 +77,7 @@ describe("epoch index", () => {
 
   it.concurrent.each([
     [
-      0,
+      0n,
       0,
       new Uint8Array([
         173, 49, 94, 32, 157, 214, 37, 22, 171, 140, 125, 28, 45, 140, 60, 32, 101, 37, 80, 30, 190,
@@ -85,7 +85,7 @@ describe("epoch index", () => {
       ]),
     ],
     [
-      0,
+      0n,
       1,
       new Uint8Array([
         251, 40, 138, 229, 98, 70, 144, 153, 126, 77, 233, 207, 177, 166, 218, 44, 127, 113, 59,
@@ -93,7 +93,7 @@ describe("epoch index", () => {
       ]),
     ],
     [
-      0,
+      0n,
       32,
       new Uint8Array([
         42, 40, 146, 107, 120, 198, 38, 173, 183, 162, 73, 162, 62, 151, 105, 191, 3, 139, 82, 68,
@@ -101,7 +101,7 @@ describe("epoch index", () => {
       ]),
     ],
     [
-      4_294_967_296,
+      4_294_967_296n,
       0,
       new Uint8Array([
         10, 81, 169, 21, 123, 21, 96, 75, 132, 136, 101, 165, 120, 209, 156, 5, 176, 74, 30, 5, 191,
@@ -109,7 +109,7 @@ describe("epoch index", () => {
       ]),
     ],
     [
-      4_294_967_296,
+      4_294_967_296n,
       1,
       new Uint8Array([
         3, 48, 42, 58, 75, 159, 28, 60, 34, 143, 230, 13, 57, 78, 229, 146, 36, 135, 120, 28, 76,
@@ -117,7 +117,7 @@ describe("epoch index", () => {
       ]),
     ],
     [
-      4_294_967_296,
+      4_294_967_296n,
       32,
       new Uint8Array([
         138, 221, 60, 55, 69, 133, 200, 248, 94, 216, 56, 133, 121, 93, 5, 7, 253, 249, 194, 232,
@@ -130,8 +130,8 @@ describe("epoch index", () => {
   })
 
   it.concurrent.each([
-    [2, 1, 1],
-    [2, 1, 4],
+    [2n, 1, new Date(1 * 1000)],
+    [2n, 1, new Date(4 * 1000)],
   ])("should throw when get child at main level for %i at %i, %i", (start, level, at) => {
     expect(() => {
       const index = new EpochIndex(start, level)
@@ -140,12 +140,12 @@ describe("epoch index", () => {
   })
 
   it.concurrent.each([
-    [2, 1, 2, 2n, 0],
-    [2, 1, 3, 3n, 0],
-    [0, 32, 2000000000, 0n, 31],
-    [0, 32, 3000000000, 2_147_483_648n, 31],
-    [4_294_967_296, 32, 6000000000, 4_294_967_296n, 31],
-    [4_294_967_296, 32, 7000000000, 6_442_450_944n, 31],
+    [2n, 1, new Date(2 * 1000), 2n, 0],
+    [2n, 1, new Date(3 * 1000), 3n, 0],
+    [0n, 32, new Date(2000000000 * 1000), 0n, 31],
+    [0n, 32, new Date(3000000000 * 1000), 2_147_483_648n, 31],
+    [4_294_967_296n, 32, new Date(6000000000 * 1000), 4_294_967_296n, 31],
+    [4_294_967_296n, 32, new Date(7000000000 * 1000), 6_442_450_944n, 31],
   ])(
     "should get child at main level for %i at %i, %i",
     (start, level, at, expectedStart, expectedLevel) => {
@@ -158,15 +158,15 @@ describe("epoch index", () => {
 
   it.concurrent("should throw when next index is not higher than start", () => {
     expect(() => {
-      const index = new EpochIndex(2, 1)
-      index.getNext(1)
+      const index = new EpochIndex(2n, 1)
+      index.getNext(new Date(1 * 1000))
     }).toThrow()
   })
 
   it.concurrent.each([
-    [2, 1, 2, 2n, 0],
-    [2, 1, 3, 3n, 0],
-    [2, 1, 4, 4n, 2],
+    [2n, 1, new Date(2 * 1000), 2n, 0],
+    [2n, 1, new Date(3 * 1000), 3n, 0],
+    [2n, 1, new Date(4 * 1000), 4n, 2],
   ])("should get next index for %i at %i, %i", (start, level, at, expectedStart, expectedLevel) => {
     const index = new EpochIndex(start, level)
     const nextIndex = index.getNext(at)
@@ -176,14 +176,14 @@ describe("epoch index", () => {
 
   it.concurrent("should throw when parent is higher than max level", () => {
     expect(() => {
-      const index = new EpochIndex(0, 32)
+      const index = new EpochIndex(0n, 32)
       index.getParent()
     }).toThrow()
   })
 
   it.concurrent.each([
-    [2, 1, 0n, 2],
-    [4, 1, 4n, 2],
+    [2n, 1, 0n, 2],
+    [4n, 1, 4n, 2],
   ])("should get parent index for %i at %i", (start, level, expectedStart, expectedLevel) => {
     const index = new EpochIndex(start, level)
     const parentIndex = index.getParent()
@@ -192,8 +192,8 @@ describe("epoch index", () => {
   })
 
   it.concurrent.each([
-    [0, 8_589_934_591],
-    [4_294_967_295, 4_294_967_296],
+    [0n, 8_589_934_591n],
+    [4_294_967_295n, 4_294_967_296n],
   ])("should throw lowest common anchestor is out of range for (%i, %i)", (t0, t1) => {
     expect(() => {
       EpochIndex.lowestCommonAncestor(t0, t1)
@@ -201,12 +201,12 @@ describe("epoch index", () => {
   })
 
   it.concurrent.each([
-    [0, 0, 0n, 0],
-    [0, 1, 0n, 1],
-    [0, 2, 0n, 2],
-    [1, 2, 0n, 2],
-    [1, 3, 0n, 2],
-    [5, 6, 4n, 2],
+    [0n, 0n, 0n, 0],
+    [0n, 1n, 0n, 1],
+    [0n, 2n, 0n, 2],
+    [1n, 2n, 0n, 2],
+    [1n, 3n, 0n, 2],
+    [5n, 6n, 4n, 2],
   ])("should get common anchestor index for (%i, %i)", (t0, t1, expectedStart, expectedLevel) => {
     const commonIndex = EpochIndex.lowestCommonAncestor(t0, t1)
     expect(commonIndex.start).toEqual(expectedStart)

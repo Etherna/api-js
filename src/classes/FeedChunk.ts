@@ -17,6 +17,7 @@ declare global {
   }
   interface BigInt {
     toDate(): Date
+    normalized(): bigint
   }
 }
 
@@ -33,10 +34,10 @@ Uint8Array.prototype.toUnixTimestamp = function () {
 
   const dataView = new DataView(fixedDateTimeByteArray.buffer)
 
-  return dataView.getBigUint64(0, true)
+  return dataView.getBigUint64(0, true) * 1000n
 }
 Uint8Array.prototype.toUnixDate = function () {
-  return new Date(Number(this.toUnixTimestamp() * 1000n))
+  return new Date(Number(this.toUnixTimestamp()))
 }
 Date.prototype.toBytes = function () {
   const timestamp = BigInt(Math.floor(this.getTime() / 1000))
@@ -52,10 +53,14 @@ Date.prototype.toBytes = function () {
   return timestampBytes
 }
 Date.prototype.toUnixTimestamp = function () {
-  return BigInt(Math.floor(this.getTime() / 1000))
+  return BigInt(this.getTime())
 }
 BigInt.prototype.toDate = function () {
-  return new Date(Number(this) * 1000)
+  return new Date(Number(this))
+}
+BigInt.prototype.normalized = function () {
+  // get swarm payload timestamp supposed this is a unix timestamp
+  return this.valueOf() / 1000n
 }
 
 export default class FeedChunk {
@@ -70,23 +75,19 @@ export default class FeedChunk {
   public static readonly MaxContentPayloadBytesSize =
     this.MaxPayloadBytesSize - this.TimeStampByteSize //creation timestamp
 
-  constructor(
-    public index: EpochIndex,
-    public payload: Uint8Array,
-    public referenceHash: Reference
-  ) {
+  constructor(public index: EpochIndex, public payload: Uint8Array, public reference: Reference) {
     if (payload.length < FeedChunk.MinPayloadByteSize)
       throw new Error(`Payload can't be shorter than ${FeedChunk.TimeStampByteSize} bytes`)
     if (payload.length > FeedChunk.MaxPayloadBytesSize)
       throw new Error(`Payload can't be longer than ${FeedChunk.MaxPayloadBytesSize} bytes`)
 
-    if (!FeedChunk.ReferenceHashRegex.test(referenceHash)) throw new Error("Not a valid swarm hash")
+    if (!FeedChunk.ReferenceHashRegex.test(reference)) throw new Error("Not a valid swarm hash")
   }
 
   // Methods.
   public isEqual(chunk: FeedChunk) {
     return (
-      this.referenceHash === chunk.referenceHash &&
+      this.reference === chunk.reference &&
       this.index.isEqual(chunk.index) &&
       buffersEquals(this.payload, chunk.payload)
     )

@@ -5,24 +5,37 @@ import type { AxiosError } from "axios"
 
 export type ChildProcess = ReturnType<typeof exec>
 
-const beeEndpoint = "http://localhost:1633"
-const beeDebugEndpoint = "http://localhost:1635"
+export type BeeProcess = ChildProcess & {
+  port: number
+  url: string
+  debugUrl: string
+}
+
+const processes: BeeProcess[] = []
 
 export const startBee = async () => {
-  const process = await runProcess("bee dev --restricted")
-  await waitService(beeEndpoint)
+  const process = await runProcess()
+  await waitService(process)
   return process
 }
 
-export const createPostaBatch = async () => {
-  const batchResp = await axios.post(`${beeDebugEndpoint}/stamps/10000000/20`)
+export const createPostageBatch = async (process: BeeProcess) => {
+  const batchResp = await axios.post(`${process.debugUrl}/stamps/10000000/20`)
   const { batchID } = batchResp.data
   return batchID
 }
 
-const runProcess = (cmd: string): Promise<ChildProcess> => {
-  return new Promise<ChildProcess>((res, rej) => {
-    const childProcess = exec(cmd)
+const runProcess = (): Promise<BeeProcess> => {
+  return new Promise<BeeProcess>((res, rej) => {
+    const port = +("1633" + processes.length)
+    const debugPort = +("1635" + processes.length)
+    const cmd = `bee dev --restricted --api-addr=':${port}' --debug-api-addr=':${debugPort}'`
+
+    const childProcess = exec(cmd) as BeeProcess
+    childProcess.port = port
+    childProcess.url = `http://localhost:${port}`
+    childProcess.debugUrl = `http://localhost:${debugPort}`
+
     childProcess.on("error", error => {
       rej(error)
     })
@@ -35,13 +48,13 @@ const runProcess = (cmd: string): Promise<ChildProcess> => {
   })
 }
 
-const waitService = async (url: string, timeout = 1000) => {
+const waitService = async (process: BeeProcess, timeout = 1000) => {
   let tries = 0
 
   return new Promise<void>((res, rej) => {
     const interval = setInterval(() => {
       axios
-        .get(url)
+        .get(process.url)
         .then(() => {
           clearInterval(interval)
           res()
