@@ -47,8 +47,16 @@ export default class EpochIndex {
     return this.isRight ? this : new EpochIndex(this.start + this.length, this.level)
   }
 
-  // methods
+  // static methods
+  public static fromString(epochString: string): EpochIndex {
+    const [start, level] = epochString.split("/")
 
+    if (!start || !level) throw new Error("Invalid epoch string")
+
+    return new EpochIndex(BigInt(start), Number(level))
+  }
+
+  // methods
   public containsTime(at: Date) {
     const timestamp = at.toUnixTimestamp().normalized()
     return timestamp >= this.start && timestamp < this.start + this.length

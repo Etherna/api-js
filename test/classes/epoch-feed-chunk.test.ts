@@ -23,7 +23,7 @@ describe("epoch feed chunk", () => {
       "aeef03dde6685d5a1c9ae5af374cce84b25aab391222801d8c4dc5d108929592" as Reference
     )
 
-    expect(chunk.getTimestamp()).toEqual(new Date("2107-03-04T22:02:45.000Z"))
+    expect(chunk.timestamp).toEqual(new Date("2107-03-04T22:02:45.000Z"))
   })
 
   it.concurrent("should throw when payload exeeds the limit", () => {

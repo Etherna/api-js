@@ -1,7 +1,7 @@
 import { etc } from "@noble/secp256k1"
 
 import { bmtHash } from "./utils/bmt"
-import { bytesAtOffset, bytesEqual, flexBytesAtOffset, serializeBytes } from "./utils/bytes"
+import { bytesEqual, serializeBytes } from "./utils/bytes"
 import { makeContentAddressedChunk } from "./utils/chunk"
 import {
   IDENTIFIER_SIZE,
@@ -106,16 +106,16 @@ export default class Soc {
 
   private makeSingleOwnerChunkFromData(data: Uint8Array, address: Uint8Array): SingleOwnerChunk {
     const ownerAddress = this.recoverChunkOwner(data)
-    const identifier = bytesAtOffset(data, SOC_IDENTIFIER_OFFSET, IDENTIFIER_SIZE)
+    const identifier = data.slice(SOC_IDENTIFIER_OFFSET, SOC_IDENTIFIER_OFFSET + IDENTIFIER_SIZE)
     const socAddress = keccak256Hash(identifier, ownerAddress)
 
     if (!bytesEqual(address, socAddress)) {
       throw new Error("SOC Data does not match given address!")
     }
 
-    const signature = () => bytesAtOffset(data, SOC_SIGNATURE_OFFSET, SIGNATURE_SIZE)
-    const span = () => bytesAtOffset(data, SOC_SPAN_OFFSET, SPAN_SIZE)
-    const payload = () => flexBytesAtOffset(data, SOC_PAYLOAD_OFFSET)
+    const signature = () => data.slice(SOC_SIGNATURE_OFFSET, SOC_SIGNATURE_OFFSET + SIGNATURE_SIZE)
+    const span = () => data.slice(SOC_SPAN_OFFSET, SOC_SPAN_OFFSET + SPAN_SIZE)
+    const payload = () => data.slice(SOC_PAYLOAD_OFFSET)
 
     return {
       data,
@@ -131,8 +131,8 @@ export default class Soc {
   private recoverChunkOwner(data: Uint8Array): Uint8Array {
     const cacData = data.slice(SOC_SPAN_OFFSET)
     const chunkAddress = bmtHash(cacData)
-    const signature = bytesAtOffset(data, SOC_SIGNATURE_OFFSET, SIGNATURE_SIZE)
-    const identifier = bytesAtOffset(data, SOC_IDENTIFIER_OFFSET, IDENTIFIER_SIZE)
+    const signature = data.slice(SOC_SIGNATURE_OFFSET, SOC_SIGNATURE_OFFSET + SIGNATURE_SIZE)
+    const identifier = data.slice(SOC_IDENTIFIER_OFFSET, SOC_IDENTIFIER_OFFSET + IDENTIFIER_SIZE)
     const digest = keccak256Hash(identifier, chunkAddress)
     const ownerAddress = recoverAddress(signature, digest)
 

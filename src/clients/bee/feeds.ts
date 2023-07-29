@@ -9,9 +9,9 @@ import { writeUint64BigEndian } from "./utils/uint64"
 
 import type BeeClient from "."
 import type {
-  Epoch,
   EthAddress,
   FeedInfo,
+  FeedType,
   FeedUpdateHeaders,
   FeedUpdateOptions,
   FeedUploadOptions,
@@ -19,17 +19,19 @@ import type {
   ReferenceResponse,
 } from "./types"
 import type { AxiosError, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios"
+import { EpochFeed, EpochIndex, FeedChunk } from "../../classes"
+import { toEthAccount } from "../../utils/bytes"
 
 const feedEndpoint = "/feeds"
 
 export default class Feed {
   constructor(private instance: BeeClient) {}
 
-  makeFeed(
+  makeFeed<T extends FeedType>(
     topicName: string,
     owner: EthAddress,
-    type: "sequence" | "epoch" = "sequence"
-  ): FeedInfo {
+    type: T = "sequence" as T
+  ): FeedInfo<T> {
     return {
       topic: etc.bytesToHex(keccak256Hash(topicName)),
       owner: makeHexString(owner),
@@ -37,38 +39,54 @@ export default class Feed {
     }
   }
 
-  makeReader(feed: FeedInfo) {
+  makeReader<T extends FeedType>(feed: FeedInfo<T>) {
     const instance = this.instance
     return {
       ...feed,
       async download(options?: FeedUpdateOptions) {
-        if (options?.at) {
-          throw new Error("Not implemented yet")
-        }
-        if (options?.index) {
-          throw new Error("Not implemented yet")
-        }
+        const at = options?.at ?? new Date()
 
-        const { data } = await instance.request.get<ReferenceResponse>(
-          `${feedEndpoint}/${feed.owner}/${feed.topic}`,
-          {
-            params: {
-              type: feed.type,
-            },
-            headers: options?.headers,
-            signal: options?.signal,
-            timeout: options?.timeout,
+        if (feed.type === "epoch") {
+          const epochFeed = new EpochFeed(instance)
+          const chunk = await epochFeed.tryFindEpochFeed(
+            toEthAccount(feed.owner),
+            etc.hexToBytes(feed.topic),
+            at,
+            options?.index ? EpochIndex.fromString(options.index) : undefined
+          )
+
+          if (!chunk) {
+            throw new Error("No epoch feed found")
           }
-        )
 
-        return {
-          reference: data.reference,
+          const reference = etc.bytesToHex(chunk.getContentPayload())
+
+          return {
+            reference,
+          }
+        } else {
+          const { data } = await instance.request.get<ReferenceResponse>(
+            `${feedEndpoint}/${feed.owner}/${feed.topic}`,
+            {
+              params: {
+                type: feed.type,
+                at: at.getTime(),
+              },
+              headers: options?.headers,
+              signal: options?.signal,
+              timeout: options?.timeout,
+            }
+          )
+
+          return {
+            reference: data.reference,
+          }
         }
       },
     }
   }
 
-  makeWriter(feed: FeedInfo) {
+  makeWriter<T extends FeedType>(feed: FeedInfo<T>) {
     if (!this.instance.signer) {
       throw new Error("No signer provided")
     }
@@ -80,17 +98,40 @@ export default class Feed {
     const upload = async (reference: string, options: FeedUploadOptions) => {
       const canonicalReference = makeBytesReference(reference)
 
-      const nextIndex =
-        !options.index || options.index === "latest"
-          ? await this.findNextIndex(feed)
-          : options.index
+      if (feed.type === "epoch") {
+        const epochFeed = new EpochFeed(this.instance)
+        const chunk = await epochFeed.createNextEpochFeedChunk(
+          toEthAccount(feed.owner),
+          etc.hexToBytes(feed.topic),
+          canonicalReference,
+          options.index ? EpochIndex.fromString(options.index) : undefined
+        )
 
-      const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)
-      const at = options.at ?? Date.now() / 1000.0
-      const timestamp = writeUint64BigEndian(at)
-      const payloadBytes = serializeBytes(timestamp, canonicalReference)
+        const identifier = FeedChunk.buildIdentifier(etc.hexToBytes(feed.topic), chunk.index)
+        const reference = await this.instance.soc.upload(identifier, chunk.payload, options)
 
-      return await this.instance.soc.upload(identifier, payloadBytes, options)
+        return {
+          reference,
+          index: chunk.index.toString(),
+        }
+      } else {
+        const nextIndex =
+          options.index && options.index !== "latest"
+            ? options.index
+            : await this.findNextIndex(feed)
+
+        const at = Math.floor((options.at?.getTime() ?? Date.now()) / 1000.0)
+        const timestamp = writeUint64BigEndian(at)
+        const payloadBytes = serializeBytes(timestamp, canonicalReference)
+        const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)
+
+        const reference = await this.instance.soc.upload(identifier, payloadBytes, options)
+
+        return {
+          reference,
+          index: nextIndex,
+        }
+      }
     }
 
     return {
@@ -98,7 +139,7 @@ export default class Feed {
     }
   }
 
-  async createRootManifest(feed: FeedInfo, options: FeedUploadOptions) {
+  async createRootManifest<T extends FeedType>(feed: FeedInfo<T>, options: FeedUploadOptions) {
     const response = await this.instance.request.post<ReferenceResponse>(
       `${feedEndpoint}/${feed.owner}/${feed.topic}`,
       null,
@@ -115,12 +156,8 @@ export default class Feed {
     return response.data.reference
   }
 
-  makeRootManifest(feed: FeedInfo) {
-    throw new Error("Not implemented yet")
-  }
-
   // Utils
-  async fetchLatestFeedUpdate(feed: FeedInfo) {
+  async fetchLatestFeedUpdate<T extends FeedType>(feed: FeedInfo<T>) {
     const resp = await this.instance.request.get<ReferenceResponse>(
       `${feedEndpoint}/${feed.owner}/${feed.topic}`,
       {
@@ -136,7 +173,7 @@ export default class Feed {
     }
   }
 
-  async findNextIndex(feed: FeedInfo) {
+  async findNextIndex<T extends FeedType>(feed: FeedInfo<T>) {
     try {
       const feedUpdate = await this.fetchLatestFeedUpdate(feed)
 
@@ -171,22 +208,17 @@ export default class Feed {
     }
   }
 
-  private makeFeedIdentifier(topic: string, index: Index): Uint8Array {
+  private makeFeedIdentifier(topic: string, index: Index | EpochIndex): Uint8Array {
     if (typeof index === "number") {
       return this.makeSequentialFeedIdentifier(topic, index)
     } else if (typeof index === "string") {
       const indexBytes = this.makeFeedIndexBytes(index)
-
       return this.hashFeedIdentifier(topic, indexBytes)
-    } else if (this.isEpoch(index)) {
-      throw new TypeError("epoch is not yet implemented")
+    } else if (index instanceof EpochIndex) {
+      return FeedChunk.buildIdentifier(etc.hexToBytes(topic), index)
     }
 
     return this.hashFeedIdentifier(topic, index)
-  }
-
-  private isEpoch(epoch: unknown): epoch is Epoch {
-    return typeof epoch === "object" && epoch !== null && "time" in epoch && "level" in epoch
   }
 
   private hashFeedIdentifier(topic: string, index: Uint8Array): Uint8Array {

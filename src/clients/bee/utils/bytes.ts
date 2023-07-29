@@ -18,22 +18,6 @@ export function hasBytesAtOffset(data: unknown, offset: number, length: number):
 }
 
 /**
- * Return `length` bytes starting from `offset`
- *
- * @param data   The original data
- * @param offset The offset to start from
- * @param length The length of data to be returned
- */
-export function bytesAtOffset<Length extends number>(
-  data: Uint8Array,
-  offset: number,
-  length: Length
-): Uint8Array {
-  const offsetBytes = data.slice(offset, offset + length)
-  return offsetBytes
-}
-
-/**
  * Returns a new byte array filled with zeroes with the specified length
  *
  * @param length The length of data to be returned
@@ -57,16 +41,6 @@ export function serializeBytes(...arrays: Uint8Array[]): Uint8Array {
   })
 
   return buffer
-}
-
-/**
- * Return flex bytes starting from `offset`
- *
- * @param data   The original data
- * @param offset The offset to start from
- */
-export function flexBytesAtOffset(data: Uint8Array, offset: number): Uint8Array {
-  return data.slice(offset)
 }
 
 export function wrapBytesWithHelpers<T extends Record<string, unknown> = Record<string, unknown>>(

@@ -11,18 +11,15 @@ export type Signer = {
   address: EthAddress
 }
 
-export type FeedInfo = {
+export type FeedType = "sequence" | "epoch"
+
+export type FeedInfo<T extends FeedType> = {
   topic: string
   owner: string
-  type: "sequence" | "epoch"
+  type: T
 }
 
-export type Epoch = {
-  time: number
-  level: number
-}
-
-export type Index = number | Epoch | Uint8Array | string
+export type Index = number | Uint8Array | string
 
 export declare type HexString<Length = number> = string & {
   readonly length: Length
@@ -120,12 +117,12 @@ export interface FileDownloadOptions extends RequestDownloadOptions {
 
 export interface FeedUpdateOptions extends RequestOptions {
   index?: string
-  at?: number
+  at?: Date
 }
 
 export interface FeedUploadOptions extends RequestUploadOptions {
   index?: string
-  at?: number
+  at?: Date
 }
 
 export interface AuthenticationOptions extends RequestOptions {

@@ -1,5 +1,5 @@
 import { bmtHash } from "./bmt"
-import { flexBytesAtOffset, serializeBytes } from "./bytes"
+import { serializeBytes } from "./bytes"
 import { CAC_PAYLOAD_OFFSET, MAX_SPAN_LENGTH, SPAN_SIZE } from "./contants"
 
 import type { Chunk } from "../types"
@@ -16,7 +16,7 @@ export function makeContentAddressedChunk(payloadBytes: Uint8Array): Chunk {
   return {
     data,
     span: () => span,
-    payload: () => flexBytesAtOffset(data, CAC_PAYLOAD_OFFSET),
+    payload: () => data.slice(CAC_PAYLOAD_OFFSET),
     address: () => bmtHash(data),
   }
 }

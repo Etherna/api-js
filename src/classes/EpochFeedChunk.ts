@@ -22,7 +22,7 @@ declare global {
 }
 
 Uint8Array.prototype.toUnixTimestamp = function () {
-  if (this.length !== FeedChunk.TimeStampByteSize) {
+  if (this.length !== EpochFeedChunk.TimeStampByteSize) {
     throw new Error("Invalid date time byte array length")
   }
 
@@ -41,7 +41,7 @@ Uint8Array.prototype.toUnixDate = function () {
 }
 Date.prototype.toBytes = function () {
   const timestamp = BigInt(Math.floor(this.getTime() / 1000))
-  const timestampBytes = new Uint8Array(FeedChunk.TimeStampByteSize)
+  const timestampBytes = new Uint8Array(EpochFeedChunk.TimeStampByteSize)
   const dataView = new DataView(timestampBytes.buffer)
 
   dataView.setBigUint64(0, timestamp, true)
@@ -63,11 +63,11 @@ BigInt.prototype.normalized = function () {
   return this.valueOf() / 1000n
 }
 
-export default class FeedChunk {
+export default class EpochFeedChunk {
   public static readonly AccountBytesLength = 20
   public static readonly IdentifierBytesLength = 32
   public static readonly IndexBytesLength = 32
-  public static readonly MaxPayloadBytesSize = 4096 //4kB
+  public static readonly MaxPayloadBytesSize = 3991 //4kB - identifier - signature - span
   public static readonly ReferenceHashRegex = /^[A-Fa-f0-9]{64}$/
   public static readonly TimeStampByteSize = 8
   public static readonly TopicBytesLength = 32
@@ -75,17 +75,31 @@ export default class FeedChunk {
   public static readonly MaxContentPayloadBytesSize =
     this.MaxPayloadBytesSize - this.TimeStampByteSize //creation timestamp
 
-  constructor(public index: EpochIndex, public payload: Uint8Array, public reference: Reference) {
-    if (payload.length < FeedChunk.MinPayloadByteSize)
-      throw new Error(`Payload can't be shorter than ${FeedChunk.TimeStampByteSize} bytes`)
-    if (payload.length > FeedChunk.MaxPayloadBytesSize)
-      throw new Error(`Payload can't be longer than ${FeedChunk.MaxPayloadBytesSize} bytes`)
+  public timestamp: Date | null = null
 
-    if (!FeedChunk.ReferenceHashRegex.test(reference)) throw new Error("Not a valid swarm hash")
+  constructor(
+    public index: EpochIndex,
+    public payload: Uint8Array,
+    public reference: Reference
+  ) {
+    if (payload.length < EpochFeedChunk.MinPayloadByteSize) {
+      throw new Error(`Payload can't be shorter than ${EpochFeedChunk.TimeStampByteSize} bytes`)
+    }
+    if (payload.length > EpochFeedChunk.MaxPayloadBytesSize) {
+      throw new Error(`Payload can't be longer than ${EpochFeedChunk.MaxPayloadBytesSize} bytes`)
+    }
+    if (!EpochFeedChunk.ReferenceHashRegex.test(reference)) {
+      throw new Error("Not a valid swarm hash")
+    }
+
+    const timestampBytes = payload.slice(0, EpochFeedChunk.TimeStampByteSize)
+    const date = timestampBytes.toUnixDate()
+
+    this.timestamp = isNaN(date.getTime()) ? null : date
   }
 
   // Methods.
-  public isEqual(chunk: FeedChunk) {
+  public isEqual(chunk: EpochFeedChunk) {
     return (
       this.reference === chunk.reference &&
       this.index.isEqual(chunk.index) &&
@@ -94,38 +108,20 @@ export default class FeedChunk {
   }
 
   public getContentPayload() {
-    return this.payload.slice(FeedChunk.TimeStampByteSize)
-  }
-
-  public getTimestamp() {
-    const timestampBytes = this.payload.slice(0, FeedChunk.TimeStampByteSize)
-    return timestampBytes.toUnixDate()
+    return this.payload.slice(EpochFeedChunk.TimeStampByteSize)
   }
 
   // Static helpers.
-  public static buildChunkPayload(
-    contentPayload: Uint8Array,
-    timestamp: bigint | null = null
-  ): Uint8Array {
-    if (contentPayload.length > this.MaxContentPayloadBytesSize)
+  public static buildChunkPayload(contentPayload: Uint8Array, at?: Date): Uint8Array {
+    if (contentPayload.length > this.MaxContentPayloadBytesSize) {
       throw new Error(
         `Content payload can't be longer than ${this.MaxContentPayloadBytesSize} bytes`
       )
+    }
 
-    /**
-     * var chunkPayload = new byte[TimeStampByteSize + contentPayload.Length];
-            timestamp ??= (ulong)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            timestamp.Value.UnixDateTimeToByteArray().CopyTo(chunkPayload, 0);
-            contentPayload.CopyTo(chunkPayload, TimeStampByteSize);
+    const timestamp = at ?? new Date()
 
-            return chunkPayload;
-     */
-
-    const date = timestamp?.toDate() ?? new Date()
-
-    const chunkPayload = new Uint8Array(this.TimeStampByteSize + contentPayload.length)
-    chunkPayload.set(date.toBytes(), 0)
-    chunkPayload.set(contentPayload, this.TimeStampByteSize)
+    const chunkPayload = new Uint8Array([...timestamp.toBytes(), ...contentPayload])
 
     return chunkPayload
   }

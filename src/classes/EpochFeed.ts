@@ -1,17 +1,18 @@
 import EpochIndex from "./EpochIndex"
-import FeedChunk from "./FeedChunk"
+import EpochFeedChunk from "./EpochFeedChunk"
 
 import type { BeeClient, Reference } from "../clients"
+import { SOC_PAYLOAD_OFFSET } from "../utils"
 
 export default class EpochFeed {
   constructor(public beeClient: BeeClient) {}
 
-  async createNextEpochFeedChunk(
+  public async createNextEpochFeedChunk(
     account: string,
     topic: Uint8Array,
     contentPayload: Uint8Array,
-    knownNearEpochIndex: EpochIndex
-  ): Promise<FeedChunk> {
+    knownNearEpochIndex?: EpochIndex
+  ): Promise<EpochFeedChunk> {
     const at = new Date()
 
     // Find last published chunk.
@@ -27,22 +28,23 @@ export default class EpochFeed {
     }
 
     // Create new chunk.
-    const chunkPayload = FeedChunk.buildChunkPayload(contentPayload, at.toUnixTimestamp())
-    const chunkReferenceHash = FeedChunk.buildReferenceHash(account, topic, nextEpochIndex)
+    const chunkPayload = EpochFeedChunk.buildChunkPayload(contentPayload, at)
+    const chunkReferenceHash = EpochFeedChunk.buildReferenceHash(account, topic, nextEpochIndex)
 
-    return new FeedChunk(nextEpochIndex, chunkPayload, chunkReferenceHash)
+    return new EpochFeedChunk(nextEpochIndex, chunkPayload, chunkReferenceHash)
   }
 
-  async tryFindEpochFeed(
+  public async tryFindEpochFeed(
     account: string,
     topic: Uint8Array,
     at: Date,
-    knownNearEpochIndex: EpochIndex | null
-  ): Promise<FeedChunk | null> {
-    const timestamp = at.toUnixTimestamp()
+    knownNearEpochIndex?: EpochIndex
+  ): Promise<EpochFeedChunk | null> {
+    const timestamp = at.toUnixTimestamp().normalized()
 
-    if (timestamp < EpochIndex.minUnixTimeStamp || timestamp > EpochIndex.maxUnixTimeStamp)
+    if (timestamp < EpochIndex.minUnixTimeStamp || timestamp > EpochIndex.maxUnixTimeStamp) {
       throw new Error("Date is out of allowed range")
+    }
 
     /*
      * This look up is composed by different phases:
@@ -106,26 +108,31 @@ export default class EpochFeed {
     account: string,
     topic: Uint8Array,
     index: EpochIndex
-  ): Promise<FeedChunk | null>
+  ): Promise<EpochFeedChunk | null>
   public async tryGetFeedChunk(
     chunkReferenceHash: Reference,
     index: EpochIndex
-  ): Promise<FeedChunk | null>
+  ): Promise<EpochFeedChunk | null>
   public async tryGetFeedChunk(
     accountOrReference: string | Reference,
     topicOrIndex: Uint8Array | EpochIndex,
     index?: EpochIndex
-  ): Promise<FeedChunk | null> {
+  ): Promise<EpochFeedChunk | null> {
     if (topicOrIndex instanceof Uint8Array) {
+      const topic = topicOrIndex
       return this.tryGetFeedChunk(
-        FeedChunk.buildReferenceHash(accountOrReference, topicOrIndex, index!),
+        EpochFeedChunk.buildReferenceHash(accountOrReference, topic, index!),
         index!
       )
     }
 
+    index = topicOrIndex
+    const reference = accountOrReference as Reference
+
     try {
-      const chunkStream = await this.beeClient.chunk.download(accountOrReference)
-      return new FeedChunk(topicOrIndex, chunkStream, accountOrReference as Reference)
+      const chunk = await this.beeClient.chunk.download(reference)
+      const payload = chunk.slice(SOC_PAYLOAD_OFFSET)
+      return new EpochFeedChunk(index, payload, reference)
     } catch (err: any) {
       return null
     }
@@ -137,8 +144,8 @@ export default class EpochFeed {
     account: string,
     topic: Uint8Array,
     at: Date,
-    currentChunk: FeedChunk
-  ): Promise<FeedChunk> {
+    currentChunk: EpochFeedChunk
+  ): Promise<EpochFeedChunk> {
     // If currentChunk is at max resolution, return it.
     const currentIndex = currentChunk.index
 
@@ -155,7 +162,7 @@ export default class EpochFeed {
     // Try chunk on child epoch at date.
     const childIndexAtDate = currentIndex.getChildAt(at)
     const childChunkAtDate = await this.tryGetFeedChunk(account, topic, childIndexAtDate)
-    if (childChunkAtDate && childChunkAtDate.getTimestamp() <= at) {
+    if (childChunkAtDate && childChunkAtDate.timestamp && childChunkAtDate.timestamp <= at) {
       return await this.findLastEpochChunkBeforeDate(account, topic, at, childChunkAtDate)
     }
 
@@ -177,7 +184,7 @@ export default class EpochFeed {
    * @param at The searched date
    * @returns A starting epoch index
    */
-  private findStartingEpochOffline(knownNearEpoch: EpochIndex | null, at: Date): EpochIndex {
+  private findStartingEpochOffline(knownNearEpoch: EpochIndex | undefined, at: Date): EpochIndex {
     let startEpoch = knownNearEpoch
     if (startEpoch) {
       // traverse parents until find a common ancestor
@@ -186,7 +193,7 @@ export default class EpochFeed {
       }
 
       // if max level is reached and start epoch still doesn't contain the time, drop it
-      if (!startEpoch.containsTime(at)) startEpoch = null
+      if (!startEpoch.containsTime(at)) startEpoch = undefined
     }
 
     // if start epoch is null (known near was null or max epoch level is hit)
@@ -202,12 +209,12 @@ export default class EpochFeed {
     topic: Uint8Array,
     at: Date,
     epochIndex: EpochIndex
-  ): Promise<FeedChunk | null> {
+  ): Promise<EpochFeedChunk | null> {
     // Try get chunk payload on network.
     const chunk = await this.tryGetFeedChunk(account, topic, epochIndex)
 
     // If chunk exists and date is prior.
-    if (chunk && chunk.getTimestamp().toUnixTimestamp() <= at.toUnixTimestamp()) {
+    if (chunk && chunk.timestamp && chunk.timestamp <= at) {
       return chunk
     }
 

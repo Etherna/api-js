@@ -84,11 +84,18 @@ export default class Auth {
     return token
   }
 
-  async refreshToken(token: string, options?: RequestOptions): Promise<string | null> {
+  async refreshToken(token: string, options?: AuthenticationOptions): Promise<string | null> {
     try {
+      const expiration = options?.expiry || 3600 * 24 // 1 day
+
+      const data = {
+        role: options?.role || "maintainer",
+        expiry: expiration,
+      }
+
       const resp = await this.instance.request.post<{ key: string }>(
         `${authRefreshEndpoint}`,
-        null,
+        data,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -104,7 +111,7 @@ export default class Auth {
 
       return newToken
     } catch (error: any) {
-      console.error(error.response)
+      console.error(error.response?.data)
       // cookie.remove(TOKEN_COOKIE_NAME)
       return null
     }

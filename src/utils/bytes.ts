@@ -14,6 +14,9 @@ export function toHexString(bytes: Uint8Array): string {
   return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "")
 }
 
-export function toEthAccount(bytes: Uint8Array): EthAddress {
+export function toEthAccount(bytes: Uint8Array | string): EthAddress {
+  if (typeof bytes === "string") {
+    return `0x${bytes.replace(/^0x/, "").toLowerCase()}`
+  }
   return `0x${etc.bytesToHex(bytes)}`
 }

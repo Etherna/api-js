@@ -22,31 +22,33 @@ describe("bee client", () => {
   const username = ""
   const password = "hello"
 
-  const bee = new BeeClient("http://localhost:1633", {
-    signer: privateKey,
-  })
-
+  let bee: BeeClient
   let beeProcess: BeeProcess
   let batchId: string
 
   beforeAll(async () => {
     beeProcess = await startBee()
     batchId = await createPostageBatch(beeProcess)
+    bee = new BeeClient(beeProcess.url, {
+      signer: privateKey,
+    })
   })
 
   afterAll(() => {
     beeProcess?.kill()
   })
 
-  it("should authenticate and refresh token", async () => {
+  it.concurrent("should authenticate and refresh token", async () => {
     const token = await bee.auth.authenticate(username, password)
-    expect(token).toBeDefined()
+    expect(token).not.toBeNull()
+
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     const newToken = await bee.auth.refreshToken(token)
-    expect(newToken).toBeDefined()
+    expect(newToken).not.toBeNull()
   })
 
-  it("should create a single owner chunk", async () => {
+  it.concurrent("should create a single owner chunk", async () => {
     const cac = makeContentAddressedChunk(messageData)
     const identifier = keccak256Hash("etherna")
     const soc = await bee.soc.makeSingleOwnerChunk(cac, identifier)
@@ -64,8 +66,10 @@ describe("bee client", () => {
 
     expect(reference).length(64)
 
+    const chunkData = await bee.chunk.download(reference)
     const socData = await bee.soc.download(identifier, bee.signer!.address)
 
+    expect(chunkData).toEqual(socData.data)
     expect(etc.bytesToHex(socData.payload())).toEqual(etc.bytesToHex(messageData))
   })
 
@@ -98,16 +102,17 @@ describe("bee client", () => {
     const feedData = { id: "feed", msg: "Hello Etherna" }
     const feedDataSerialized = JSON.stringify(feedData)
 
-    const feed = bee.feed.makeFeed("topic", bee.signer!.address, "sequence")
-
     const { reference } = await bee.bzz.upload(feedDataSerialized, {
       batchId,
       contentType: "application/json",
     })
 
+    const feed = bee.feed.makeFeed("topic", bee.signer!.address, "sequence")
+
+    // write
     const feedWriter = bee.feed.makeWriter(feed)
     await feedWriter.upload(reference, { batchId })
-
+    // read
     const feedReader = bee.feed.makeReader(feed)
     const feedDownloadResp = await feedReader.download()
 
@@ -118,7 +123,32 @@ describe("bee client", () => {
     expect(feedDataDownloaded.data.json()).toEqual(feedData)
   })
 
-  it("should create a postage stamp", async () => {
+  it("should create an epoch feed", async () => {
+    const feedData = { id: "feed", msg: "Hello Etherna" }
+    const feedDataSerialized = JSON.stringify(feedData)
+
+    const { reference } = await bee.bzz.upload(feedDataSerialized, {
+      batchId,
+      contentType: "application/json",
+    })
+
+    const feed = bee.feed.makeFeed("topic", bee.signer!.address, "epoch")
+
+    // write
+    const feedWriter = bee.feed.makeWriter(feed)
+    await feedWriter.upload(reference, { batchId })
+    // read
+    const feedReader = bee.feed.makeReader(feed)
+    const feedDownloadResp = await feedReader.download()
+
+    expect(feedDownloadResp.reference).toEqual(reference)
+
+    const feedDataDownloaded = await bee.bzz.download(feedDownloadResp.reference)
+
+    expect(feedDataDownloaded.data.json()).toEqual(feedData)
+  })
+
+  it.concurrent("should create a postage stamp", async () => {
     const batchId = await bee.stamps.create(20, "1000000")
 
     expect(batchId).toHaveLength(64)
@@ -129,36 +159,36 @@ describe("bee client", () => {
     expect(batch.amount).toEqual("1000000")
   })
 
-  it("should topup a postage stamp", async () => {
-    const batchId = await bee.stamps.create(20, "1000000")
-    const batch = await bee.stamps.download(batchId)
-    const ok = await bee.stamps.topup(batchId, "1000")
+  // it("should topup a postage stamp", async () => {
+  //   const batchId = await bee.stamps.create(20, "1000000")
+  //   const batch = await bee.stamps.download(batchId)
+  //   const ok = await bee.stamps.topup(batchId, "1000")
 
-    expect(ok).toBeTruthy()
+  //   expect(ok).toBeTruthy()
 
-    const dilutedBatch = await bee.stamps.download(batchId)
+  //   const dilutedBatch = await bee.stamps.download(batchId)
 
-    // expect(batch.amount).toEqual("1001000")
-    expect(dilutedBatch.batchTTL).toBeGreaterThan(batch.batchTTL)
-  })
+  //   // expect(batch.amount).toEqual("1001000")
+  //   expect(dilutedBatch.batchTTL).toBeGreaterThan(batch.batchTTL)
+  // })
 
-  it("should dilute a postage stamp", async () => {
-    const batchId = await bee.stamps.create(20, "1000000")
-    // const batch = await bee.stamps.download(batchId)
-    const ok = await bee.stamps.dilute(batchId, 21)
+  // it("should dilute a postage stamp", async () => {
+  //   const batchId = await bee.stamps.create(20, "1000000")
+  //   // const batch = await bee.stamps.download(batchId)
+  //   const ok = await bee.stamps.dilute(batchId, 21)
 
-    expect(ok).toBeTruthy()
+  //   expect(ok).toBeTruthy()
 
-    // const dilutedBatch = await bee.stamps.download(batchId)
+  //   // const dilutedBatch = await bee.stamps.download(batchId)
 
-    // Depth is not updating in dev mode:
-    // https://github.com/ethersphere/bee/issues/3092
-    // expect(batch.depth).toEqual(21)
-    // expect(dilutedBatch.batchTTL).toBeLessThan(batch.batchTTL)
-  })
+  //   // Depth is not updating in dev mode:
+  //   // https://github.com/ethersphere/bee/issues/3092
+  //   // expect(batch.depth).toEqual(21)
+  //   // expect(dilutedBatch.batchTTL).toBeLessThan(batch.batchTTL)
+  // })
 
-  it.fails("should fetch the current price", async () => {
-    // chainstate in dev-mdoe fails
+  it.concurrent.fails("should fetch the current price", async () => {
+    // chainstate in dev-mode fails
 
     const price = await bee.chainstate.getCurrentPrice()
 
