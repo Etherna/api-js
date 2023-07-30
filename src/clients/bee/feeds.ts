@@ -156,6 +156,14 @@ export default class Feed {
   }
 
   async createRootManifest<T extends FeedType>(feed: FeedInfo<T>, options: FeedUploadOptions) {
+    if (feed.type === "epoch") {
+      // epoch not yet supported in bee
+      const epochRoot = await this.makeRootManifest(feed)
+      await epochRoot.save(options)
+
+      return epochRoot.reference
+    }
+
     const response = await this.instance.request.post<ReferenceResponse>(
       `${feedEndpoint}/${feed.owner}/${feed.topic}`,
       null,
