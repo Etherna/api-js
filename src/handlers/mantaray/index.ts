@@ -1,4 +1,5 @@
 import {
+  bytesReferenceToReference,
   decodePath,
   getNodesWithPrefix as getNodesWithPrefixString,
   keccak256Hash,
@@ -632,7 +633,11 @@ export class MantarayNode {
   public deserialize(data: Uint8Array): void {
     const nodeHeaderSize = nodeHeaderSizes.full()
 
-    if (data.length < nodeHeaderSize) throw Error("The serialised input is too short")
+    if (data.length < nodeHeaderSize) {
+      throw Error(
+        `The serialised input is too short, received = ${data.length}, expected >= ${nodeHeaderSize}`
+      )
+    }
 
     this._obfuscationKey = new Uint8Array(
       data.slice(0, nodeHeaderSizes.obfuscationKey)

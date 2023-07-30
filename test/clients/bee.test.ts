@@ -148,6 +148,42 @@ describe("bee client", () => {
     expect(feedDataDownloaded.data.json()).toEqual(feedData)
   })
 
+  it("should make a correct feed root manifest", async () => {
+    const feedSequence = bee.feed.makeFeed("topic", bee.signer!.address, "sequence")
+    const feedEpoch = bee.feed.makeFeed("topic", bee.signer!.address, "epoch")
+
+    const sequenceRootManifest = await bee.feed.createRootManifest(feedSequence, { batchId })
+    const epochRootManifest = await bee.feed.createRootManifest(feedEpoch, { batchId })
+
+    const { reference: madeSequenceRootManifest } = await bee.feed.makeRootManifest(feedSequence)
+    const { reference: madeEpochRootManifest } = await bee.feed.makeRootManifest(feedEpoch)
+
+    expect(sequenceRootManifest).toEqual(madeSequenceRootManifest)
+    // FIXME: epoch not yet supported: https://github.com/ethersphere/bee/blob/master/pkg/api/feed.go#L213
+    // expect(epochRootManifest).toEqual(madeEpochRootManifest)
+  })
+
+  it("should parse a feed from the root manifest", async () => {
+    const feedSequence = bee.feed.makeFeed("topic", bee.signer!.address, "sequence")
+    const feedEpoch = bee.feed.makeFeed("topic", bee.signer!.address, "epoch")
+
+    const madeSequenceRootManifest = await bee.feed.makeRootManifest(feedSequence)
+    const madeEpochRootManifest = await bee.feed.makeRootManifest(feedEpoch)
+
+    await madeSequenceRootManifest.save({ batchId })
+    await madeEpochRootManifest.save({ batchId })
+
+    const parsedSequenceFeed = await bee.feed.parseFeedFromRootManifest(
+      madeSequenceRootManifest.reference
+    )
+    const parsedEpochFeed = await bee.feed.parseFeedFromRootManifest(
+      madeEpochRootManifest.reference
+    )
+
+    expect(parsedSequenceFeed).toEqual(feedSequence)
+    expect(parsedEpochFeed).toEqual(feedEpoch)
+  })
+
   it.concurrent("should create a postage stamp", async () => {
     const batchId = await bee.stamps.create(20, "1000000")
 

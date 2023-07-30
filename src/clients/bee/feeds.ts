@@ -15,7 +15,9 @@ import type {
   FeedUpdateOptions,
   FeedUploadOptions,
   Index,
+  Reference,
   ReferenceResponse,
+  RequestUploadOptions,
 } from "./types"
 import type { AxiosError, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios"
 import { EpochFeed, EpochIndex, FeedChunk } from "../../classes"
@@ -29,6 +31,12 @@ import {
   referenceToBytesReference,
 } from "../../utils"
 import { MantarayNode } from "../../handlers"
+import {
+  EntryMetadataFeedOwnerKey,
+  EntryMetadataFeedTopicKey,
+  EntryMetadataFeedTypeKey,
+} from "../../utils/mantaray"
+import type { RequestOptions } from "../types"
 
 const feedEndpoint = "/feeds"
 
@@ -164,19 +172,73 @@ export default class Feed {
     return response.data.reference
   }
 
-  async makeRootManifest<T extends FeedType>(feed: FeedInfo<T>, options: FeedUploadOptions) {
+  async makeRootManifest<T extends FeedType>(feed: FeedInfo<T>) {
     const node = new MantarayNode()
     node.addFork(encodePath("/"), ZeroHashReference, {
-      "swarm-feed-owner": feed.owner.toLowerCase(),
-      "swarm-feed-topic": feed.topic,
-      "swarm-feed-type": feed.type.replace("^[a-z]", c => c.toUpperCase()),
+      [EntryMetadataFeedOwnerKey]: feed.owner.toLowerCase(),
+      [EntryMetadataFeedTopicKey]: feed.topic,
+      [EntryMetadataFeedTypeKey]: feed.type.replace(/^./, c => c.toUpperCase()),
     })
+    node.getForkAtPath(encodePath("/")).node["makeValue"]()
+    node.getForkAtPath(encodePath("/")).node.entry = ZeroHashReference
 
     const reference = await node.save(async data => {
       return referenceToBytesReference(getReferenceFromData(data))
     })
 
-    return bytesReferenceToReference(reference)
+    return {
+      reference: bytesReferenceToReference(reference),
+      save: async (options: RequestUploadOptions) => {
+        node.makeDirty()
+        await node.save(async data => {
+          const { reference } = await this.instance.bytes.upload(data, options)
+          return referenceToBytesReference(reference)
+        })
+      },
+    }
+  }
+
+  async parseFeedFromRootManifest(reference: Reference, opts?: RequestOptions) {
+    const node = new MantarayNode()
+    await node.load(async reference => {
+      try {
+        const data = await this.instance.bytes.download(bytesReferenceToReference(reference), {
+          signal: opts?.signal,
+          timeout: opts?.timeout,
+          headers: opts?.headers,
+        })
+        return data
+      } catch (error) {
+        const node = new MantarayNode()
+        node.entry = ZeroHashReference
+        return node.serialize()
+      }
+    }, referenceToBytesReference(reference))
+
+    if (opts?.signal?.aborted) {
+      throw new Error("Aborted by user")
+    }
+
+    const fork = node.getForkAtPath(encodePath("/"))
+    const owner = fork.node.metadata?.[EntryMetadataFeedOwnerKey]
+    const topic = fork.node.metadata?.[EntryMetadataFeedTopicKey]
+    const type = fork.node.metadata?.[EntryMetadataFeedTypeKey].replace(/^./, c => c.toLowerCase())
+
+    if (!owner || owner.length !== 40) {
+      throw new Error(`Invalid feed owner: '${owner}'`)
+    }
+    if (!topic || topic.length !== 64) {
+      throw new Error(`Invalid feed topic: '${topic}'`)
+    }
+    if (!type || !["epoch", "sequence"].includes(type)) {
+      throw new Error(`Invalid feed type: '${type}'`)
+    }
+
+    return {
+      owner: owner,
+      topic,
+      type: type as FeedType,
+    } as FeedInfo<any>
   }
 
   // Utils

@@ -14,6 +14,9 @@ export const WebsiteIndexDocumentSuffixKey = "website-index-document"
 export const WebsiteErrorDocumentPathKey = "website-error-document"
 export const EntryMetadataContentTypeKey = "Content-Type"
 export const EntryMetadataFilenameKey = "Filename"
+export const EntryMetadataFeedOwnerKey = "swarm-feed-owner"
+export const EntryMetadataFeedTopicKey = "swarm-feed-topic"
+export const EntryMetadataFeedTypeKey = "swarm-feed-type"
 
 export function getReferenceFromData(data: Uint8Array): Reference {
   const chunkedFile = makeChunkedFile(data)
