@@ -3,7 +3,7 @@ name: CI/CD
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   create-release:
@@ -50,7 +50,7 @@ jobs:
       - name: Cache build artifacts
         uses: actions/cache@v3
         with:
-          path: '**/dist'
+          path: "**/dist"
           key: build-artifacts-${{ github.sha }}
 
   publish:
@@ -68,7 +68,7 @@ jobs:
       - name: Restore build artifacts
         uses: actions/cache@v3
         with:
-          path: '**/dist'
+          path: "**/dist"
           key: build-artifacts-${{ github.sha }}
 
       - name: Setup node & npm

@@ -4,7 +4,7 @@ import { MantarayNode } from "../handlers/mantaray"
 import { fromHexString, toHexString } from "./bytes"
 
 import type { BeeClient, Reference } from "../clients"
-import type { Reference as BytesReference } from "../handlers/mantaray/types"
+import type { BytesReference as BytesReference } from "../handlers/mantaray/types"
 
 export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
 export const RootPath = "/"

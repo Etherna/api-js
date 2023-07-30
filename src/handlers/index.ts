@@ -9,6 +9,7 @@ export type { SwarmResourceStatus } from "./resources/types"
 export type { SwarmResourcePinStatus } from "./pinning/types"
 export type {
   Bytes,
+  BytesReference,
   MarshalVersion,
   MetadataMapping,
   NodeType,

@@ -6,6 +6,8 @@ import path from "node:path"
 // eslint-disable-next-line prettier/prettier
 import packageJson from "./package.json" assert { type: "json" }
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+
 const entries = [
   {
     entry: path.resolve("src/index.ts"),
@@ -53,27 +55,29 @@ if (fs.existsSync(DIST_PATH)) {
 const watch = process.argv.includes("--watch")
 
 const results = await Promise.all(
-  entries.map(lib => build({
-    mode: watch ? "development" : "production",
-    build: {
-      outDir: "./dist",
-      lib: {
-        ...lib,
-        formats: ["es"],
+  entries.map(lib =>
+    build({
+      mode: watch ? "development" : "production",
+      build: {
+        outDir: "./dist",
+        lib: {
+          ...lib,
+          formats: ["es"],
+        },
+        emptyOutDir: false,
+        sourcemap: true,
+        minify: "esbuild",
+        target: "es2020",
+        rollupOptions: {
+          external: Object.keys(packageJson.peerDependencies),
+          treeshake: true,
+        },
       },
-      emptyOutDir: false,
-      sourcemap: true,
-      minify: "esbuild",
-      target: "es2020",
-      rollupOptions: {
-        external: Object.keys(packageJson.peerDependencies),
-        treeshake: true,
-      }
-    },
-    resolve: {
-      alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }]
-    }
-  }))
+      resolve: {
+        alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
+      },
+    })
+  )
 )
 
 results.forEach(result => {
@@ -97,11 +101,14 @@ delete packageCopy.optionalDependencies
 delete packageCopy.pnpm
 
 // package.json
-fs.writeFileSync(path.join(DIST_PATH, "package.json"), Buffer.from(JSON.stringify(packageCopy, null, 2), "utf-8"))
+fs.writeFileSync(
+  path.join(DIST_PATH, "package.json"),
+  Buffer.from(JSON.stringify(packageCopy, null, 2), "utf-8")
+)
 
 // README.md
 fs.writeFileSync(path.join(DIST_PATH, "README.md"), fs.readFileSync(path.resolve("README.md")))
 
 if (watch) {
-  process.stdin.resume();
+  process.stdin.resume()
 }

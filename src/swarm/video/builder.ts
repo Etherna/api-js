@@ -46,6 +46,7 @@ import type {
   VideoPreviewRaw,
   VideoSourceRaw,
 } from "../../schemas/video"
+import type { BytesReference } from "../../handlers"
 
 interface VideoBuilderRequestOptions {
   beeClient: BeeClient
@@ -376,13 +377,16 @@ export default class VideoBuilder {
         mantarayNode.metadata = node.metadata
       }
       if (Object.keys(node.forks).length > 0) {
-        mantarayNode.forks = Object.entries(node.forks).reduce((acc, [path, value]) => {
-          const fork = new MantarayFork(encodePath(value.prefix), recursiveLoadNode(value.node))
-          return {
-            ...acc,
-            [encodePath(path)[0]!]: fork,
-          }
-        }, {} as Record<number, MantarayFork>)
+        mantarayNode.forks = Object.entries(node.forks).reduce(
+          (acc, [path, value]) => {
+            const fork = new MantarayFork(encodePath(value.prefix), recursiveLoadNode(value.node))
+            return {
+              ...acc,
+              [encodePath(path)[0]!]: fork,
+            }
+          },
+          {} as Record<number, MantarayFork>
+        )
       }
 
       return mantarayNode
@@ -404,7 +408,7 @@ export default class VideoBuilder {
     this.queue.enqueue(async () => {
       await beeClient.bytes.upload(data, { batchId, signal })
     })
-    return chunkedFile.address()
+    return chunkedFile.address() as BytesReference
   }
 
   private addVideoSource(quality: VideoQuality, size: number, entry: Reference): VideoSourceRaw {

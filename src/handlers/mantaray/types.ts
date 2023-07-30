@@ -6,7 +6,7 @@ export interface Bytes<Length extends number> extends Uint8Array {
   readonly length: Length
 }
 
-export type Reference = Bytes<32 | 64>
+export type BytesReference = Bytes<32 | 64>
 
 export enum NodeType {
   value = 2,
@@ -18,9 +18,12 @@ export enum NodeType {
 
 export type MetadataMapping = { [key: string]: string }
 
-export type StorageLoader = (reference: Reference) => Promise<Uint8Array>
+export type StorageLoader = (reference: BytesReference) => Promise<Uint8Array>
 
-export type StorageSaver = (data: Uint8Array, options?: { ecrypt?: boolean }) => Promise<Reference>
+export type StorageSaver = (
+  data: Uint8Array,
+  options?: { ecrypt?: boolean }
+) => Promise<BytesReference>
 
 export type StorageHandler = {
   load: StorageLoader

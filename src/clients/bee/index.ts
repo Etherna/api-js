@@ -37,7 +37,10 @@ export default class BeeClient {
 
   postageBatches: PostageBatch[]
 
-  constructor(public url: string, opts?: BeeClientOptions) {
+  constructor(
+    public url: string,
+    opts?: BeeClientOptions
+  ) {
     this.signer =
       typeof opts?.signer === "string" ? makePrivateKeySigner(opts.signer) : opts?.signer
     this.request =

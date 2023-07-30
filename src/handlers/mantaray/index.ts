@@ -18,7 +18,7 @@ import type {
   Bytes,
   MarshalVersion,
   MetadataMapping,
-  Reference,
+  BytesReference,
   StorageLoader,
   StorageSaver,
 } from "./types"
@@ -28,7 +28,7 @@ const PATH_SEPARATOR_BYTE = 47
 const PADDING_BYTE = 0x0a
 
 export type ForkMapping = { [key: number]: MantarayFork }
-type RecursiveSaveReturnType = { reference: Reference; changed: boolean }
+type RecursiveSaveReturnType = { reference: BytesReference; changed: boolean }
 
 const nodeForkSizes = {
   nodeType: 1,
@@ -91,7 +91,10 @@ export class MantarayFork {
    * @param prefix the non-branching part of the subpath
    * @param node in memory structure that represents the Node
    */
-  constructor(public prefix: Uint8Array, public node: MantarayNode) {}
+  constructor(
+    public prefix: Uint8Array,
+    public node: MantarayNode
+  ) {}
 
   private createMetadataPadding(metadataSizeWithSize: number): Uint8Array {
     let padding = new Uint8Array(0)
@@ -123,7 +126,7 @@ export class MantarayFork {
     const prefixBytes = new Uint8Array(nodeForkSizes.prefixMaxSize())
     prefixBytes.set(this.prefix)
 
-    const entry: Reference | undefined = this.node.contentAddress
+    const entry: BytesReference | undefined = this.node.contentAddress
 
     if (!entry) throw Error("cannot serialize MantarayFork because it does not have contentAddress")
 
@@ -199,9 +202,9 @@ export class MantarayNode {
   private _type?: number
   private _obfuscationKey?: Bytes<32>
   /** reference of a loaded manifest node. if undefined, the node can be handled as `dirty` */
-  private _contentAddress?: Reference
+  private _contentAddress?: BytesReference
   /** reference of an content that the manifest refers to */
-  private _entry?: Reference
+  private _entry?: BytesReference
   private _metadata?: MetadataMapping
   /** Forks of the manifest. Has to be initialized with `{}` on load even if there were no forks */
   public forks?: ForkMapping
@@ -209,19 +212,19 @@ export class MantarayNode {
   /// Setters/getters
 
   // @ts-ignore
-  public get contentAddress(): Reference | undefined {
+  public get contentAddress(): BytesReference | undefined {
     return this._contentAddress
   }
-  public set contentAddress(contentAddress: Reference) {
+  public set contentAddress(contentAddress: BytesReference) {
     checkReference(contentAddress)
 
     this._contentAddress = contentAddress
   }
   // @ts-ignore
-  public get entry(): Reference | undefined {
+  public get entry(): BytesReference | undefined {
     return this._entry
   }
-  public set entry(entry: Reference) {
+  public set entry(entry: BytesReference) {
     checkReference(entry)
 
     this._entry = entry
@@ -370,7 +373,7 @@ export class MantarayNode {
    * @param metadata
    * @param storage
    */
-  public addFork(path: Uint8Array, entry: Reference, metadata: MetadataMapping = {}): void {
+  public addFork(path: Uint8Array, entry: BytesReference, metadata: MetadataMapping = {}): void {
     if (path.length === 0) {
       this.entry = entry
 
@@ -547,7 +550,7 @@ export class MantarayNode {
     fork.node.removePath(rest)
   }
 
-  public async load(storageLoader: StorageLoader, reference: Reference): Promise<void> {
+  public async load(storageLoader: StorageLoader, reference: BytesReference): Promise<void> {
     if (!reference) throw Error("Reference is undefined at manifest load")
 
     await this.recursiveLoad(storageLoader, reference)
@@ -559,7 +562,7 @@ export class MantarayNode {
    * Saves dirty flagged ManifestNodes and its forks recursively
    * @returns Reference of the top manifest node.
    */
-  public async save(storageSaver: StorageSaver): Promise<Reference> {
+  public async save(storageSaver: StorageSaver): Promise<BytesReference> {
     const { reference } = await this.recursiveSave(storageSaver)
 
     return reference
@@ -648,7 +651,7 @@ export class MantarayNode {
       if (refBytesSize === 0) {
         entry = new Uint8Array(32)
       }
-      this.entry = entry as Reference
+      this.entry = entry as BytesReference
       let offset = nodeHeaderSize + refBytesSize
       const indexBytes = data.slice(offset, offset + 32) as Bytes<32>
 
@@ -716,8 +719,8 @@ export class MantarayNode {
 
   private async recursiveLoad(
     storageLoader: StorageLoader,
-    reference: Reference
-  ): Promise<Reference | undefined> {
+    reference: BytesReference
+  ): Promise<BytesReference | undefined> {
     const data = await storageLoader(reference)
     this.deserialize(data)
 
@@ -791,7 +794,7 @@ function serializeVersion(version: MarshalVersion): Bytes<31> {
   return hashBytes.slice(0, 31) as Bytes<31>
 }
 
-function serializeReferenceLength(entry: Reference): Bytes<1> {
+function serializeReferenceLength(entry: BytesReference): Bytes<1> {
   const referenceLength = entry.length
 
   if (referenceLength !== 32 && referenceLength !== 64) {

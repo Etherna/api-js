@@ -29,7 +29,9 @@
     "dev": "node bundle.mjs --watch",
     "build": "node bundle.mjs && tsc -p tsconfig.build.json",
     "test": "yarn vitest",
-    "test-ui": "yarn vitest --ui"
+    "test-ui": "yarn vitest --ui",
+    "lint": "yarn eslint --ext .ts --fix .",
+    "format": "yarn prettier --write ."
   },
   "peerDependencies": {
     "axios": ">=1.4",

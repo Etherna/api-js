@@ -4,6 +4,7 @@ import { bytesReferenceToReference, MAX_CHUNK_PAYLOAD_SIZE } from "../utils"
 import { splitArrayInChunks } from "../utils/array"
 
 import type { BeeClient, RequestUploadOptions } from "../clients"
+import type { BytesReference } from "../handlers"
 
 type ChunksUploadOptions = RequestUploadOptions & {
   currentLevel?: number
@@ -12,7 +13,10 @@ type ChunksUploadOptions = RequestUploadOptions & {
 }
 
 export default class ChunksUploader {
-  constructor(public beeClient: BeeClient, public concurrentChunks = 10) {}
+  constructor(
+    public beeClient: BeeClient,
+    public concurrentChunks = 10
+  ) {}
 
   async uploadData(data: Uint8Array, options: ChunksUploadOptions) {
     const chunkedFile = makeChunkedFile(data)
@@ -31,6 +35,6 @@ export default class ChunksUploader {
         options.onBytesUploaded?.(chunks.length * MAX_CHUNK_PAYLOAD_SIZE)
       }
     }
-    return bytesReferenceToReference(chunkedFile.address())
+    return bytesReferenceToReference(chunkedFile.address() as BytesReference)
   }
 }

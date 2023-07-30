@@ -9,7 +9,7 @@ export type {
   Signer,
   BatchId,
   Chunk,
-  Epoch,
+  FeedType,
   EthAddress,
   FeedInfo,
   FeedUpdateHeaders,
