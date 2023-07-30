@@ -2,27 +2,26 @@ import fs from "fs"
 import { resolve } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
-import { createPostaBatch, startBee } from "../__utils__/bee-process"
+import { createPostageBatch, startBee } from "../__utils__/bee-process"
 import { BeeClient } from "../../src/clients"
 import { VideoDeserializer } from "../../src/serializers"
 import VideoBuilder from "../../src/swarm/video/builder"
 import { testVideoRaw_1_1 } from "./__data__/video.test.data"
 
-import type { ChildProcess } from "../__utils__/bee-process"
+import type { BeeProcess } from "../__utils__/bee-process"
 import type { BatchId, Reference } from "../../src/clients"
 
 describe("builder", () => {
-  const beeClient = new BeeClient("http://localhost:1633")
-  const deserializer = new VideoDeserializer("http://localhost:1633")
-
-  let beeProcess: ChildProcess
+  let beeClient: BeeClient
+  let beeProcess: BeeProcess
   let batchId: BatchId
   let legacyVideoReference: Reference
   let folderVideoReference: Reference
 
   beforeAll(async () => {
     beeProcess = await startBee()
-    batchId = await createPostaBatch()
+    batchId = await createPostageBatch(beeProcess)
+    beeClient = new BeeClient(beeProcess.url)
 
     // upload v1 video
     const video = fs.readFileSync(resolve("test/serializers/__data__/video.mp4"))
