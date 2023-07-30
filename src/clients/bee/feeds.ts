@@ -1,7 +1,6 @@
 import { etc } from "@noble/secp256k1"
 
 import { makeBytes, serializeBytes } from "./utils/bytes"
-import { keccak256Hash } from "./utils/hash"
 import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
 import { makeBytesReference } from "./utils/reference"
@@ -21,6 +20,15 @@ import type {
 import type { AxiosError, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios"
 import { EpochFeed, EpochIndex, FeedChunk } from "../../classes"
 import { toEthAccount } from "../../utils/bytes"
+import {
+  ZeroHashReference,
+  bytesReferenceToReference,
+  encodePath,
+  getReferenceFromData,
+  keccak256Hash,
+  referenceToBytesReference,
+} from "../../utils"
+import { MantarayNode } from "../../handlers"
 
 const feedEndpoint = "/feeds"
 
@@ -154,6 +162,21 @@ export default class Feed {
     )
 
     return response.data.reference
+  }
+
+  async makeRootManifest<T extends FeedType>(feed: FeedInfo<T>, options: FeedUploadOptions) {
+    const node = new MantarayNode()
+    node.addFork(encodePath("/"), ZeroHashReference, {
+      "swarm-feed-owner": feed.owner.toLowerCase(),
+      "swarm-feed-topic": feed.topic,
+      "swarm-feed-type": feed.type.replace("^[a-z]", c => c.toUpperCase()),
+    })
+
+    const reference = await node.save(async data => {
+      return referenceToBytesReference(getReferenceFromData(data))
+    })
+
+    return bytesReferenceToReference(reference)
   }
 
   // Utils
