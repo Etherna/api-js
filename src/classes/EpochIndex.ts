@@ -1,4 +1,5 @@
-import { keccak256Hash, toBigEndianFromBigInt64 } from "../handlers/mantaray/utils"
+import { toBigEndianFromBigInt64 } from "../handlers/mantaray/utils"
+import { keccak256Hash } from "../utils"
 
 export default class EpochIndex {
   public static readonly maxLevel = 32n // valid from 01/01/1970 to 16/03/2242

@@ -12,7 +12,6 @@ import {
   SOC_SPAN_OFFSET,
   SPAN_SIZE,
 } from "./utils/contants"
-import { keccak256Hash } from "./utils/hash"
 import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
 import { recoverAddress } from "./utils/signer"
@@ -26,6 +25,7 @@ import type {
   RequestUploadOptions,
   SingleOwnerChunk,
 } from "./types"
+import { keccak256Hash } from "../../utils"
 
 const socEndpoint = "/soc"
 

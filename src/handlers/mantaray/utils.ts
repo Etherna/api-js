@@ -1,7 +1,4 @@
-import { keccak256 } from "js-sha3"
-
 import type { Bytes, BytesReference } from "./types"
-import type { Message } from "js-sha3"
 
 export function checkReference(ref: BytesReference): void | never {
   if (!(ref instanceof Uint8Array)) {
@@ -109,14 +106,6 @@ export function encryptDecrypt(
     }
     data.set(encryptionChunk, i)
   }
-}
-
-export function keccak256Hash(...messages: Message[]): Bytes<32> {
-  const hasher = keccak256.create()
-
-  messages.forEach(bytes => hasher.update(bytes))
-
-  return Uint8Array.from(hasher.digest()) as Bytes<32>
 }
 
 /** Tested only for Uint16 BigEndian */

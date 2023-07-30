@@ -27,6 +27,7 @@ export {
   encodePath,
   decodePath,
   getAllPaths,
+  keccak256Hash,
   getNodesWithPrefix,
   getBzzNodeInfo,
   getReferenceFromData,

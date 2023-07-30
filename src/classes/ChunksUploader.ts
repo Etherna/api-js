@@ -1,4 +1,4 @@
-import { makeChunkedFile } from "@fairdatasociety/bmt-js"
+import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
 
 import { bytesReferenceToReference, MAX_CHUNK_PAYLOAD_SIZE } from "../utils"
 import { splitArrayInChunks } from "../utils/array"

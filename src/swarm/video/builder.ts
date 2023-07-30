@@ -1,4 +1,4 @@
-import { makeChunkedFile } from "@fairdatasociety/bmt-js"
+import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
 import { immerable } from "immer"
 
 import Queue from "../../classes/Queue"

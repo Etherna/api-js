@@ -1,9 +1,9 @@
-import { keccak256Hash } from "../handlers/mantaray/utils"
 import { buffersEquals } from "../utils/buffer"
 import { fromHexString, toHexString } from "../utils/bytes"
 
 import type { Reference } from "../clients"
 import type EpochIndex from "./EpochIndex"
+import { keccak256Hash } from "../utils"
 
 // extend UInt8Array / Date / BigInt
 declare global {

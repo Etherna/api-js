@@ -1,4 +1,8 @@
-import { decodePath, getNodesWithPrefix as getNodesWithPrefixString } from "../../utils"
+import {
+  decodePath,
+  getNodesWithPrefix as getNodesWithPrefixString,
+  keccak256Hash,
+} from "../../utils"
 import { toHexString } from "../../utils/bytes"
 import { NodeType } from "./types"
 import {
@@ -10,7 +14,6 @@ import {
   flattenBytesArray,
   fromBigEndian,
   IndexBytes,
-  keccak256Hash,
   toBigEndianFromUint16,
 } from "./utils"
 

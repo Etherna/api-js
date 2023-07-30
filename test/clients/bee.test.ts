@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { createPostageBatch, startBee } from "../__utils__/bee-process"
 import { BeeClient } from "../../src/clients"
 import { makeContentAddressedChunk } from "../../src/clients/bee/utils/chunk"
-import { keccak256Hash } from "../../src/clients/bee/utils/hash"
+import { keccak256Hash } from "../../src/utils"
 
 import type { BeeProcess } from "../__utils__/bee-process"
 
