@@ -1,15 +1,15 @@
-# Etherna Api JS
+# Etherna SDK JS
 
 This library is intended for internal use.
 
 ## Installation
 
 ```bash
-npm install @etherna/api-js
+npm install @etherna/sdk-js
 // or
-yarn add @etherna/api-js
+yarn add @etherna/sdk-js
 // or
-pnpm add @etherna/api-js
+pnpm add @etherna/sdk-js
 ```
 
 ## Features
