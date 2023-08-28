@@ -1,5 +1,4 @@
 import { wrapBytesWithHelpers } from "./utils/bytes"
-import { prepareData } from "./utils/data"
 import { extractFileUploadHeaders, readFileHeaders } from "./utils/headers"
 
 import type BeeClient from "."

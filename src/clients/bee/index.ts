@@ -14,6 +14,7 @@ import { makePrivateKeySigner } from "./utils/signer"
 
 import type { PostageBatch, Reference, Signer } from "./types"
 import type { AxiosInstance } from "axios"
+import Tags from "./tags"
 
 export interface BeeClientOptions {
   signer?: Signer | string
@@ -34,6 +35,7 @@ export default class BeeClient {
   pins: Pins
   soc: Soc
   stamps: Stamps
+  tags: Tags
 
   postageBatches: PostageBatch[]
 
@@ -57,6 +59,7 @@ export default class BeeClient {
     this.pins = new Pins(this)
     this.soc = new Soc(this)
     this.stamps = new Stamps(this)
+    this.tags = new Tags(this)
     this.postageBatches = opts?.postageBatches ?? []
   }
 

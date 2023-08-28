@@ -31,8 +31,7 @@ export function extractUploadHeaders(options: RequestUploadOptions): Record<stri
 
   if (options?.tag) headers["swarm-tag"] = String(options.tag)
 
-  if (typeof options?.deferred === "boolean")
-    headers["swarm-deferred-upload"] = String(options.deferred)
+  headers["swarm-deferred-upload"] = String(options.deferred ?? true)
 
   return headers
 }
@@ -47,17 +46,14 @@ export function extractFileUploadHeaders(options: FileUploadOptions): Record<str
   return headers
 }
 
-function readContentDispositionFilename(header: string | undefined): string {
-  if (!header) {
-    throw new Error("missing content-disposition header")
-  }
-
-  const dispositionMatch = header.match(/filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?;?/i)
+function readContentDispositionFilename(header: string | undefined): string | null {
+  const dispositionMatch = header?.match(/filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?;?/i)
 
   if (dispositionMatch && dispositionMatch.length > 0) {
     return dispositionMatch[1]!
   }
-  throw new Error("invalid content-disposition header")
+
+  return null
 }
 
 function readTagUid(header: string | undefined): number | undefined {

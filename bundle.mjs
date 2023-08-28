@@ -54,7 +54,7 @@ if (fs.existsSync(DIST_PATH)) {
 
 const watch = process.argv.includes("--watch")
 
-const results = await Promise.all(
+const results = await Promise.allSettled(
   entries.map(lib =>
     build({
       mode: watch ? "development" : "production",
@@ -80,11 +80,15 @@ const results = await Promise.all(
   )
 )
 
-results.forEach(result => {
-  if (Array.isArray(result)) return
-  if ("output" in result) return
+results.forEach((result, i) => {
+  if (result.status === "rejected") {
+    return console.log(`\x1b[31mTask ${entries[i]} failed. ${result.reason}\x1b[0m`)
+  }
 
-  result.on("change", path => {
+  if (Array.isArray(result.value)) return
+  if ("output" in result.value) return
+
+  result.value.on("change", path => {
     console.log(`File ${path} has been changed`)
   })
 })
@@ -111,4 +115,6 @@ fs.writeFileSync(path.join(DIST_PATH, "README.md"), fs.readFileSync(path.resolve
 
 if (watch) {
   process.stdin.resume()
+} else {
+  process.exit(0)
 }

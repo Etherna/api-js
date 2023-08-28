@@ -1,6 +1,6 @@
 {
   "name": "@etherna/sdk-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Etherna SDKs for operations on the network",
   "author": "Mattia Dalzocchio",
   "license": "Apache-2.0",
@@ -27,7 +27,7 @@
   "homepage": "https://github.com/etherna/clients#readme",
   "scripts": {
     "dev": "node bundle.mjs --watch",
-    "build": "node bundle.mjs && tsc -p tsconfig.build.json",
+    "build": "node bundle.mjs && yarn tsc -p tsconfig.build.json",
     "test": "yarn vitest",
     "test-ui": "yarn vitest --ui",
     "lint": "yarn eslint --ext .ts --fix .",

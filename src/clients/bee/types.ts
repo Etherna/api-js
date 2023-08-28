@@ -48,6 +48,16 @@ export type PostageBatch = {
   exists: boolean
 }
 
+export type Tag = {
+  uid: number
+  startedAt: string
+  split: number
+  seen: number
+  stored: number
+  sent: number
+  synced: number
+}
+
 export type FeedUpdateHeaders = {
   /**
    * The current feed's index
@@ -94,7 +104,7 @@ export interface RequestUploadOptions extends RequestOptions {
   batchId: string
   pin?: boolean
   encrypt?: boolean
-  tag?: string
+  tag?: number | string
   deferred?: boolean
   /** Upload progress, ranging 0 to 100 */
   onUploadProgress?(completion: number): void
