@@ -56,7 +56,7 @@ export default class PlaylistReader extends BaseReader<
       this.reference = (
         await reader.download({
           headers: {
-            // "x-etherna-reason": "playlist-feed",
+            "x-etherna-reason": "playlist-feed",
           },
         })
       ).reference
@@ -64,7 +64,7 @@ export default class PlaylistReader extends BaseReader<
 
     const playlistData = await this.beeClient.bzz.download(this.reference, {
       headers: {
-        // "x-etherna-reason": "playlist",
+        "x-etherna-reason": "playlist",
       },
       maxResponseSize: opts?.maxResponseSize,
       onDownloadProgress: opts?.onDownloadProgress,

@@ -4,9 +4,11 @@ import type {
   IndexVideoComment,
   IndexVideoManifest,
   IndexVideoValidation,
+  PaginatedResult,
   RequestOptions,
   VoteValue,
 } from ".."
+import type { IndexVideoPreview } from "./types"
 
 export default class IndexVideos {
   abortController?: AbortController
@@ -49,7 +51,7 @@ export default class IndexVideos {
    * @returns The video object
    */
   async fetchVideoFromId(id: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideo>(`/videos/${id}`, {
+    const resp = await this.instance.request.get<IndexVideo>(`/videos/${id}/find2`, {
       ...this.instance.prepareAxiosConfig(opts),
     })
 
@@ -68,7 +70,7 @@ export default class IndexVideos {
    * @returns Video information
    */
   async fetchVideoFromHash(hash: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideo>(`/videos/manifest/${hash}`, {
+    const resp = await this.instance.request.get<IndexVideo>(`/videos/manifest2/${hash}`, {
       ...this.instance.prepareAxiosConfig(opts),
     })
 
@@ -88,12 +90,15 @@ export default class IndexVideos {
    * @returns The list of videos
    */
   async fetchLatestVideos(page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideo[]>(`/videos/latest`, {
-      ...this.instance.prepareAxiosConfig(opts),
-      params: { page, take },
-    })
+    const resp = await this.instance.request.get<PaginatedResult<IndexVideoPreview>>(
+      `/videos/latest3`,
+      {
+        ...this.instance.prepareAxiosConfig(opts),
+        params: { page, take },
+      }
+    )
 
-    if (!Array.isArray(resp.data)) {
+    if (typeof resp.data !== "object") {
       throw new Error("Cannot fetch videos")
     }
 
@@ -131,10 +136,14 @@ export default class IndexVideos {
    * @returns Video id
    */
   async updateVideo(id: string, newHash: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.put<IndexVideoManifest>(`/videos/${id}`, null, {
-      ...this.instance.prepareAxiosConfig(opts),
-      params: { newHash },
-    })
+    const resp = await this.instance.request.put<IndexVideoManifest>(
+      `/videos/${id}/update2`,
+      null,
+      {
+        ...this.instance.prepareAxiosConfig(opts),
+        params: { newHash },
+      }
+    )
 
     if (typeof resp.data !== "object") {
       throw new Error("Cannot update the video")

@@ -34,7 +34,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
       tag: opts?.tag,
       headers: {
         "Content-Type": "application/json",
-        // "x-etherna-reason": "user-playlists-upload",
+        "x-etherna-reason": "user-playlists-upload",
       },
       signal: opts?.signal,
       onUploadProgress: opts?.onUploadProgress,
@@ -53,7 +53,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
       pin: opts?.pin,
       tag: opts?.tag,
       headers: {
-        // "x-etherna-reason": "user-playlists-feed-update",
+        "x-etherna-reason": "user-playlists-feed-update",
       },
       signal: opts?.signal,
     })

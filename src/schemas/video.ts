@@ -51,8 +51,22 @@ export const VideoSourceRawSchema = z
     }),
   ])
   .transform(data => {
+    if (!("type" in data)) {
+      // if index doesn't return the type, we can guess it from the path
+      if (data.path?.startsWith("sources/hls")) {
+        ;(data as any).type = "hls"
+      } else if (data.path?.startsWith("sources/dash")) {
+        ;(data as any).type = "dash"
+      } else {
+        data.type = "mp4"
+      }
+    }
     if ("reference" in data && data.path) {
       delete data.reference
+    }
+    if ("path" in data && data.type === "mp4" && beeReference.safeParse(data.path).success) {
+      data.reference = data.path
+      delete data.path
     }
     return data
   })

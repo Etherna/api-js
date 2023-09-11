@@ -1,5 +1,6 @@
 import type EthernaIndexClient from "."
-import type { IndexVideo, RequestOptions } from ".."
+import type { PaginatedResult, RequestOptions } from ".."
+import type { IndexVideoPreview } from "./types"
 
 export default class IndexSearch {
   constructor(private instance: EthernaIndexClient) {}
@@ -12,12 +13,15 @@ export default class IndexSearch {
    * @param opts Request options
    */
   async fetchVideos(query: string, page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideo[]>("/search/query", {
-      ...this.instance.prepareAxiosConfig(opts),
-      params: { query, page, take },
-    })
+    const resp = await this.instance.request.get<PaginatedResult<IndexVideoPreview>>(
+      "/search/query2",
+      {
+        ...this.instance.prepareAxiosConfig(opts),
+        params: { query, page, take },
+      }
+    )
 
-    if (!Array.isArray(resp.data)) {
+    if (typeof resp.data !== "object") {
       throw new Error("Cannot fetch videos")
     }
 

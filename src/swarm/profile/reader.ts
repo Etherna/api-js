@@ -35,12 +35,12 @@ export default class ProfileReader extends BaseReader<Profile | null, EthAddress
       const reader = this.beeClient.feed.makeReader(feed)
       const { reference } = await reader.download({
         headers: {
-          // "x-etherna-reason": "profile-feed",
+          "x-etherna-reason": "profile-feed",
         },
       })
       const profileResp = await this.beeClient.bzz.download(reference, {
         headers: {
-          // "x-etherna-reason": "profile",
+          "x-etherna-reason": "profile",
         },
         maxResponseSize: opts?.maxResponseSize,
         onDownloadProgress: opts?.onDownloadProgress,

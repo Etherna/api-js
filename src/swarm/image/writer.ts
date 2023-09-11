@@ -56,7 +56,7 @@ export default class ImageWriter {
     // upload files and retrieve the new reference
     let results: Reference[] = []
     let multipleCompletion = 0
-    for (const { data } of responsiveSourcesData) {
+    for (const { data, width } of responsiveSourcesData) {
       const result = await this.beeClient.bzz.upload(data, {
         batchId,
         onUploadProgress: completion => {
@@ -72,7 +72,7 @@ export default class ImageWriter {
         signal: options?.signal,
         contentType: this.file.type,
         headers: {
-          // "x-etherna-reason": `image-source-${size}-upload`,
+          "x-etherna-reason": `image-source-${width}-upload`,
         },
       })
       results.push(result.reference)

@@ -23,24 +23,34 @@ export const ImageRawSourceBaseSchema = z.object({
   /** Image scaled width */
   width: z.number(),
   /** Image type */
-  type: imageType,
+  type: imageType.nullable(),
   /** Image path */
   path: z.string().optional(),
   /** Image reference */
   reference: beeReference.optional(),
 })
 
-export const ImageRawSourceSchema = ImageRawSourceBaseSchema.transform(data => {
+const rawSourceBaseTransform = <T extends z.infer<typeof ImageRawSourceBaseSchema>>(data: T) => {
   if ("reference" in data && data.path) {
     delete data.reference
   }
-  return data
-})
+  if ("path" in data && beeReference.safeParse(data.path).success) {
+    data.reference = data.path
+    delete data.path
+  }
+
+  return {
+    ...data,
+    type: data.type || "jpeg",
+  }
+}
+
+export const ImageRawSourceSchema = ImageRawSourceBaseSchema.transform(rawSourceBaseTransform)
 
 export const ImageSourceSchema = ImageRawSourceBaseSchema.extend({
   /** Image URL */
   url: z.string().url(),
-})
+}).transform(rawSourceBaseTransform)
 
 export const ImageRawSourcesSchema = z.array(
   ImageRawSourceSchema.superRefine((data, ctx) => {

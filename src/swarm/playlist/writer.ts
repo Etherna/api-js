@@ -41,7 +41,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
       tag: opts?.tag,
       headers: {
         "Content-Type": "application/json",
-        // "x-etherna-reason": "swarm-playlist-upload",
+        "x-etherna-reason": "swarm-playlist-upload",
       },
     })
 
@@ -61,7 +61,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
         pin: opts?.pin,
         tag: opts?.tag,
         headers: {
-          // "x-etherna-reason": "swarm-playlist-feed-upload",
+          "x-etherna-reason": "swarm-playlist-feed-upload",
         },
         signal: opts?.signal,
         onUploadProgress: opts?.onUploadProgress,
@@ -73,7 +73,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
         pin: opts?.pin,
         tag: opts?.tag,
         headers: {
-          // "x-etherna-reason": "swarm-playlist-feed-root-manifest",
+          "x-etherna-reason": "swarm-playlist-feed-root-manifest",
         },
       })
       reference = feedManifest

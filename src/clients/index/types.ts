@@ -1,5 +1,12 @@
-import type { EthAddress } from ".."
-import type { VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
+import type { BatchId, EthAddress, Reference } from ".."
+import type {
+  ImageRaw,
+  VideoDetailsRaw,
+  VideoPreviewRaw,
+  VideoQuality,
+  VideoRaw,
+  VideoSourceRaw,
+} from "../.."
 
 export type PaginatedResult<T> = {
   elements: T[]
@@ -28,20 +35,32 @@ export type IndexUserVideos = IndexUser & {
 export type IndexVideo = {
   id: string
   creationDateTime: string
-  encryptionKey: string | null
-  encryptionType: IndexEncryptionType
   ownerAddress: EthAddress
-  ownerIdentityManifest: string
   lastValidManifest: IndexVideoManifest | null
+  currentVoteValue: VoteValue | null
   totDownvotes: number
   totUpvotes: number
 }
 
-export type IndexVideoManifest = Omit<
-  VideoPreviewRaw & VideoDetailsRaw & { v: "2.0" },
-  "createdAt" | "ownerAddress"
-> & {
-  hash: string
+export type IndexVideoPreview = {
+  id: string
+  title: string
+  hash: Reference
+  duration: number
+  ownerAddress: EthAddress
+  thumbnail: ImageRaw | null
+  createdAt: number
+  updatedAt: number
+}
+
+export type IndexVideoManifest = Omit<IndexVideoPreview, "id"> & {
+  batchId: BatchId | null
+  aspectRatio: number | null
+  hash: Reference
+  description: string | null
+  originalQuality: VideoQuality | null
+  personalData: string | null
+  sources: VideoSourceRaw[]
 }
 
 export type IndexVideoCreation = {

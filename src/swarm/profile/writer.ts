@@ -35,7 +35,7 @@ export default class ProfileWriter extends BaseWriter<Profile> {
       tag: opts?.tag,
       headers: {
         "Content-Type": "application/json",
-        // "x-etherna-reason": "profile-upload",
+        "x-etherna-reason": "profile-upload",
       },
       signal: opts?.signal,
       onUploadProgress: opts?.onUploadProgress,
@@ -55,7 +55,7 @@ export default class ProfileWriter extends BaseWriter<Profile> {
       pin: opts?.pin,
       tag: opts?.tag,
       headers: {
-        // "x-etherna-reason": "profile-feed-update",
+        "x-etherna-reason": "profile-feed-update",
       },
       signal: opts?.signal,
     })

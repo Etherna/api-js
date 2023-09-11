@@ -1,5 +1,9 @@
 import { beeReference } from "../../schemas/base"
-import { VideoDetailsRawSchema, VideoPreviewRawSchema } from "../../schemas/video"
+import {
+  VideoDetailsRawSchema,
+  VideoPreviewRawSchema,
+  VideoSourceRawSchema,
+} from "../../schemas/video"
 import { VideoDeserializer } from "../../serializers"
 import BaseReader from "../base-reader"
 
@@ -13,6 +17,7 @@ import type {
 } from "../../clients"
 import type { VideoPreview } from "../../schemas/video"
 import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
+import type { IndexVideoPreview } from "../../clients/index/types"
 
 interface VideoReaderOptions extends ReaderOptions {
   indexClient?: EthernaIndexClient
@@ -104,22 +109,40 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
     const videoDetailsRaw = VideoReader.emptyVideoDetails()
 
     if (video.lastValidManifest && !VideoReader.isValidatingManifest(video.lastValidManifest)) {
-      const v = video.lastValidManifest.batchId ? "1.1" : "1.0"
+      const v = video.lastValidManifest.batchId ? "2.0" : "1.0"
       videoPreviewRaw.v = v
       videoPreviewRaw.title = video.lastValidManifest.title
       videoPreviewRaw.duration = video.lastValidManifest.duration
       videoPreviewRaw.thumbnail = video.lastValidManifest.thumbnail
       videoPreviewRaw.ownerAddress = video.ownerAddress
       videoPreviewRaw.createdAt = new Date(video.creationDateTime).getTime()
-      videoPreviewRaw.updatedAt = video.lastValidManifest.updatedAt
-        ? new Date(video.lastValidManifest.updatedAt).getTime()
-        : null
+      videoPreviewRaw.updatedAt = new Date(video.creationDateTime).getTime()
 
       videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
       videoDetailsRaw.batchId = video.lastValidManifest.batchId
-      videoDetailsRaw.description = video.lastValidManifest.description
-      videoDetailsRaw.sources = video.lastValidManifest.sources
+      videoDetailsRaw.description = video.lastValidManifest.description ?? ""
+      videoDetailsRaw.sources = video.lastValidManifest.sources.map(s =>
+        VideoSourceRawSchema.parse(s)
+      )
     }
+
+    return {
+      preview: videoPreviewRaw,
+      details: videoDetailsRaw,
+    }
+  }
+
+  indexPreviewToRaw(video: IndexVideoPreview): VideoRaw {
+    const videoPreviewRaw = VideoReader.emptyVideoPreview()
+    const videoDetailsRaw = VideoReader.emptyVideoDetails()
+
+    videoPreviewRaw.v = undefined
+    videoPreviewRaw.title = video.title
+    videoPreviewRaw.duration = video.duration
+    videoPreviewRaw.thumbnail = video.thumbnail
+    videoPreviewRaw.ownerAddress = video.ownerAddress
+    videoPreviewRaw.createdAt = new Date(video.createdAt).getTime()
+    videoPreviewRaw.updatedAt = new Date(video.updatedAt).getTime()
 
     return {
       preview: videoPreviewRaw,
@@ -180,7 +203,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         downloadPreview
           ? this.beeClient.bzz.download(this.reference, {
               headers: {
-                // "x-etherna-reason": "video-preview-meta",
+                "x-etherna-reason": "video-preview-meta",
               },
               maxResponseSize: opts?.maxResponseSize,
               signal: opts?.signal,
@@ -190,7 +213,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         downloadDetails
           ? this.beeClient.bzz.downloadPath(this.reference, "details", {
               headers: {
-                // "x-etherna-reason": "video-details-meta",
+                "x-etherna-reason": "video-details-meta",
               },
               maxResponseSize: opts?.maxResponseSize,
               signal: opts?.signal,
@@ -208,7 +231,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         // manifest version < 2.0, download root manifest
         detailsValue = await this.beeClient.bzz.download(this.reference, {
           headers: {
-            // "x-etherna-reason": "video-preview-meta",
+            "x-etherna-reason": "video-preview-meta",
           },
           maxResponseSize: opts?.maxResponseSize,
           signal: opts?.signal,
