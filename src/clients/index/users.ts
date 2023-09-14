@@ -49,7 +49,7 @@ export default class IndexUsers {
    */
   async fetchVideos(address: string, page = 0, take = 25, opts?: RequestOptions) {
     const resp = await this.instance.request.get<PaginatedResult<IndexVideo>>(
-      `/users/${address}/videos2`,
+      `/users/${address}/videos3`,
       {
         ...this.instance.prepareAxiosConfig(opts),
         params: { page, take },

@@ -76,6 +76,7 @@ export type IndexVideoValidation = {
   hash: string
   isValid: boolean | null
   validationTime: string
+  videoId: string | null
 }
 
 export type IndexVideoComment = {

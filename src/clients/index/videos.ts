@@ -106,6 +106,28 @@ export default class IndexVideos {
   }
 
   /**
+   * Get video validations list
+   *
+   * @param id Video id on Index
+   * @param opts Request options
+   * @returns List of validations
+   */
+  async fetchValidations(id: string, opts?: RequestOptions) {
+    const resp = await this.instance.request.get<IndexVideoValidation[]>(
+      `/videos/${id}/validation2`,
+      {
+        ...this.instance.prepareAxiosConfig(opts),
+      }
+    )
+
+    if (Array.isArray(resp.data)) {
+      throw new Error("Cannot fetch the video validations")
+    }
+
+    return resp.data
+  }
+
+  /**
    * Get video hash validation status
    *
    * @param hash Video hash on Swarm
@@ -122,6 +144,29 @@ export default class IndexVideos {
 
     if (typeof resp.data !== "object") {
       throw new Error("Cannot fetch the hash validation")
+    }
+
+    return resp.data
+  }
+
+  /**
+   * Get videos validation status
+   *
+   * @param hashes Video hash on Swarm
+   * @param opts Request options
+   * @returns Validation status
+   */
+  async fetchBulkValidation(hashes: string[], opts?: RequestOptions) {
+    const resp = await this.instance.request.put<IndexVideoValidation[]>(
+      `/videos/manifest/bulkvalidation`,
+      hashes,
+      {
+        ...this.instance.prepareAxiosConfig(opts),
+      }
+    )
+
+    if (!Array.isArray(resp.data)) {
+      throw new Error("Cannot fetch the videos validations")
     }
 
     return resp.data
@@ -147,28 +192,6 @@ export default class IndexVideos {
 
     if (typeof resp.data !== "object") {
       throw new Error("Cannot update the video")
-    }
-
-    return resp.data
-  }
-
-  /**
-   * Get video validations list
-   *
-   * @param id Video id on Index
-   * @param opts Request options
-   * @returns List of validations
-   */
-  async fetchValidations(id: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideoValidation[]>(
-      `/videos/${id}/validations`,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-      }
-    )
-
-    if (Array.isArray(resp.data)) {
-      throw new Error("Cannot fetch the video validations")
     }
 
     return resp.data
