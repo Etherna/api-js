@@ -203,7 +203,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         downloadPreview
           ? this.beeClient.bzz.download(this.reference, {
               headers: {
-                "x-etherna-reason": "video-preview-meta",
+                // "x-etherna-reason": "video-preview-meta",
               },
               maxResponseSize: opts?.maxResponseSize,
               signal: opts?.signal,
@@ -213,7 +213,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         downloadDetails
           ? this.beeClient.bzz.downloadPath(this.reference, "details", {
               headers: {
-                "x-etherna-reason": "video-details-meta",
+                // "x-etherna-reason": "video-details-meta",
               },
               maxResponseSize: opts?.maxResponseSize,
               signal: opts?.signal,
@@ -231,7 +231,7 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         // manifest version < 2.0, download root manifest
         detailsValue = await this.beeClient.bzz.download(this.reference, {
           headers: {
-            "x-etherna-reason": "video-preview-meta",
+            // "x-etherna-reason": "video-preview-meta",
           },
           maxResponseSize: opts?.maxResponseSize,
           signal: opts?.signal,

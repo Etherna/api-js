@@ -72,7 +72,7 @@ export default class ImageWriter {
         signal: options?.signal,
         contentType: this.file.type,
         headers: {
-          "x-etherna-reason": `image-source-${width}-upload`,
+          // "x-etherna-reason": `image-source-${width}-upload`,
         },
       })
       results.push(result.reference)

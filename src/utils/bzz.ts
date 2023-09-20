@@ -9,7 +9,11 @@ export function getBzzUrl(origin: string, reference: string, path?: string): str
     throw new Error("Provide a valid reference")
   }
   const url = new URL(`/bzz/${reference}/${path ?? ""}`, origin)
-  return url.href.replace(/\/$/, "")
+  // add trailing slash to root to avoid CORS errors due to redirects
+  if (!path) {
+    url.pathname = url.pathname.replace(/\/?$/, "/")
+  }
+  return url.href
 }
 
 export function extractReference(bzzUrl: string): string {

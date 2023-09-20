@@ -12,7 +12,12 @@ export default class Bzz {
   url(reference: string, path = "") {
     const safeReference = reference.replace(/(^\/|\/$)/g, "")
     const safePath = path.replace(/(^\/|\/$)/g, "")
-    return `${this.instance.url}${bzzEndpoint}/${safeReference}/${safePath}`.replace(/\/$/, "/")
+    let url = `${this.instance.url}${bzzEndpoint}/${safeReference}/${safePath}`
+    // add trailing slash to root to avoid CORS errors due to redirects
+    if (!safePath) {
+      url = url.replace(/\/?$/, "/")
+    }
+    return url
   }
 
   async download(hash: string, options?: FileDownloadOptions) {

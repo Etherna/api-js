@@ -15,6 +15,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "declaration": true,
     "declarationMap": true,
+    "resolveJsonModule": true,
     "emitDeclarationOnly": true,
     "declarationDir": "./dist",
     "esModuleInterop": true,
