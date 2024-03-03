@@ -5,6 +5,7 @@ import { PROFILE_TOPIC, ProfileCache } from "./reader"
 import type { Profile } from "../.."
 import type { BeeClient, EthAddress, Reference } from "../../clients"
 import type { WriterOptions, WriterUploadOptions } from "../base-writer"
+import { fetchEnsFromAddress } from "../../utils"
 
 interface ProfileWriterOptions extends WriterOptions {}
 
@@ -60,8 +61,17 @@ export default class ProfileWriter extends BaseWriter<Profile> {
       signal: opts?.signal,
     })
 
+    let ens = ProfileCache.get(this.profile.address as EthAddress)?.ens ?? null
+
+    if (!ens) {
+      ens = await fetchEnsFromAddress(this.profile.address)
+    }
+
     // update cache
-    ProfileCache.set(this.profile.address as EthAddress, this.profile)
+    ProfileCache.set(this.profile.address as EthAddress, {
+      ...this.profile,
+      ens,
+    })
 
     return reference
   }

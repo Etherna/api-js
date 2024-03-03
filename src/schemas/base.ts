@@ -1,4 +1,5 @@
 import { z } from "zod"
+import type { EnsAddress, EthAddress } from "../clients"
 
 export const schemaVersion = z.literal(`${z.string()}.${z.string()}`)
 
@@ -25,9 +26,19 @@ export const slicedString = (max: number, min?: number) =>
     .min(min ?? 0)
     .transform(v => v.slice(0, max))
 
-export const ethAddress = z.string().regex(/^0x[a-fA-F0-9]{40}$/, {
-  message: "must be a valid ethereum address",
-})
+export const ethAddress = z
+  .string()
+  .regex(/^0x[a-fA-F0-9]{40}$/, {
+    message: "must be a valid ethereum address",
+  })
+  .transform(v => v as EthAddress)
+
+export const ensAddress = z
+  .string()
+  .regex(/^[a-z0-9_\-\.]+\.eth$/i, {
+    message: "must be a valid ENS name",
+  })
+  .transform(v => v as EnsAddress)
 
 export const ethSafeAddress = z.string().transform(v => {
   if (ethAddress.safeParse(v).success) return v.toLowerCase()

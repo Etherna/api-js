@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { beeReference, birthday, ethAddress, slicedString } from "./base"
+import { beeReference, birthday, ensAddress, ethAddress, slicedString } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 
 export const ProfileRawSchema = z.object({

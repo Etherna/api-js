@@ -11,7 +11,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "lib": ["dom", "dom.iterable", "esnext"],
     "declaration": true,
     "declarationMap": true,
@@ -27,8 +27,7 @@
     "noUncheckedIndexedAccess": false,
     "noImplicitOverride": true,
     "skipDefaultLibCheck": true,
-    "skipLibCheck": true,
-    "typeRoots": ["./src/typings/"]
+    "skipLibCheck": true
   },
   "include": ["src", "test*.*", "env.d.ts"]
 }

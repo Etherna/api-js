@@ -11,6 +11,7 @@ export type {
   Chunk,
   FeedType,
   EthAddress,
+  EnsAddress,
   FeedInfo,
   FeedUpdateHeaders,
   SingleOwnerChunk,

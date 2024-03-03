@@ -21,6 +21,7 @@ export type {
   PlaylistVideoRaw,
 } from "./schemas/playlist"
 export type { Profile, ProfileRaw } from "./schemas/profile"
+export type { ProfileWithEns } from "./swarm/profile/reader"
 export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/user-playlists"
 export type {
   Video,

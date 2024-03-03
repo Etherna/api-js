@@ -2,6 +2,7 @@ import type { RequestOptions } from ".."
 import type { BATCH_ID_HEX_LENGTH, REFERENCE_HEX_LENGTH } from "./utils/contants"
 
 export type EthAddress = `0x${string}`
+export type EnsAddress = `${string}.eth`
 
 type SyncSigner = (digest: string | Uint8Array) => string
 type AsyncSigner = (digest: string | Uint8Array) => Promise<string>

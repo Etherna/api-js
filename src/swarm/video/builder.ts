@@ -37,7 +37,7 @@ import type {
   VideoPreview,
   VideoQuality,
 } from "../.."
-import type { BatchId, BeeClient, Reference } from "../../clients"
+import type { BatchId, BeeClient, EthAddress, Reference } from "../../clients"
 import type { ImageRawSource } from "../../schemas/image"
 import type {
   SerializedVideoBuilder,
@@ -97,7 +97,7 @@ export default class VideoBuilder {
 
   // methods
 
-  initialize(ownerAddress: string, previewMeta?: VideoPreview, detailsMeta?: VideoDetails) {
+  initialize(ownerAddress: EthAddress, previewMeta?: VideoPreview, detailsMeta?: VideoDetails) {
     this.reference = (previewMeta?.reference as Reference) || this.reference
     this.previewMeta = previewMeta ? VideoPreviewRawSchema.parse(previewMeta) : this.previewMeta
     this.detailsMeta = detailsMeta ? VideoDetailsRawSchema.parse(detailsMeta) : this.detailsMeta
