@@ -1,9 +1,10 @@
 {
   "name": "@etherna/sdk-js",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Etherna SDKs for operations on the network",
   "author": "Mattia Dalzocchio",
   "license": "Apache-2.0",
+  "packageManager": "pnpm@8.15.4",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/etherna/etherna-sdk-js.git"
@@ -27,11 +28,11 @@
   "homepage": "https://github.com/etherna/clients#readme",
   "scripts": {
     "dev": "node bundle.mjs --watch",
-    "build": "node bundle.mjs && yarn tsc -p tsconfig.build.json",
-    "test": "yarn vitest",
-    "test-ui": "yarn vitest --ui",
-    "lint": "yarn eslint --ext .ts --fix .",
-    "format": "yarn prettier --write ."
+    "build": "node bundle.mjs && pnpm tsc -p tsconfig.build.json",
+    "test": "pnpm vitest",
+    "test-ui": "pnpm vitest --ui",
+    "lint": "pnpm eslint --ext .ts --fix .",
+    "format": "pnpm prettier --write ."
   },
   "peerDependencies": {
     "axios": ">=1.4",
@@ -48,6 +49,7 @@
     "crypto-ts": "1.0.2",
     "immer": "10.0.2",
     "js-sha3": "0.8.0",
+    "viem": "2.7.18",
     "zod": "3.21.4",
     "zustand": "4.3.9"
   },
