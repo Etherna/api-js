@@ -1,12 +1,12 @@
 import { wrapBytesWithHelpers } from "./utils/bytes"
 import { extractFileUploadHeaders, readFileHeaders } from "./utils/headers"
 
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { FileDownloadOptions, FileUploadOptions, ReferenceResponse } from ".."
 
 const bzzEndpoint = "/bzz"
 
-export default class Bzz {
+export class Bzz {
   constructor(private instance: BeeClient) {}
 
   url(reference: string, path = "") {

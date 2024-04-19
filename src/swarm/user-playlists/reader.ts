@@ -1,5 +1,5 @@
 import { UserPlaylistsDeserializer } from "../../serializers"
-import BaseReader from "../base-reader"
+import { BaseReader } from "../base-reader"
 
 import type { UserPlaylists, UserPlaylistsRaw } from "../.."
 import type { BeeClient, EthAddress } from "../../clients"
@@ -11,11 +11,7 @@ interface UserPlaylistsDownloadOptions extends ReaderDownloadOptions {}
 
 export const USER_PLAYLISTS_TOPIC = "EthernaUserPlaylists"
 
-export default class UserPlaylistsReader extends BaseReader<
-  UserPlaylists,
-  EthAddress,
-  UserPlaylistsRaw
-> {
+export class UserPlaylistsReader extends BaseReader<UserPlaylists, EthAddress, UserPlaylistsRaw> {
   private owner: EthAddress
   private beeClient: BeeClient
 
@@ -34,7 +30,8 @@ export default class UserPlaylistsReader extends BaseReader<
     }
 
     try {
-      const feed = this.beeClient.feed.makeFeed(USER_PLAYLISTS_TOPIC, this.owner, "sequence")
+      const feed = this.beeClient.feed.makeFeed(USER_PLAYLISTS_TOPIC, this.owner, "epoch")
+      console.log("DOWNLOAD FEED", feed)
       const reader = this.beeClient.feed.makeReader(feed)
       const { reference } = await reader.download({
         headers: {

@@ -1,9 +1,9 @@
 import { UserPlaylistsSchema } from "../../schemas/user-playlists"
-import BaseSerializer from "../base-serializer"
+import { BaseSerializer } from "../base-serializer"
 
 import type { UserPlaylistsRaw } from "../.."
 
-export default class UserPlaylistsSerializer extends BaseSerializer {
+export class UserPlaylistsSerializer extends BaseSerializer {
   constructor() {
     super()
   }

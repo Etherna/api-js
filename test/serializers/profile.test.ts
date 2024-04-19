@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest"
 import { ProfileDeserializer, ProfileSerializer } from "../../src/serializers"
 import {
   beeUrl,
-  testProfileParsed,
+  testProfileDetailsParsed,
+  testProfileDetailsRaw_2,
+  testProfilePreviewParsed,
+  testProfilePreviewRaw_2,
   testProfileRaw_1_0,
   testProfileRaw_1_1,
 } from "./__data__/profile.test.data"
@@ -11,28 +14,35 @@ import {
 describe("profile deserializer", () => {
   const deserializer = new ProfileDeserializer(beeUrl)
 
-  it("should parse a raw profile v1.0", () => {
-    const manifest = deserializer.deserialize(JSON.stringify(testProfileRaw_1_0), {
-      fallbackBatchId: testProfileRaw_1_1.batchId ?? null,
-    })
-    expect(manifest).toEqual(testProfileParsed)
+  it("should parse a raw profile preview v1.0", () => {
+    const previewManifest = deserializer.deserializePreview(JSON.stringify(testProfileRaw_1_0))
+    expect(previewManifest).toEqual(testProfilePreviewParsed)
   })
 
-  it("should parse a raw profile v1.1", () => {
-    const manifest = deserializer.deserialize(JSON.stringify(testProfileRaw_1_1))
-    expect(manifest).toEqual(testProfileParsed)
+  it("should parse a raw profile preview + details v1.1", () => {
+    const previewManifest = deserializer.deserializePreview(JSON.stringify(testProfileRaw_1_1))
+    const detailsManifest = deserializer.deserializeDetails(JSON.stringify(testProfileRaw_1_1))
+    expect(previewManifest).toEqual(testProfilePreviewParsed)
+    expect(detailsManifest).toEqual(testProfileDetailsParsed)
+  })
+
+  it("should parse a raw profile preview + details v2", () => {
+    const previewManifest = deserializer.deserializePreview(JSON.stringify(testProfilePreviewRaw_2))
+    const detailsManifest = deserializer.deserializeDetails(JSON.stringify(testProfileDetailsRaw_2))
+    expect(previewManifest).toEqual(testProfilePreviewParsed)
+    expect(detailsManifest).toEqual(testProfileDetailsParsed)
   })
 
   it("should throw when required field is missing", () => {
     // address
-    let manifest: Record<string, any> = { ...testProfileParsed }
+    let manifest: Record<string, any> = { ...testProfilePreviewParsed }
     delete manifest.address
-    expect(() => deserializer.deserialize(JSON.stringify(manifest))).toThrowError()
+    expect(() => deserializer.deserializePreview(JSON.stringify(manifest))).toThrowError()
 
     // name
-    manifest = { ...testProfileParsed }
+    manifest = { ...testProfilePreviewParsed }
     delete manifest.name
-    expect(() => deserializer.deserialize(JSON.stringify(manifest))).toThrowError()
+    expect(() => deserializer.deserializePreview(JSON.stringify(manifest))).toThrowError()
   })
 })
 
@@ -40,24 +50,26 @@ describe("profile serializer", () => {
   const serializer = new ProfileSerializer()
 
   it("should serialize profile into swarm manifest", () => {
-    const manifest = serializer.serialize(testProfileParsed)
-    expect(JSON.parse(manifest)).toEqual(testProfileRaw_1_1)
+    const previewManifest = serializer.serializePreview(testProfilePreviewParsed)
+    const detailsManifest = serializer.serializeDetails(testProfileDetailsParsed)
+    expect(JSON.parse(previewManifest)).toEqual(testProfilePreviewRaw_2)
+    expect(JSON.parse(detailsManifest)).toEqual(testProfileDetailsRaw_2)
   })
 
   it("should throw when required field is missing", () => {
     // address
-    let manifest: Record<string, any> = { ...testProfileParsed }
+    let manifest: Record<string, any> = { ...testProfilePreviewParsed }
     delete manifest.address
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // name
-    manifest = { ...testProfileParsed }
+    manifest = { ...testProfilePreviewParsed }
     delete manifest.name
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // batchId
-    manifest = { ...testProfileParsed }
+    manifest = { ...testProfileDetailsParsed }
     delete manifest.batchId
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializeDetails(manifest)).toThrowError()
   })
 })

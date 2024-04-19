@@ -1,10 +1,10 @@
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { RequestOptions } from "../types"
 import type { Reference } from "./types"
 
 const pinsEndpoint = "/pins"
 
-export default class Pins {
+export class Pins {
   constructor(private instance: BeeClient) {}
 
   async isPinned(reference: string, options?: RequestOptions) {

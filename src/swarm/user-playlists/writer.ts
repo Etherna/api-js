@@ -1,6 +1,6 @@
 import { UserPlaylistsSerializer } from "../../serializers"
-import BaseWriter from "../base-writer"
-import PlaylistReader from "../playlist/reader"
+import { BaseWriter } from "../base-writer"
+import { PlaylistReader } from "../playlist/reader"
 import { USER_PLAYLISTS_TOPIC } from "./reader"
 
 import type { Playlist, UserPlaylists } from "../.."
@@ -11,7 +11,7 @@ interface UserPlaylistsWriterOptions extends WriterOptions {}
 
 interface UserPlaylistsWriterUploadOptions extends WriterUploadOptions {}
 
-export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
+export class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
   private playlists: UserPlaylists
   private beeClient: BeeClient
 
@@ -43,7 +43,7 @@ export default class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     const feed = this.beeClient.feed.makeFeed(
       USER_PLAYLISTS_TOPIC,
       this.beeClient.signer!.address,
-      "sequence"
+      "epoch"
     )
     const writer = this.beeClient.feed.makeWriter(feed)
     await writer.upload(reference, {

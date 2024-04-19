@@ -13,7 +13,7 @@ export interface BaseClientOptions {
   logoutPath?: string
 }
 
-export default class BaseClient {
+export class BaseClient {
   url: string
   baseUrl: string
   request: AxiosInstance

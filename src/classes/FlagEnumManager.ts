@@ -1,4 +1,4 @@
-export default class FlagEnumManager {
+export class FlagEnumManager {
   constructor(private value: number = 0) {}
 
   public get() {

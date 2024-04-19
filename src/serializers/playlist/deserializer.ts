@@ -1,6 +1,6 @@
 import { PlaylistEncryptedDataRawSchema, PlaylistRawSchema } from "../../schemas/playlist"
 import { decryptData } from "../../utils/crypto"
-import BaseDeserializer from "../base-deserializer"
+import { BaseDeserializer } from "../base-deserializer"
 
 import type { Playlist } from "../.."
 
@@ -9,7 +9,7 @@ export type PlaylistDeserializerOptions = {
   reference: string
 }
 
-export default class PlaylistDeserializer extends BaseDeserializer<Playlist> {
+export class PlaylistDeserializer extends BaseDeserializer<Playlist> {
   constructor() {
     super()
   }

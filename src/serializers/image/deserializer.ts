@@ -10,7 +10,7 @@ export type ImageDeserializerOptions = {
   reference: string
 }
 
-export default class ImageDeserializer {
+export class ImageDeserializer {
   constructor(private beeUrl: string) {}
 
   deserialize(item: object, opts?: ImageDeserializerOptions): Image {

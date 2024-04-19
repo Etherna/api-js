@@ -1,13 +1,13 @@
 import { wrapBytesWithHelpers } from "./utils/bytes"
 import { extractUploadHeaders } from "./utils/headers"
 
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { RequestOptions } from ".."
 import type { ReferenceResponse, RequestUploadOptions } from "./types"
 
 const chunkEndpoint = "/chunks"
 
-export default class Chunk {
+export class Chunk {
   constructor(private instance: BeeClient) {}
 
   async download(hash: string, options?: RequestOptions) {

@@ -5,7 +5,7 @@ import { bufferToDataURL, fileToBuffer } from "../../utils/buffer"
 import { resizeImage } from "../../utils/image"
 
 import type { ImageRaw, ImageType } from "../.."
-import type { BatchId, BeeClient, Reference } from "../../clients"
+import type { BeeClient, Reference } from "../../clients"
 import type { WriterUploadOptions } from "../base-writer"
 
 export type ProcessedImage = {
@@ -25,7 +25,7 @@ interface ImageWriterOptions {
   responsiveSizes?: number[]
 }
 
-export default class ImageWriter {
+export class ImageWriter {
   private beeClient: BeeClient
   private responsiveSizes: number[]
   private file: File | Blob

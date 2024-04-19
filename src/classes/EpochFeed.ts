@@ -1,10 +1,10 @@
-import EpochIndex from "./EpochIndex"
-import EpochFeedChunk from "./EpochFeedChunk"
+import { SOC_PAYLOAD_OFFSET } from "../utils"
+import { EpochFeedChunk } from "./EpochFeedChunk"
+import { EpochIndex } from "./EpochIndex"
 
 import type { BeeClient, Reference } from "../clients"
-import { SOC_PAYLOAD_OFFSET } from "../utils"
 
-export default class EpochFeed {
+export class EpochFeed {
   constructor(public beeClient: BeeClient) {}
 
   public async createNextEpochFeedChunk(

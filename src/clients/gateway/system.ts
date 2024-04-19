@@ -1,8 +1,8 @@
-import type EthernaGatewayClient from "."
+import type { EthernaGatewayClient } from "."
 import type { BatchId, RequestOptions } from ".."
 import type { GatewayChainState } from "./types"
 
-export default class SystemClient {
+export class SystemClient {
   constructor(private instance: EthernaGatewayClient) {}
 
   /**

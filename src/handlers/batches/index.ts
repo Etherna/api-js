@@ -1,5 +1,5 @@
 import { FlagEnumManager } from "../../classes"
-import batchesStore, { BatchUpdateType } from "../../stores/batches"
+import { batchesStore, BatchUpdateType } from "../../stores/batches"
 import { calcDilutedTTL, getBatchCapacity, getBatchSpace, ttlToAmount } from "../../utils/batches"
 
 import type { BatchId, BeeClient, EthernaGatewayClient, PostageBatch } from "../../clients"
@@ -23,7 +23,7 @@ export interface BatchesHandlerOptions {
   network?: "mainnet" | "testnet" // goerli testnet vs gnosis
 }
 
-export default class BatchesHandler {
+export class BatchesHandler {
   batches: AnyBatch[] = []
 
   onBatchesLoading?(): void

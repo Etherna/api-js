@@ -1,7 +1,8 @@
-import type { EnsAddress, EthAddress } from "../clients"
 import { createPublicClient, http } from "viem"
 import { mainnet } from "viem/chains"
 import { normalize } from "viem/ens"
+
+import type { EnsAddress, EthAddress } from "../clients"
 
 export const isEthAddress = (address: string): address is EthAddress => {
   return /^0x[a-f0-9]{40}$/i.test(address)

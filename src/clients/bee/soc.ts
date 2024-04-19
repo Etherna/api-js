@@ -1,5 +1,6 @@
 import { etc } from "@noble/secp256k1"
 
+import { keccak256Hash } from "../../utils"
 import { bmtHash } from "./utils/bmt"
 import { bytesEqual, serializeBytes } from "./utils/bytes"
 import { makeContentAddressedChunk } from "./utils/chunk"
@@ -16,7 +17,7 @@ import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
 import { recoverAddress } from "./utils/signer"
 
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { RequestOptions } from ".."
 import type {
   Chunk,
@@ -25,11 +26,10 @@ import type {
   RequestUploadOptions,
   SingleOwnerChunk,
 } from "./types"
-import { keccak256Hash } from "../../utils"
 
 const socEndpoint = "/soc"
 
-export default class Soc {
+export class Soc {
   constructor(private instance: BeeClient) {}
 
   async download(identifier: Uint8Array, ownerAddress: EthAddress, options?: RequestOptions) {

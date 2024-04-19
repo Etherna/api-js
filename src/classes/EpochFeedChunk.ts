@@ -1,9 +1,9 @@
+import { keccak256Hash } from "../utils"
 import { buffersEquals } from "../utils/buffer"
 import { fromHexString, toHexString } from "../utils/bytes"
 
 import type { Reference } from "../clients"
-import type EpochIndex from "./EpochIndex"
-import { keccak256Hash } from "../utils"
+import type { EpochIndex } from "./EpochIndex"
 
 // extend UInt8Array / Date / BigInt
 declare global {
@@ -63,7 +63,7 @@ BigInt.prototype.normalized = function () {
   return this.valueOf() / 1000n
 }
 
-export default class EpochFeedChunk {
+export class EpochFeedChunk {
   public static readonly AccountBytesLength = 20
   public static readonly IdentifierBytesLength = 32
   public static readonly IndexBytesLength = 32

@@ -1,4 +1,4 @@
-import { extractVideoReferences } from "../../utils/references"
+import { extractVideoReferences, isEmptyReference } from "../../utils/references"
 
 import type { Video } from "../.."
 import type { BeeClient, EthernaGatewayClient, Reference, RequestOptions } from "../../clients"
@@ -12,7 +12,7 @@ interface EthernaPinningFetchOptions {
   withByWhom?: boolean
 }
 
-export default class EthernaPinningHandler {
+export class EthernaPinningHandler {
   pinStatus?: SwarmResourcePinStatus[]
   references: Reference[]
   private client: EthernaGatewayClient | BeeClient
@@ -23,7 +23,10 @@ export default class EthernaPinningHandler {
     this.references = input
       .map(input => (typeof input === "string" ? [input] : extractVideoReferences(input)))
       .flat()
-      .filter((reference, index, self) => self.indexOf(reference) === index)
+      .filter(
+        (reference, index, self) =>
+          self.indexOf(reference) === index && !isEmptyReference(reference)
+      )
     this.client = opts.client
   }
 

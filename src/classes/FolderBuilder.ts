@@ -13,7 +13,7 @@ import {
   WebsiteIndexDocumentSuffixKey,
   ZeroHashReference,
 } from "../utils/mantaray"
-import Queue from "./Queue"
+import { Queue } from "./Queue"
 
 import type { BatchId, BeeClient } from "../clients"
 

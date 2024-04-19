@@ -1,4 +1,5 @@
 import { z } from "zod"
+
 import type { EnsAddress, EthAddress } from "../clients"
 
 export const schemaVersion = z.literal(`${z.string()}.${z.string()}`)

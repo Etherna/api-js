@@ -1,6 +1,6 @@
 import { PlaylistDeserializer } from "../../serializers"
-import Cache from "../../utils/cache"
-import BaseReader from "../base-reader"
+import { Cache } from "../../utils/cache"
+import { BaseReader } from "../base-reader"
 
 import type { Playlist, PlaylistRaw } from "../.."
 import type { BeeClient, EthAddress, Reference } from "../../clients"
@@ -16,7 +16,7 @@ export const PlaylistCache = new Cache<string, Playlist>()
 
 export const getFeedTopicName = (id: string) => `EthernaPlaylist:${id}`
 
-export default class PlaylistReader extends BaseReader<
+export class PlaylistReader extends BaseReader<
   Playlist | null,
   Reference | undefined,
   PlaylistRaw
@@ -26,8 +26,8 @@ export default class PlaylistReader extends BaseReader<
   private owner?: EthAddress
   private beeClient: BeeClient
 
-  static channelPlaylistId = "__channel"
-  static savedPlaylistId = "__saved"
+  static channelPlaylistId = "__channel" as const
+  static savedPlaylistId = "__saved" as const
 
   constructor(reference: Reference | undefined, opts: PlaylistReaderOptions) {
     super(reference, opts)
@@ -51,7 +51,7 @@ export default class PlaylistReader extends BaseReader<
 
     if (!this.reference) {
       const topicName = getFeedTopicName(this.id!)
-      const feed = this.beeClient.feed.makeFeed(topicName, this.owner!, "sequence")
+      const feed = this.beeClient.feed.makeFeed(topicName, this.owner!, "epoch")
       const reader = this.beeClient.feed.makeReader(feed)
       this.reference = (
         await reader.download({

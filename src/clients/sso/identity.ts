@@ -1,7 +1,7 @@
-import type EthernaSSOClient from "."
+import type { EthernaSSOClient } from "."
 import type { SSOIdentity } from ".."
 
-export default class IdentityClient {
+export class IdentityClient {
   constructor(private instance: EthernaSSOClient) {}
 
   /**

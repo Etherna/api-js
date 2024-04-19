@@ -8,7 +8,7 @@ interface ImageReaderOptions {
   beeClient: BeeClient
 }
 
-export default class ImageReader {
+export class ImageReader {
   imageRaw: ImageRaw
   image: Image
 

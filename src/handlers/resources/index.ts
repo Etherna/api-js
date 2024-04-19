@@ -14,7 +14,7 @@ interface EthernaResourcesFetchOptions {
 
 type AnyVideo = Video | VideoPreview
 
-export default class EthernaResourcesHandler {
+export class EthernaResourcesHandler {
   resourcesStatus?: SwarmResourceStatus[]
   references: Reference[]
   private gatewayClient: EthernaGatewayClient

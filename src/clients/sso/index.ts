@@ -1,11 +1,11 @@
-import BaseClient from "../base-client"
-import IdentityClient from "./identity"
+import { BaseClient } from "../base-client"
+import { IdentityClient } from "./identity"
 
 import type { BaseClientOptions } from "../base-client"
 
 export interface SSOClientOptions extends BaseClientOptions {}
 
-export default class EthernaSSOClient extends BaseClient {
+export class EthernaSSOClient extends BaseClient {
   identity: IdentityClient
 
   /**

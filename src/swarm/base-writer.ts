@@ -14,7 +14,7 @@ export interface WriterUploadOptions {
   onUploadProgress?(completion: number): void
 }
 
-export default abstract class BaseWriter<I> {
+export abstract class BaseWriter<I> {
   constructor(item: I, opts: WriterOptions) {}
 
   abstract upload(opts?: WriterUploadOptions): Promise<Reference>

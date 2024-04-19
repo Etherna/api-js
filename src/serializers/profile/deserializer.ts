@@ -1,37 +1,41 @@
-import { beeReference } from "../../schemas/base"
-import { ProfileRawSchema } from "../../schemas/profile"
-import BaseDeserializer from "../base-deserializer"
-import ImageDeserializer from "../image/deserializer"
+import { ProfileDetailsRawSchema, ProfilePreviewRawSchema } from "../../schemas/profile"
+import { ImageDeserializer } from "../image/deserializer"
 
-import type { Profile } from "../.."
+import type { ProfileDetails, ProfilePreview } from "../../schemas/profile"
 
 export type ProfileDeserializerOptions = {
-  fallbackBatchId: string | null
+  fallbackBatchId?: string | null
 }
 
-export default class ProfileDeserializer extends BaseDeserializer<
-  Profile,
-  ProfileDeserializerOptions
-> {
-  constructor(private beeUrl: string) {
-    super()
-  }
+export class ProfileDeserializer {
+  constructor(private beeUrl: string) {}
 
-  deserialize(data: string, opts?: ProfileDeserializerOptions): Profile {
-    const profileRaw = ProfileRawSchema.parse(JSON.parse(data))
+  deserializePreview(data: string, opts?: ProfileDeserializerOptions): ProfilePreview {
+    const profileRaw = ProfilePreviewRawSchema.parse(JSON.parse(data))
 
     const imageDeserializer = new ImageDeserializer(this.beeUrl)
 
-    const profile: Profile = {
+    const preview: ProfilePreview = {
       name: profileRaw.name,
       address: profileRaw.address,
+      avatar: profileRaw.avatar ? imageDeserializer.deserialize(profileRaw.avatar) : null,
+      batchId: profileRaw.batchId ?? (opts ?? {}).fallbackBatchId ?? null,
+    }
+
+    return preview
+  }
+
+  deserializeDetails(data: string): ProfileDetails {
+    const profileRaw = ProfileDetailsRawSchema.parse(JSON.parse(data))
+
+    const imageDeserializer = new ImageDeserializer(this.beeUrl)
+
+    const profile: ProfileDetails = {
       description: profileRaw.description ?? null,
       birthday: profileRaw.birthday,
       location: profileRaw.location,
       website: profileRaw.website,
-      avatar: profileRaw.avatar ? imageDeserializer.deserialize(profileRaw.avatar) : null,
       cover: profileRaw.cover ? imageDeserializer.deserialize(profileRaw.cover) : null,
-      batchId: profileRaw.batchId ?? (opts ?? {}).fallbackBatchId ?? null,
     }
 
     return profile

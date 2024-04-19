@@ -1,7 +1,7 @@
-import type EthernaIndexClient from "."
+import type { EthernaIndexClient } from "."
 import type { IndexCurrentUser, IndexUser, IndexVideo, PaginatedResult, RequestOptions } from ".."
 
-export default class IndexUsers {
+export class IndexUsers {
   constructor(private instance: EthernaIndexClient) {}
 
   /**

@@ -1,9 +1,9 @@
 import { etc, getPublicKey, signAsync, Signature } from "@noble/secp256k1"
 
+import { keccak256Hash } from "../../../utils"
 import { makeHexString } from "./hex"
 
 import type { EthAddress, Signer } from "../types"
-import { keccak256Hash } from "../../../utils"
 
 const UNCOMPRESSED_RECOVERY_ID = 27
 

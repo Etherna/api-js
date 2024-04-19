@@ -2,8 +2,8 @@ import cookie from "cookiejs"
 
 import { stringToBase64 } from "../../utils/buffer"
 
-import type BeeClient from "."
-import type { AuthenticationOptions, RequestOptions } from ".."
+import type { BeeClient } from "."
+import type { AuthenticationOptions } from ".."
 
 const authEndpoint = "/auth"
 const authRefreshEndpoint = "/refresh"
@@ -12,7 +12,7 @@ const TOKEN_EXPIRATION_SETTING = "bee-auth-token-expiration"
 
 let memoryToken: string | null = null
 
-export default class Auth {
+export class Auth {
   constructor(private instance: BeeClient) {}
 
   public get token(): string | null {

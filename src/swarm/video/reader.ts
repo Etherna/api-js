@@ -5,7 +5,7 @@ import {
   VideoSourceRawSchema,
 } from "../../schemas/video"
 import { VideoDeserializer } from "../../serializers"
-import BaseReader from "../base-reader"
+import { BaseReader } from "../base-reader"
 
 import type { Profile, Video, VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
 import type {
@@ -15,9 +15,9 @@ import type {
   IndexVideoManifest,
   Reference,
 } from "../../clients"
+import type { IndexVideoPreview } from "../../clients/index/types"
 import type { VideoPreview } from "../../schemas/video"
 import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
-import type { IndexVideoPreview } from "../../clients/index/types"
 
 interface VideoReaderOptions extends ReaderOptions {
   indexClient?: EthernaIndexClient
@@ -30,7 +30,7 @@ interface VideoReaderDownloadOptions extends ReaderDownloadOptions {
   previewData?: VideoPreview
 }
 
-export default class VideoReader extends BaseReader<Video | null, string, VideoRaw | IndexVideo> {
+export class VideoReader extends BaseReader<Video | null, string, VideoRaw | IndexVideo> {
   reference: Reference
   indexReference?: string
 
@@ -246,8 +246,8 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
         throw previewResp.status === "rejected"
           ? previewResp.reason
           : detailsResp.status === "rejected"
-          ? detailsResp.reason
-          : new Error("Unknown error")
+            ? detailsResp.reason
+            : new Error("Unknown error")
       }
 
       const preview = previewValue
@@ -256,8 +256,8 @@ export default class VideoReader extends BaseReader<Video | null, string, VideoR
       const details = detailsValue
         ? VideoDetailsRawSchema.parse(detailsValue.data.json())
         : downloadDetails && previewValue
-        ? VideoDetailsRawSchema.parse(previewValue.data.json())
-        : undefined
+          ? VideoDetailsRawSchema.parse(previewValue.data.json())
+          : undefined
 
       return {
         preview,

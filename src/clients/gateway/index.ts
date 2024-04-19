@@ -1,14 +1,14 @@
-import BaseClient from "../base-client"
-import PostageClient from "./postage"
-import ResourcesClient from "./resources"
-import SystemClient from "./system"
-import UsersClient from "./users"
+import { BaseClient } from "../base-client"
+import { PostageClient } from "./postage"
+import { ResourcesClient } from "./resources"
+import { SystemClient } from "./system"
+import { UsersClient } from "./users"
 
 import type { BaseClientOptions } from "../base-client"
 
 export interface GatewayClientOptions extends BaseClientOptions {}
 
-export default class EthernaGatewayClient extends BaseClient {
+export class EthernaGatewayClient extends BaseClient {
   resources: ResourcesClient
   users: UsersClient
   system: SystemClient

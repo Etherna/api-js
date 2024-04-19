@@ -1,4 +1,4 @@
-export default class Cache<K, V> extends Map<K, V> {
+export class Cache<K, V> extends Map<K, V> {
   constructor(public maxRecords = 100) {
     super()
   }
