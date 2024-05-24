@@ -1,12 +1,12 @@
-import { Reference } from "../../clients"
 import { ProfileDetailsRawSchema, ProfilePreviewRawSchema } from "../../schemas/profile"
 import { ImageDeserializer } from "../image/deserializer"
 
+import type { BatchId, Reference } from "../../clients"
 import type { ProfileDetails, ProfilePreview } from "../../schemas/profile"
 
 export interface ProfilePreviewDeserializerOptions {
   reference?: Reference
-  fallbackBatchId?: string | null
+  fallbackBatchId?: BatchId | null
 }
 
 export interface ProfileDetailsDeserializerOptions {

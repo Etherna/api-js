@@ -1,16 +1,12 @@
+import { Reference } from "../../../src/clients"
 import { testImageParsed, testImageRaw } from "./image.test.data"
 
-import type {
-  Video,
-  VideoDetails,
-  VideoDetailsRaw,
-  VideoPreview,
-  VideoPreviewRaw,
-} from "../../../src"
+import type { VideoDetails, VideoDetailsRaw, VideoPreview, VideoPreviewRaw } from "../../../src"
 
 export const beeUrl = "http://localhost:1633"
 
-export const videoReference = "0123456789012345678901234567890123456789012345678901234567890123"
+export const videoReference =
+  "0123456789012345678901234567890123456789012345678901234567890123" as Reference
 
 export const testVideoRaw_1_0: VideoPreviewRaw & VideoDetailsRaw & { originalQuality: string } = {
   title: "test video",

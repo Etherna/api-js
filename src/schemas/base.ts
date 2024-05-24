@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import type { EnsAddress, EthAddress } from "../clients"
+import type { BatchId, EnsAddress, EthAddress } from "../clients"
 
 export const schemaVersion = z.literal(`${z.string()}.${z.string()}`)
 
@@ -46,9 +46,12 @@ export const ethSafeAddress = z.string().transform(v => {
   return "0x" + "0".repeat(40)
 })
 
-export const beeReference = z.string().regex(/^[a-fA-F0-9]{64}$/, {
-  message: "must be a valid bee reference",
-})
+export const beeReference = z
+  .string()
+  .regex(/^[a-fA-F0-9]{64}$/, {
+    message: "must be a valid bee reference",
+  })
+  .transform(v => v as BatchId)
 
 export const beeSafeReference = z
   .string()

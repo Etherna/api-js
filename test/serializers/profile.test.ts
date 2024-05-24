@@ -6,6 +6,7 @@ import {
   testProfileDetailsParsed,
   testProfileDetailsRaw_2,
   testProfilePreviewParsed,
+  testProfilePreviewParsed_1_0,
   testProfilePreviewRaw_2,
   testProfileRaw_1_0,
   testProfileRaw_1_1,
@@ -16,7 +17,7 @@ describe("profile deserializer", () => {
 
   it("should parse a raw profile preview v1.0", () => {
     const previewManifest = deserializer.deserializePreview(JSON.stringify(testProfileRaw_1_0))
-    expect(previewManifest).toEqual(testProfilePreviewParsed)
+    expect(previewManifest).toEqual(testProfilePreviewParsed_1_0)
   })
 
   it("should parse a raw profile preview + details v1.1", () => {
@@ -68,8 +69,8 @@ describe("profile serializer", () => {
     expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // batchId
-    manifest = { ...testProfileDetailsParsed }
+    manifest = { ...testProfilePreviewParsed }
     delete manifest.batchId
-    expect(() => serializer.serializeDetails(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
   })
 })
