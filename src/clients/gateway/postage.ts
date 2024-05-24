@@ -1,7 +1,7 @@
-import type EthernaGatewayClient from "."
+import type { EthernaGatewayClient } from "."
 import type { RequestOptions } from ".."
 
-export default class PostageClient {
+export class PostageClient {
   constructor(private instance: EthernaGatewayClient) {}
 
   /**

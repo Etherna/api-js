@@ -1,29 +1,29 @@
 import { PlaylistSerializer } from "../../serializers"
-import BaseWriter from "../base-writer"
+import { BaseWriter } from "../base-writer"
 import { getFeedTopicName, PlaylistCache } from "./reader"
 
 import type { Playlist } from "../.."
 import type { BeeClient, Reference } from "../../clients"
 import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
-interface ImageWriterOptions extends WriterOptions {}
+interface PlaylistWriterOptions extends WriterOptions {}
 
-interface ImageWriterUploadOptions extends WriterUploadOptions {
+interface PlaylistWriterUploadOptions extends WriterUploadOptions {
   encryptionPassword?: string
 }
 
-export default class ImageWriter extends BaseWriter<Playlist> {
+export class PlaylistWriter extends BaseWriter<Playlist> {
   private playlist: Playlist
   private beeClient: BeeClient
 
-  constructor(playlist: Playlist, opts: ImageWriterOptions) {
+  constructor(playlist: Playlist, opts: PlaylistWriterOptions) {
     super(playlist, opts)
 
     this.playlist = playlist
     this.beeClient = opts.beeClient
   }
 
-  async upload(opts?: ImageWriterUploadOptions): Promise<Reference> {
+  async upload(opts?: PlaylistWriterUploadOptions): Promise<Reference> {
     if (this.playlist.type === "private" && !opts?.encryptionPassword) {
       throw new Error("Please insert a password for a private playlist")
     }
@@ -48,11 +48,7 @@ export default class ImageWriter extends BaseWriter<Playlist> {
     // get a static root manifest for user's playlist subscription
     if (this.playlist.type === "public") {
       const topicName = getFeedTopicName(this.playlist.id)
-      const feed = this.beeClient.feed.makeFeed(
-        topicName,
-        this.beeClient.signer!.address,
-        "sequence"
-      )
+      const feed = this.beeClient.feed.makeFeed(topicName, this.beeClient.signer!.address, "epoch")
       const writer = this.beeClient.feed.makeWriter(feed)
       await writer.upload(reference, {
         batchId,

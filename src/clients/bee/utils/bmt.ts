@@ -1,7 +1,7 @@
 import { keccak256 } from "js-sha3"
 
-import { HASH_SIZE, MAX_CHUNK_PAYLOAD_SIZE, SEGMENT_PAIR_SIZE } from "./contants"
 import { keccak256Hash } from "../../../utils"
+import { HASH_SIZE, MAX_CHUNK_PAYLOAD_SIZE, SEGMENT_PAIR_SIZE } from "./contants"
 
 /**
  * Calculate a Binary Merkle Tree hash for a chunk

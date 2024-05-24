@@ -1,12 +1,13 @@
+import { getBatchPercentUtilization } from "../../utils"
 import { STAMPS_DEPTH_MIN } from "./utils/contants"
 
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { RequestOptions } from ".."
 import type { BatchId, PostageBatch } from "./types"
 
 const stampsEndpoint = "/stamps"
 
-export default class Stamps {
+export class Stamps {
   constructor(private instance: BeeClient) {}
 
   async create(
@@ -75,7 +76,7 @@ export default class Stamps {
 
   async fetchBestBatchId(): Promise<BatchId> {
     const usableBatch = (batch: PostageBatch) =>
-      batch.usable && this.getBatchPercentUtilization(batch) < 1
+      batch.usable && getBatchPercentUtilization(batch) < 1
 
     if (this.instance.postageBatches.length > 0) {
       const batch = this.instance.postageBatches.filter(usableBatch)[0]
@@ -146,12 +147,5 @@ export default class Stamps {
     )
 
     return true
-  }
-
-  // Utils
-
-  private getBatchPercentUtilization = (batch: PostageBatch) => {
-    const { utilization, depth, bucketDepth } = batch
-    return utilization / 2 ** (depth - bucketDepth)
   }
 }

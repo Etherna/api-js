@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { createPostageBatch, startBee } from "../__utils__/bee-process"
 import { BeeClient } from "../../src/clients"
 import { VideoDeserializer } from "../../src/serializers"
-import VideoBuilder from "../../src/swarm/video/builder"
+import { VideoBuilder } from "../../src/swarm"
 import { testVideoRaw_1_1 } from "./__data__/video.test.data"
 
 import type { BeeProcess } from "../__utils__/bee-process"

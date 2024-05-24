@@ -23,7 +23,7 @@ export type BatchesState = {
   removeBatchUpdate(batchId: BatchId): void
 }
 
-const batchesStore = createStore<BatchesState>()(
+export const batchesStore = createStore<BatchesState>()(
   devtools(
     persist(
       immer(set => ({
@@ -68,5 +68,3 @@ const batchesStore = createStore<BatchesState>()(
     }
   )
 )
-
-export default batchesStore

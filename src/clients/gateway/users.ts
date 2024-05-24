@@ -1,4 +1,4 @@
-import type EthernaGatewayClient from "."
+import type { EthernaGatewayClient } from "."
 import type { RequestOptions } from ".."
 import type {
   GatewayBatch,
@@ -8,7 +8,7 @@ import type {
   GatewayWelcomeStatus,
 } from "./types"
 
-export default class UsersClient {
+export class UsersClient {
   constructor(private instance: EthernaGatewayClient) {}
 
   /**

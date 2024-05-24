@@ -1,5 +1,4 @@
 import {
-  bytesReferenceToReference,
   decodePath,
   getNodesWithPrefix as getNodesWithPrefixString,
   keccak256Hash,
@@ -20,9 +19,9 @@ import {
 
 import type {
   Bytes,
+  BytesReference,
   MarshalVersion,
   MetadataMapping,
-  BytesReference,
   StorageLoader,
   StorageSaver,
 } from "./types"

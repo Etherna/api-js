@@ -1,4 +1,4 @@
-import type EthernaIndexClient from "."
+import type { EthernaIndexClient } from "."
 import type {
   IndexVideo,
   IndexVideoComment,
@@ -10,7 +10,7 @@ import type {
 } from ".."
 import type { IndexVideoPreview } from "./types"
 
-export default class IndexVideos {
+export class IndexVideos {
   abortController?: AbortController
 
   constructor(private instance: EthernaIndexClient) {}

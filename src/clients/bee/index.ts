@@ -1,20 +1,20 @@
 import axios from "axios"
 
 import { isValidReference } from "../../utils"
-import Auth from "./auth"
-import Bytes from "./bytes"
-import Bzz from "./bzz"
-import ChainState from "./chainstate"
-import Chunk from "./chunk"
-import Feed from "./feeds"
-import Pins from "./pins"
-import Soc from "./soc"
-import Stamps from "./stamps"
+import { Auth } from "./auth"
+import { Bytes } from "./bytes"
+import { Bzz } from "./bzz"
+import { ChainState } from "./chainstate"
+import { Chunk } from "./chunk"
+import { Feed } from "./feeds"
+import { Pins } from "./pins"
+import { Soc } from "./soc"
+import { Stamps } from "./stamps"
+import { Tags } from "./tags"
 import { makePrivateKeySigner } from "./utils/signer"
 
 import type { PostageBatch, Reference, Signer } from "./types"
 import type { AxiosInstance } from "axios"
-import Tags from "./tags"
 
 export interface BeeClientOptions {
   signer?: Signer | string
@@ -22,7 +22,7 @@ export interface BeeClientOptions {
   axios?: AxiosInstance
 }
 
-export default class BeeClient {
+export class BeeClient {
   signer?: Signer
   request: AxiosInstance
 
@@ -61,6 +61,10 @@ export default class BeeClient {
     this.stamps = new Stamps(this)
     this.tags = new Tags(this)
     this.postageBatches = opts?.postageBatches ?? []
+  }
+
+  updateSigner(signer: Signer | string) {
+    this.signer = typeof signer === "string" ? makePrivateKeySigner(signer) : signer
   }
 
   /**

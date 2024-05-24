@@ -1,7 +1,7 @@
-import type EthernaIndexClient from "."
+import type { EthernaIndexClient } from "."
 import type { RequestOptions } from ".."
 
-export default class IndexModeration {
+export class IndexModeration {
   constructor(private instance: EthernaIndexClient) {}
 
   /**

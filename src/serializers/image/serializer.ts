@@ -2,7 +2,7 @@ import { ImageRawSchema, ImageSchema } from "../../schemas/image"
 
 import type { Image, ImageRaw, ImageRawSources } from "../.."
 
-export default class ImageSerializer {
+export class ImageSerializer {
   constructor() {}
 
   serialize(item: Image): ImageRaw {

@@ -1,8 +1,8 @@
 import type { RequestOptions } from ".."
-import type EthernaGatewayClient from "./index"
+import type { EthernaGatewayClient } from "./index"
 import type { GatewayPin } from "./types"
 
-export default class ResourcesClient {
+export class ResourcesClient {
   constructor(private instance: EthernaGatewayClient) {}
 
   /**

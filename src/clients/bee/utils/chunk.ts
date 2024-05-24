@@ -1,9 +1,10 @@
+import { makeSpan } from "@fairdatasociety/bmt-js/src/span"
+
 import { bmtHash } from "./bmt"
 import { serializeBytes } from "./bytes"
 import { CAC_PAYLOAD_OFFSET } from "./contants"
 
 import type { Chunk } from "../types"
-import { makeSpan } from "@fairdatasociety/bmt-js/src/span"
 
 /**
  * Creates a content addressed chunk and verifies the payload size.

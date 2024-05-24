@@ -1,29 +1,39 @@
-import { ProfileSchema } from "../../schemas/profile"
-import BaseSerializer from "../base-serializer"
-import ImageSerializer from "../image/serializer"
+import {
+  ProfileDetailsRaw,
+  ProfileDetailsSchema,
+  ProfilePreviewRaw,
+  ProfilePreviewSchema,
+} from "../../schemas/profile"
+import { ImageSerializer } from "../image/serializer"
 
-import type { ProfileRaw } from "../../schemas/profile"
+export class ProfileSerializer {
+  constructor() {}
 
-export default class ProfileSerializer extends BaseSerializer {
-  constructor() {
-    super()
-  }
-
-  serialize(item: object): string {
-    const profile = ProfileSchema.parse(item)
+  serializePreview(item: object): string {
+    const profile = ProfilePreviewSchema.parse(item)
 
     const imageSerializer = new ImageSerializer()
 
-    const profileRaw: ProfileRaw = {
+    const profileRaw: ProfilePreviewRaw = {
       name: profile.name,
       address: profile.address,
+      avatar: profile.avatar ? imageSerializer.serialize(profile.avatar) : null,
+      batchId: profile.batchId ?? null,
+    }
+    return JSON.stringify(profileRaw)
+  }
+
+  serializeDetails(item: object): string {
+    const profile = ProfileDetailsSchema.parse(item)
+
+    const imageSerializer = new ImageSerializer()
+
+    const profileRaw: ProfileDetailsRaw = {
       description: profile.description ?? null,
       birthday: profile.birthday,
       location: profile.location,
       website: profile.website,
-      avatar: profile.avatar ? imageSerializer.serialize(profile.avatar) : null,
       cover: profile.cover ? imageSerializer.serialize(profile.cover) : null,
-      batchId: profile.batchId!,
     }
     return JSON.stringify(profileRaw)
   }

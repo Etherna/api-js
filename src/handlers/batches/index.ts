@@ -1,5 +1,5 @@
 import { FlagEnumManager } from "../../classes"
-import batchesStore, { BatchUpdateType } from "../../stores/batches"
+import { batchesStore, BatchUpdateType } from "../../stores/batches"
 import { calcDilutedTTL, getBatchCapacity, getBatchSpace, ttlToAmount } from "../../utils/batches"
 
 import type { BatchId, BeeClient, EthernaGatewayClient, PostageBatch } from "../../clients"
@@ -23,7 +23,7 @@ export interface BatchesHandlerOptions {
   network?: "mainnet" | "testnet" // goerli testnet vs gnosis
 }
 
-export default class BatchesHandler {
+export class BatchesHandler {
   batches: AnyBatch[] = []
 
   onBatchesLoading?(): void
@@ -448,22 +448,24 @@ export default class BatchesHandler {
     const url = this.gatewayType === "etherna-gateway" ? this.gatewayClient.url : this.beeClient.url
     if (this.cachedPrice && this.cachedPrice.url === url) return this.cachedPrice.price
 
+    const fallbackPrice = 6000 // hardcoded price
+
     try {
       if (this.gatewayType === "etherna-gateway") {
         this.cachedPrice = {
           url,
-          price: (await this.gatewayClient.system.fetchChainstate()).currentPrice,
+          price: (await this.gatewayClient.system.fetchChainstate()).currentPrice || fallbackPrice,
         }
       } else {
         this.cachedPrice = {
           url,
-          price: await this.beeClient.chainstate.getCurrentPrice(),
+          price: (await this.beeClient.chainstate.getCurrentPrice()) || fallbackPrice,
         }
       }
     } catch (error) {
       this.cachedPrice = {
         url,
-        price: 6000, // hardcoded price
+        price: fallbackPrice,
       }
     }
 

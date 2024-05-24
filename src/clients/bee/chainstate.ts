@@ -1,9 +1,9 @@
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { RequestOptions } from ".."
 
 const chainstateEndpoint = "/chainstate"
 
-export default class ChainState {
+export class ChainState {
   constructor(private instance: BeeClient) {}
 
   async getCurrentPrice(options?: RequestOptions): Promise<number> {

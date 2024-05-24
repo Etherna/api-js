@@ -4,13 +4,14 @@ import { blurHashToDataURL } from "../../utils/blurhash"
 import { getBzzUrl } from "../../utils/bzz"
 
 import type { Image, ImageSource } from "../.."
+import type { Reference } from "../../clients"
 
 export type ImageDeserializerOptions = {
   /** Base path reference */
-  reference: string
+  reference?: Reference
 }
 
-export default class ImageDeserializer {
+export class ImageDeserializer {
   constructor(private beeUrl: string) {}
 
   deserialize(item: object, opts?: ImageDeserializerOptions): Image {

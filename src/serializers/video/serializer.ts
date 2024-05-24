@@ -5,11 +5,11 @@ import {
   VideoPreviewRawSchema,
   VideoPreviewSchema,
 } from "../../schemas/video"
-import ImageSerializer from "../image/serializer"
+import { ImageSerializer } from "../image/serializer"
 
 import type { VideoDetailsRaw } from "../.."
 
-export default class VideoSerializer {
+export class VideoSerializer {
   constructor() {}
 
   serializePreview(previewItem: object): string {

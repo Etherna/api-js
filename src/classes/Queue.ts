@@ -1,4 +1,4 @@
-export default class Queue {
+export class Queue {
   tasks: (() => Promise<any>)[] = []
   activeTasks: number = 0
   maxConcurrentTasks: number

@@ -1,12 +1,29 @@
 import { etc } from "@noble/secp256k1"
 
+import { EpochFeed, EpochFeedChunk, EpochIndex } from "../../classes"
+import { MantarayNode } from "../../handlers"
+import {
+  bytesReferenceToReference,
+  encodePath,
+  getReferenceFromData,
+  keccak256Hash,
+  referenceToBytesReference,
+  ZeroHashReference,
+} from "../../utils"
+import { toEthAccount } from "../../utils/bytes"
+import {
+  EntryMetadataFeedOwnerKey,
+  EntryMetadataFeedTopicKey,
+  EntryMetadataFeedTypeKey,
+} from "../../utils/mantaray"
 import { makeBytes, serializeBytes } from "./utils/bytes"
 import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
 import { makeBytesReference } from "./utils/reference"
 import { writeUint64BigEndian } from "./utils/uint64"
 
-import type BeeClient from "."
+import type { BeeClient } from "."
+import type { RequestOptions } from "../types"
 import type {
   EthAddress,
   FeedInfo,
@@ -20,27 +37,10 @@ import type {
   RequestUploadOptions,
 } from "./types"
 import type { AxiosError, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios"
-import { EpochFeed, EpochIndex, FeedChunk } from "../../classes"
-import { toEthAccount } from "../../utils/bytes"
-import {
-  ZeroHashReference,
-  bytesReferenceToReference,
-  encodePath,
-  getReferenceFromData,
-  keccak256Hash,
-  referenceToBytesReference,
-} from "../../utils"
-import { MantarayNode } from "../../handlers"
-import {
-  EntryMetadataFeedOwnerKey,
-  EntryMetadataFeedTopicKey,
-  EntryMetadataFeedTypeKey,
-} from "../../utils/mantaray"
-import type { RequestOptions } from "../types"
 
 const feedEndpoint = "/feeds"
 
-export default class Feed {
+export class Feed {
   constructor(private instance: BeeClient) {}
 
   makeFeed<T extends FeedType>(
@@ -75,7 +75,7 @@ export default class Feed {
             throw new Error("No epoch feed found")
           }
 
-          const reference = etc.bytesToHex(chunk.getContentPayload())
+          const reference = etc.bytesToHex(chunk.getContentPayload()) as Reference
 
           return {
             reference,
@@ -123,7 +123,7 @@ export default class Feed {
           options.index ? EpochIndex.fromString(options.index) : undefined
         )
 
-        const identifier = FeedChunk.buildIdentifier(etc.hexToBytes(feed.topic), chunk.index)
+        const identifier = EpochFeedChunk.buildIdentifier(etc.hexToBytes(feed.topic), chunk.index)
         const reference = await this.instance.soc.upload(identifier, chunk.payload, options)
 
         return {
@@ -308,7 +308,7 @@ export default class Feed {
       const indexBytes = this.makeFeedIndexBytes(index)
       return this.hashFeedIdentifier(topic, indexBytes)
     } else if (index instanceof EpochIndex) {
-      return FeedChunk.buildIdentifier(etc.hexToBytes(topic), index)
+      return EpochFeedChunk.buildIdentifier(etc.hexToBytes(topic), index)
     }
 
     return this.hashFeedIdentifier(topic, index)

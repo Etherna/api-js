@@ -13,7 +13,7 @@ type ChunksUploadOptions = RequestUploadOptions & {
   onBytesUploaded?(bytes: number): void
 }
 
-export default class ChunksUploader {
+export class ChunksUploader {
   constructor(
     public beeClient: BeeClient,
     public concurrentChunks = 10

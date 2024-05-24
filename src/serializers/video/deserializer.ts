@@ -5,16 +5,17 @@ import {
   VideoSourceSchema,
 } from "../../schemas/video"
 import { getBzzUrl } from "../../utils/bzz"
-import ImageDeserializer from "../image/deserializer"
+import { ImageDeserializer } from "../image/deserializer"
 
+import type { Reference } from "../../clients"
 import type { VideoDetails, VideoPreview } from "../../schemas/video"
 
 export type VideoDeserializerOptions = {
   /** Video swarm reference */
-  reference: string
+  reference: Reference
 }
 
-export default class VideoDeserializer {
+export class VideoDeserializer {
   constructor(private beeUrl: string) {}
 
   deserializePreview(data: string, opts: VideoDeserializerOptions): VideoPreview {

@@ -1,12 +1,12 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
+import { keccak256 } from "js-sha3"
 
 import { MantarayNode } from "../handlers/mantaray"
 import { fromHexString, toHexString } from "./bytes"
 
 import type { BeeClient, Reference } from "../clients"
-import type { Bytes, BytesReference as BytesReference } from "../handlers/mantaray/types"
+import type { Bytes, BytesReference } from "../handlers/mantaray/types"
 import type { Message } from "js-sha3"
-import { keccak256 } from "js-sha3"
 
 export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
 export const RootPath = "/"

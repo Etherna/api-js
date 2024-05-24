@@ -1,7 +1,7 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
 import { immerable } from "immer"
 
-import Queue from "../../classes/Queue"
+import { Queue } from "../../classes/Queue"
 import { MantarayFork, MantarayNode } from "../../handlers/mantaray"
 import { beeReference, beeSafeReference, ethSafeAddress } from "../../schemas/base"
 import { imageType } from "../../schemas/image"
@@ -12,7 +12,7 @@ import {
   VideoPreviewRawSchema,
 } from "../../schemas/video"
 import { VideoDeserializer, VideoSerializer } from "../../serializers"
-import { isValidReference } from "../../utils"
+import { EmptyReference, isValidReference } from "../../utils"
 import {
   bytesReferenceToReference,
   encodePath,
@@ -38,6 +38,7 @@ import type {
   VideoQuality,
 } from "../.."
 import type { BatchId, BeeClient, EthAddress, Reference } from "../../clients"
+import type { BytesReference } from "../../handlers"
 import type { ImageRawSource } from "../../schemas/image"
 import type {
   SerializedVideoBuilder,
@@ -46,7 +47,6 @@ import type {
   VideoPreviewRaw,
   VideoSourceRaw,
 } from "../../schemas/video"
-import type { BytesReference } from "../../handlers"
 
 interface VideoBuilderRequestOptions {
   beeClient: BeeClient
@@ -57,7 +57,7 @@ interface VideoBuilderRequestOptions {
 export const VIDEO_PREVIEW_META_PATH = "preview"
 export const VIDEO_DETAILS_META_PATH = "details"
 
-export default class VideoBuilder {
+export class VideoBuilder {
   reference: Reference
   previewMeta: VideoPreviewRaw
   detailsMeta: VideoDetailsRaw
@@ -189,7 +189,7 @@ export default class VideoBuilder {
       new VideoSerializer().serializePreview(
         new VideoDeserializer("http://doesntmatter.com").deserializePreview(
           JSON.stringify(this.previewMeta),
-          { reference: "0".repeat(64) }
+          { reference: EmptyReference }
         )
       )
     ) as VideoPreviewRaw
@@ -197,7 +197,7 @@ export default class VideoBuilder {
       new VideoSerializer().serializeDetails(
         new VideoDeserializer("http://doesntmatter.com").deserializeDetails(
           JSON.stringify(this.detailsMeta),
-          { reference: "0".repeat(64) }
+          { reference: EmptyReference }
         )
       )
     ) as VideoDetailsRaw
@@ -354,7 +354,7 @@ export default class VideoBuilder {
     }
   }
 
-  deserialize(value: any) {
+  deserialize(value: unknown) {
     const model = VideoBuilderSchema.parse(value)
 
     this.reference = beeReference.parse(model.reference) as Reference

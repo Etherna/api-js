@@ -1,10 +1,10 @@
-import type BeeClient from "."
+import type { BeeClient } from "."
 import type { RequestOptions } from "../types"
 import type { Tag } from "./types"
 
 const tagsEndpoint = "/tags"
 
-export default class Tags {
+export class Tags {
   constructor(private instance: BeeClient) {}
 
   async downloadAll(options?: RequestOptions) {

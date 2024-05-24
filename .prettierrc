@@ -21,5 +21,6 @@
     "<TYPES>"
   ],
   "importOrderSeparation": false,
-  "importOrderMergeDuplicateImports": true
+  "importOrderMergeDuplicateImports": true,
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"]
 }

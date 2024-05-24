@@ -10,7 +10,7 @@ export interface ReaderDownloadOptions {
   onDownloadProgress?(completion: number): void
 }
 
-export default abstract class BaseReader<T, I, R = unknown> {
+export abstract class BaseReader<T, I, R = unknown> {
   constructor(identifier: I, opts: ReaderOptions) {}
 
   abstract download(opts?: ReaderDownloadOptions): Promise<T>

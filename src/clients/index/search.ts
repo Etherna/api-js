@@ -1,8 +1,8 @@
-import type EthernaIndexClient from "."
+import type { EthernaIndexClient } from "."
 import type { PaginatedResult, RequestOptions } from ".."
 import type { IndexVideoPreview } from "./types"
 
-export default class IndexSearch {
+export class IndexSearch {
   constructor(private instance: EthernaIndexClient) {}
 
   /**
