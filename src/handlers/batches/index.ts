@@ -448,22 +448,24 @@ export class BatchesHandler {
     const url = this.gatewayType === "etherna-gateway" ? this.gatewayClient.url : this.beeClient.url
     if (this.cachedPrice && this.cachedPrice.url === url) return this.cachedPrice.price
 
+    const fallbackPrice = 6000 // hardcoded price
+
     try {
       if (this.gatewayType === "etherna-gateway") {
         this.cachedPrice = {
           url,
-          price: (await this.gatewayClient.system.fetchChainstate()).currentPrice,
+          price: (await this.gatewayClient.system.fetchChainstate()).currentPrice || fallbackPrice,
         }
       } else {
         this.cachedPrice = {
           url,
-          price: await this.beeClient.chainstate.getCurrentPrice(),
+          price: (await this.beeClient.chainstate.getCurrentPrice()) || fallbackPrice,
         }
       }
     } catch (error) {
       this.cachedPrice = {
         url,
-        price: 6000, // hardcoded price
+        price: fallbackPrice,
       }
     }
 

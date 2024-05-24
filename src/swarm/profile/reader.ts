@@ -84,9 +84,9 @@ export class ProfileReader extends BaseReader<ProfileWithEns | null, EthAddress,
       const deserializer = new ProfileDeserializer(this.beeClient.url)
       const profile = {
         reference,
-        preview: deserializer.deserializePreview(JSON.stringify(profileRaw.preview)),
+        preview: deserializer.deserializePreview(JSON.stringify(profileRaw.preview), { reference }),
         details: profileRaw?.details
-          ? deserializer.deserializeDetails(JSON.stringify(profileRaw.details))
+          ? deserializer.deserializeDetails(JSON.stringify(profileRaw.details), { reference })
           : undefined,
         ens: this.ensAddress,
       } satisfies ProfileWithEns

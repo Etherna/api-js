@@ -162,14 +162,17 @@ export class ProfileBuilder {
       new ProfileSerializer().serializePreview(
         new ProfileDeserializer("http://doesntmatter.com").deserializePreview(
           JSON.stringify(this.previewMeta),
-          { fallbackBatchId: opts.batchId }
+          { fallbackBatchId: opts.batchId, reference: this.reference }
         )
       )
     ) as ProfilePreviewRaw
     this.detailsMeta = JSON.parse(
       new ProfileSerializer().serializeDetails(
         new ProfileDeserializer("http://doesntmatter.com").deserializeDetails(
-          JSON.stringify(this.detailsMeta)
+          JSON.stringify(this.detailsMeta),
+          {
+            reference: this.reference,
+          }
         )
       )
     ) as ProfileDetailsRaw
@@ -197,7 +200,37 @@ export class ProfileBuilder {
     return this.reference
   }
 
-  async addAvatarSource(data: Uint8Array, width: number, type: ImageType) {
+  updateName(name: string) {
+    this.previewMeta.name = name
+    this.updateNode()
+  }
+
+  updateBatchId(batchId: BatchId) {
+    this.previewMeta.batchId = batchId
+    this.updateNode()
+  }
+
+  updateDescription(description: string) {
+    this.detailsMeta.description = description
+    this.updateNode()
+  }
+
+  updateBirthday(birthday: string) {
+    this.detailsMeta.birthday = birthday
+    this.updateNode()
+  }
+
+  updateWebsite(website: string) {
+    this.detailsMeta.website = website
+    this.updateNode()
+  }
+
+  updateLocation(location: string) {
+    this.detailsMeta.location = location
+    this.updateNode()
+  }
+
+  addAvatarSource(data: Uint8Array, width: number, type: ImageType) {
     if (!this.previewMeta.avatar) {
       throw new Error("Avatar is missing")
     }
@@ -206,7 +239,7 @@ export class ProfileBuilder {
     this.previewMeta.avatar.sources.push(source)
   }
 
-  async addCoverSource(data: Uint8Array, width: number, type: ImageType) {
+  addCoverSource(data: Uint8Array, width: number, type: ImageType) {
     if (!this.detailsMeta.cover) {
       throw new Error("Cover is missing")
     }

@@ -63,6 +63,10 @@ export class BeeClient {
     this.postageBatches = opts?.postageBatches ?? []
   }
 
+  updateSigner(signer: Signer | string) {
+    this.signer = typeof signer === "string" ? makePrivateKeySigner(signer) : signer
+  }
+
   /**
    * Check if an hash is a valid swarm hash
    *

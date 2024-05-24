@@ -12,7 +12,7 @@ import {
   VideoPreviewRawSchema,
 } from "../../schemas/video"
 import { VideoDeserializer, VideoSerializer } from "../../serializers"
-import { isValidReference } from "../../utils"
+import { EmptyReference, isValidReference } from "../../utils"
 import {
   bytesReferenceToReference,
   encodePath,
@@ -189,7 +189,7 @@ export class VideoBuilder {
       new VideoSerializer().serializePreview(
         new VideoDeserializer("http://doesntmatter.com").deserializePreview(
           JSON.stringify(this.previewMeta),
-          { reference: "0".repeat(64) }
+          { reference: EmptyReference }
         )
       )
     ) as VideoPreviewRaw
@@ -197,7 +197,7 @@ export class VideoBuilder {
       new VideoSerializer().serializeDetails(
         new VideoDeserializer("http://doesntmatter.com").deserializeDetails(
           JSON.stringify(this.detailsMeta),
-          { reference: "0".repeat(64) }
+          { reference: EmptyReference }
         )
       )
     ) as VideoDetailsRaw

@@ -63,8 +63,12 @@ export class ProfileWriter extends BaseWriter<ProfileBuilder> {
     const deserializer = new ProfileDeserializer(this.beeClient.url)
     ProfileCache.set(this.profileBuilder.previewMeta.address as EthAddress, {
       reference,
-      preview: deserializer.deserializePreview(JSON.stringify(this.profileBuilder.previewMeta)),
-      details: deserializer.deserializeDetails(JSON.stringify(this.profileBuilder.detailsMeta)),
+      preview: deserializer.deserializePreview(JSON.stringify(this.profileBuilder.previewMeta), {
+        reference,
+      }),
+      details: deserializer.deserializeDetails(JSON.stringify(this.profileBuilder.detailsMeta), {
+        reference,
+      }),
       ens,
     })
 

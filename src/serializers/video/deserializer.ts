@@ -7,11 +7,12 @@ import {
 import { getBzzUrl } from "../../utils/bzz"
 import { ImageDeserializer } from "../image/deserializer"
 
+import type { Reference } from "../../clients"
 import type { VideoDetails, VideoPreview } from "../../schemas/video"
 
 export type VideoDeserializerOptions = {
   /** Video swarm reference */
-  reference: string
+  reference: Reference
 }
 
 export class VideoDeserializer {

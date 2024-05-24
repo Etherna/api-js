@@ -4,10 +4,11 @@ import { blurHashToDataURL } from "../../utils/blurhash"
 import { getBzzUrl } from "../../utils/bzz"
 
 import type { Image, ImageSource } from "../.."
+import type { Reference } from "../../clients"
 
 export type ImageDeserializerOptions = {
   /** Base path reference */
-  reference: string
+  reference?: Reference
 }
 
 export class ImageDeserializer {
