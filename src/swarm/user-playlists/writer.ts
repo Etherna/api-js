@@ -1,4 +1,5 @@
 import { UserPlaylistsSerializer } from "../../serializers"
+import { EmptyReference } from "../../utils"
 import { BaseWriter } from "../base-writer"
 import { PlaylistReader } from "../playlist/reader"
 import { USER_PLAYLISTS_TOPIC } from "./reader"
@@ -64,7 +65,7 @@ export class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
   static defaultChannelPlaylists(owner: EthAddress): Playlist {
     return {
       id: PlaylistReader.channelPlaylistId,
-      reference: "0".repeat(64),
+      reference: EmptyReference,
       type: "public",
       owner,
       videos: [],
@@ -78,7 +79,7 @@ export class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
   static defaultSavedPlaylists(owner: EthAddress): Playlist {
     return {
       id: PlaylistReader.savedPlaylistId,
-      reference: "0".repeat(64),
+      reference: EmptyReference,
       type: "unlisted",
       owner,
       videos: [],

@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { Reference } from "../clients"
 import { beeReference, nonEmptyRecord } from "./base"
 
 export const imageSize = z.custom<`${number}w`>(val => /^\d+w$/g.test(val as string))
@@ -14,7 +15,7 @@ export const ImageRawLegacySourcesSchema = nonEmptyRecord(
 ).transform(data => {
   const sources: ImageRawSource[] = []
   for (const [size, reference] of Object.entries(data)) {
-    sources.push({ width: parseInt(size), type: "jpeg", reference })
+    sources.push({ width: parseInt(size), type: "jpeg", reference: reference as Reference })
   }
   return sources
 })
@@ -35,7 +36,7 @@ const rawSourceBaseTransform = <T extends z.infer<typeof ImageRawSourceBaseSchem
     delete data.reference
   }
   if ("path" in data && beeReference.safeParse(data.path).success) {
-    data.reference = data.path
+    data.reference = beeReference.parse(data.path)
     delete data.path
   }
 

@@ -1,3 +1,4 @@
+import { Reference } from "../../clients"
 import { PlaylistEncryptedDataRawSchema, PlaylistRawSchema } from "../../schemas/playlist"
 import { decryptData } from "../../utils/crypto"
 import { BaseDeserializer } from "../base-deserializer"
@@ -6,7 +7,7 @@ import type { Playlist } from "../.."
 
 export type PlaylistDeserializerOptions = {
   /** Video swarm reference */
-  reference: string
+  reference: Reference
 }
 
 export class PlaylistDeserializer extends BaseDeserializer<Playlist> {

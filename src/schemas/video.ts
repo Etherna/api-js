@@ -65,7 +65,7 @@ export const VideoSourceRawSchema = z
       delete data.reference
     }
     if ("path" in data && data.type === "mp4" && beeReference.safeParse(data.path).success) {
-      data.reference = data.path
+      data.reference = beeReference.parse(data.path)
       delete data.path
     }
     return data

@@ -21,7 +21,7 @@ export class PlaylistReader extends BaseReader<
   Reference | undefined,
   PlaylistRaw
 > {
-  private reference?: string
+  private reference?: Reference
   private id?: string
   private owner?: EthAddress
   private beeClient: BeeClient
