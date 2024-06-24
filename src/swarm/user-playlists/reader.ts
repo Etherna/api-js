@@ -23,15 +23,10 @@ export class UserPlaylistsReader extends BaseReader<UserPlaylists, EthAddress, U
   }
 
   async download(opts?: UserPlaylistsDownloadOptions): Promise<UserPlaylists> {
-    let userPlaylists: UserPlaylists = {
-      channel: null,
-      saved: null,
-      custom: [],
-    }
+    let userPlaylists: UserPlaylists = []
 
     try {
       const feed = this.beeClient.feed.makeFeed(USER_PLAYLISTS_TOPIC, this.owner, "epoch")
-      console.log("DOWNLOAD FEED", feed)
       const reader = this.beeClient.feed.makeReader(feed)
       const { reference } = await reader.download({
         headers: {

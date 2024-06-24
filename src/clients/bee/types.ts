@@ -110,7 +110,7 @@ export interface Data extends Uint8Array {
   /**
    * Converts the binary data into string which is then parsed into JSON.
    */
-  json<T extends Record<string, unknown>>(): T
+  json<T extends Record<string, unknown> | unknown[]>(): T
 }
 
 export interface RequestUploadOptions extends RequestOptions {

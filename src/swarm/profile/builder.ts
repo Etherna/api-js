@@ -67,6 +67,7 @@ export class ProfileBuilder {
     this.detailsMeta = {
       description: null,
       cover: null,
+      playlists: [],
     }
     this.queue = new Queue()
     this.node = new MantarayNode()
@@ -95,7 +96,7 @@ export class ProfileBuilder {
 
   async loadNode(opts: ProfileBuilderRequestOptions): Promise<void> {
     if (!isZeroBytesReference(this.reference)) {
-      await this.node.load(async reference => {
+      await this.node.load(async (reference) => {
         const data = await opts.beeClient.bytes.download(bytesReferenceToReference(reference), {
           signal: opts.signal,
         })
@@ -106,16 +107,16 @@ export class ProfileBuilder {
     if (opts.signal?.aborted) return
 
     const avatarReferences = (this.previewMeta.avatar?.sources ?? [])
-      .map(source => source.reference)
-      .filter(ref => ref && isValidReference(ref)) as Reference[]
+      .map((source) => source.reference)
+      .filter((ref) => ref && isValidReference(ref)) as Reference[]
     const coverReferences = (this.detailsMeta.cover?.sources ?? [])
-      .map(source => source.reference)
-      .filter(ref => ref && isValidReference(ref)) as Reference[]
+      .map((source) => source.reference)
+      .filter((ref) => ref && isValidReference(ref)) as Reference[]
 
     const references = [...avatarReferences, ...coverReferences]
 
     const bytesReferences = await Promise.all(
-      references.map(ref => getBzzNodeInfo(ref, opts.beeClient, opts.signal))
+      references.map((ref) => getBzzNodeInfo(ref, opts.beeClient, opts.signal)),
     )
 
     if (opts.signal?.aborted) return
@@ -123,7 +124,7 @@ export class ProfileBuilder {
     const mapSource = (type: "avatar" | "cover") => (source: ImageRawSource) => {
       if (source.path) return source
 
-      const referenceIndex = references.findIndex(ref => ref === source.reference)
+      const referenceIndex = references.findIndex((ref) => ref === source.reference)
       const contentType = bytesReferences[referenceIndex]?.contentType
       const typeParse = imageType.safeParse(contentType?.split("/")[1])
       const imgType = typeParse.success ? typeParse.data : "jpeg"
@@ -137,7 +138,7 @@ export class ProfileBuilder {
         type,
         source.width,
         imgType,
-        bytesReferenceToReference(bytesReference)
+        bytesReferenceToReference(bytesReference),
       )
       return newSource
     }
@@ -162,9 +163,9 @@ export class ProfileBuilder {
       new ProfileSerializer().serializePreview(
         new ProfileDeserializer("http://doesntmatter.com").deserializePreview(
           JSON.stringify(this.previewMeta),
-          { fallbackBatchId: opts.batchId, reference: this.reference }
-        )
-      )
+          { fallbackBatchId: opts.batchId, reference: this.reference },
+        ),
+      ),
     ) as ProfilePreviewRaw
     this.detailsMeta = JSON.parse(
       new ProfileSerializer().serializeDetails(
@@ -172,9 +173,9 @@ export class ProfileBuilder {
           JSON.stringify(this.detailsMeta),
           {
             reference: this.reference,
-          }
-        )
-      )
+          },
+        ),
+      ),
     ) as ProfileDetailsRaw
 
     this.updateNode()
@@ -182,15 +183,15 @@ export class ProfileBuilder {
     this.enqueueData(
       new TextEncoder().encode(JSON.stringify(this.previewMeta)),
       opts.beeClient,
-      batchId
+      batchId,
     )
     this.enqueueData(
       new TextEncoder().encode(JSON.stringify(this.detailsMeta)),
       opts.beeClient,
-      batchId
+      batchId,
     )
 
-    const reference = await this.node.save(async data => {
+    const reference = await this.node.save(async (data) => {
       return this.enqueueData(data, opts.beeClient, batchId, opts.signal)
     })
     await this.queue.drain()
@@ -306,7 +307,7 @@ export class ProfileBuilder {
               [encodePath(path)[0]!]: fork,
             }
           },
-          {} as Record<number, MantarayFork>
+          {} as Record<number, MantarayFork>,
         )
       }
 
@@ -323,7 +324,7 @@ export class ProfileBuilder {
     data: Uint8Array,
     beeClient: BeeClient,
     batchId: BatchId,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ) {
     const chunkedFile = makeChunkedFile(data)
     this.queue.enqueue(async () => {
@@ -336,7 +337,7 @@ export class ProfileBuilder {
     type: "avatar" | "cover",
     width: number,
     imageType: ImageType,
-    entry: Reference
+    entry: Reference,
   ): ImageRawSource {
     const path = this.getImagePath(type, width, imageType)
 

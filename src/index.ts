@@ -22,7 +22,7 @@ export type {
 } from "./schemas/playlist"
 export type { Profile, ProfileRaw } from "./schemas/profile"
 export type { ProfileWithEns } from "./swarm/profile/reader"
-export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/user-playlists"
+export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/playlists"
 export type {
   Video,
   VideoRaw,

@@ -5,9 +5,9 @@
   "semi": false,
   "useTabs": false,
   "proseWrap": "always",
-  "arrowParens": "avoid",
+  "arrowParens": "always",
   "bracketSpacing": true,
-  "trailingComma": "es5",
+  "trailingComma": "all",
   "importOrder": [
     "^react",
     "<THIRD_PARTY_MODULES>",

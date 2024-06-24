@@ -1,7 +1,5 @@
-import { UserPlaylistsSchema } from "../../schemas/user-playlists"
+import { UserPlaylistsRawSchema } from "../../schemas/playlists"
 import { BaseSerializer } from "../base-serializer"
-
-import type { UserPlaylistsRaw } from "../.."
 
 export class UserPlaylistsSerializer extends BaseSerializer {
   constructor() {
@@ -9,20 +7,8 @@ export class UserPlaylistsSerializer extends BaseSerializer {
   }
 
   serialize(item: object): string {
-    const usersPlaylists = UserPlaylistsSchema.parse(item)
+    const usersPlaylists = UserPlaylistsRawSchema.parse(item)
 
-    const usersPlaylistsRaw: UserPlaylistsRaw = {}
-
-    if (usersPlaylists.channel) {
-      usersPlaylistsRaw.channel = usersPlaylists.channel
-    }
-    if (usersPlaylists.saved) {
-      usersPlaylistsRaw.saved = usersPlaylists.saved
-    }
-    if (usersPlaylists.custom.length > 0) {
-      usersPlaylistsRaw.custom = usersPlaylists.custom
-    }
-
-    return JSON.stringify(usersPlaylistsRaw)
+    return JSON.stringify(usersPlaylists)
   }
 }

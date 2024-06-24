@@ -3,6 +3,7 @@ import { z } from "zod"
 import { beeReference, birthday, ethAddress, slicedString } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 import { MantarayNodeSchema } from "./mantaray"
+import { PlaylistsSchema } from "./playlists"
 
 import type { Reference } from "../clients"
 
@@ -44,6 +45,8 @@ export const ProfileDetailsRawSchema = z.object({
   website: z.string().optional(),
   /** User's birthday */
   birthday: birthday.optional(),
+  /** Channel public playlists */
+  playlists: PlaylistsSchema.catch([]),
 })
 
 export const ProfilePreviewSchema = z.object({
@@ -58,9 +61,9 @@ export const ProfilePreviewSchema = z.object({
 })
 
 export const ProfileDetailsSchema = z.object({
-  /**  Description of the Profile */
+  /** Description of the Profile */
   description: z.string().nullable(),
-  /**  User's cover image */
+  /** User's cover image */
   cover: ImageSchema.nullable(),
   /** User's location */
   location: z.string().optional(),
@@ -68,6 +71,8 @@ export const ProfileDetailsSchema = z.object({
   website: z.string().optional(),
   /** User's birthday */
   birthday: birthday.optional(),
+  /** Channel public playlists */
+  playlists: PlaylistsSchema,
 })
 
 export const ProfileBuilderSchema = z.object({

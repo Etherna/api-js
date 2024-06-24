@@ -34,6 +34,7 @@ export class ProfileSerializer {
       location: profile.location,
       website: profile.website,
       cover: profile.cover ? imageSerializer.serialize(profile.cover) : null,
+      playlists: profile.playlists,
     }
     return JSON.stringify(profileRaw)
   }

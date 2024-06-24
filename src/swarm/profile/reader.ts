@@ -115,13 +115,14 @@ export class ProfileReader extends BaseReader<ProfileWithEns | null, EthAddress,
       details: {
         description: null,
         cover: null,
+        playlists: [],
       },
     }
   }
 
   private async downloadProfile(
     reference: Reference,
-    opts: ProfileReaderDownloadOptions
+    opts: ProfileReaderDownloadOptions,
   ): Promise<ProfileRaw | null> {
     const downloadDetails = opts.mode === "full"
     const [previewResult, detailsResult] = await Promise.allSettled([
@@ -148,11 +149,11 @@ export class ProfileReader extends BaseReader<ProfileWithEns | null, EthAddress,
     }
 
     const legacyParsing = ProfilePreviewRawSchema.merge(ProfileDetailsRawSchema).safeParse(
-      previewResult.value.data.json()
+      previewResult.value.data.json(),
     )
     const previewParsing = ProfilePreviewRawSchema.safeParse(previewResult.value.data.json())
     const detailsParsing = ProfileDetailsRawSchema.safeParse(
-      detailsResult.status === "fulfilled" ? detailsResult.value?.data.json() : null
+      detailsResult.status === "fulfilled" ? detailsResult.value?.data.json() : null,
     )
 
     if (!previewParsing.success) {
@@ -169,6 +170,7 @@ export class ProfileReader extends BaseReader<ProfileWithEns | null, EthAddress,
             birthday: legacyParsing.data.birthday,
             location: legacyParsing.data.location,
             website: legacyParsing.data.website,
+            playlists: legacyParsing.data.playlists,
           } satisfies ProfileDetailsRaw)
         : undefined
 

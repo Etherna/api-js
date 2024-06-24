@@ -50,6 +50,7 @@ export class ProfileDeserializer {
             reference: opts?.reference,
           })
         : null,
+      playlists: profileRaw.playlists,
     }
 
     return profile

@@ -38,6 +38,7 @@ export const testProfileDetailsRaw_2 = {
   // birthday: "12-05-1991",
   location: "Italy",
   website: "https://test.me",
+  playlists: [],
 }
 
 export const testProfilePreviewParsed_1_0 = {
@@ -60,4 +61,5 @@ export const testProfileDetailsParsed = {
   // birthday: "12-05-1991",
   location: "Italy",
   website: "https://test.me",
+  playlists: [],
 }
