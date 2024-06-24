@@ -1,10 +1,9 @@
+import { makeChunk } from "@fairdatasociety/bmt-js"
 import { makeSpan } from "@fairdatasociety/bmt-js/src/span"
 
-import { bmtHash } from "./bmt"
 import { serializeBytes } from "./bytes"
-import { CAC_PAYLOAD_OFFSET } from "./contants"
 
-import type { Chunk } from "../types"
+import type { Chunk } from "@fairdatasociety/bmt-js/src"
 
 /**
  * Creates a content addressed chunk and verifies the payload size.
@@ -14,11 +13,7 @@ import type { Chunk } from "../types"
 export function makeContentAddressedChunk(payloadBytes: Uint8Array): Chunk {
   const span = makeSpan(payloadBytes.length)
   const data = serializeBytes(span, payloadBytes)
+  const chunk = makeChunk(data)
 
-  return {
-    data,
-    span: () => span,
-    payload: () => data.slice(CAC_PAYLOAD_OFFSET),
-    address: () => bmtHash(data),
-  }
+  return chunk
 }

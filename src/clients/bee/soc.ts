@@ -1,7 +1,7 @@
+import { Chunk, makeChunk } from "@fairdatasociety/bmt-js"
 import { etc } from "@noble/secp256k1"
 
 import { keccak256Hash } from "../../utils"
-import { bmtHash } from "./utils/bmt"
 import { bytesEqual, serializeBytes } from "./utils/bytes"
 import { makeContentAddressedChunk } from "./utils/chunk"
 import {
@@ -19,13 +19,7 @@ import { recoverAddress } from "./utils/signer"
 
 import type { BeeClient } from "."
 import type { RequestOptions } from ".."
-import type {
-  Chunk,
-  EthAddress,
-  ReferenceResponse,
-  RequestUploadOptions,
-  SingleOwnerChunk,
-} from "./types"
+import type { EthAddress, ReferenceResponse, RequestUploadOptions, SingleOwnerChunk } from "./types"
 
 const socEndpoint = "/soc"
 
@@ -85,7 +79,7 @@ export class Soc {
 
     const digest = keccak256Hash(identifier, chunkAddress)
     const signature = etc.hexToBytes(makeHexString(await this.instance.signer.sign(digest)))
-    const data = serializeBytes(identifier, signature, chunk.span(), chunk.payload())
+    const data = serializeBytes(identifier, signature, chunk.span(), chunk.payload)
     const signerAddress = etc.hexToBytes(makeHexString(this.instance.signer!.address))
     const address = this.makeSOCAddress(identifier, signerAddress)
 
@@ -94,7 +88,7 @@ export class Soc {
       identifier: () => identifier,
       signature: () => signature,
       span: () => chunk.span(),
-      payload: () => chunk.payload(),
+      payload: () => chunk.payload,
       address: () => address,
       owner: () => signerAddress,
     }
@@ -130,7 +124,7 @@ export class Soc {
 
   private recoverChunkOwner(data: Uint8Array): Uint8Array {
     const cacData = data.slice(SOC_SPAN_OFFSET)
-    const chunkAddress = bmtHash(cacData)
+    const chunkAddress = makeChunk(cacData).address()
     const signature = data.slice(SOC_SIGNATURE_OFFSET, SOC_SIGNATURE_OFFSET + SIGNATURE_SIZE)
     const identifier = data.slice(SOC_IDENTIFIER_OFFSET, SOC_IDENTIFIER_OFFSET + IDENTIFIER_SIZE)
     const digest = keccak256Hash(identifier, chunkAddress)

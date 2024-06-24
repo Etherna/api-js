@@ -28,6 +28,18 @@ export declare type HexString<Length = number> = string & {
 
 export type BatchId = HexString<typeof BATCH_ID_HEX_LENGTH>
 
+export type PostageBatchBucketsData = {
+  depth: number
+  bucketDepth: number
+  bucketUpperBound: number
+  buckets: PostageBatchBucket[]
+}
+
+export type PostageBatchBucket = {
+  bucketID: number
+  collisions: number
+}
+
 export type Reference = HexString<typeof REFERENCE_HEX_LENGTH>
 
 export type PostageBatch = {

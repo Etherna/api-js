@@ -30,6 +30,7 @@ export const ENCRYPTED_REFERENCE_HEX_LENGTH = 128
 export const REFERENCE_BYTES_LENGTH = 32
 export const ENCRYPTED_REFERENCE_BYTES_LENGTH = 64
 
+export const BUCKET_DEPTH = 16
 export const STAMPS_DEPTH_MIN = 17
 export const STAMPS_DEPTH_MAX = 255
 

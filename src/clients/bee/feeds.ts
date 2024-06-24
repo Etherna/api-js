@@ -141,7 +141,11 @@ export class Feed {
         const payloadBytes = serializeBytes(timestamp, canonicalReference)
         const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)
 
+        console.log("identifier: ", identifier)
+
         const reference = await this.instance.soc.upload(identifier, payloadBytes, options)
+
+        console.log("reference: ", reference)
 
         return {
           reference,

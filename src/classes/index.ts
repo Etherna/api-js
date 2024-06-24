@@ -1,3 +1,4 @@
+export * from "./BucketCalculator"
 export * from "./EpochIndex"
 export * from "./EpochFeed"
 export * from "./EpochFeedChunk"

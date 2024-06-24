@@ -11,7 +11,7 @@ export class ChainState {
 
     const resp = await this.instance.request.get(chainstateEndpoint, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: token ? `Bearer ${token}` : undefined,
         ...options?.headers,
       },
       timeout: options?.timeout,

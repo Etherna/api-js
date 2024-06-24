@@ -1,6 +1,8 @@
 import { exec } from "child_process"
 import axios from "axios"
 
+import { BatchId } from "../../src/clients"
+
 import type { AxiosError } from "axios"
 
 export type ChildProcess = ReturnType<typeof exec>
@@ -8,7 +10,6 @@ export type ChildProcess = ReturnType<typeof exec>
 export type BeeProcess = ChildProcess & {
   port: number
   url: string
-  debugUrl: string
 }
 
 const processes: BeeProcess[] = []
@@ -20,21 +21,19 @@ export const startBee = async () => {
 }
 
 export const createPostageBatch = async (process: BeeProcess) => {
-  const batchResp = await axios.post(`${process.debugUrl}/stamps/10000000/20`)
+  const batchResp = await axios.post(`${process.url}/stamps/10000000/20`)
   const { batchID } = batchResp.data
-  return batchID
+  return batchID as BatchId
 }
 
 const runProcess = (): Promise<BeeProcess> => {
   return new Promise<BeeProcess>((res, rej) => {
     const port = +("1633" + processes.length)
-    const debugPort = +("1635" + processes.length)
-    const cmd = `bee dev --restricted --api-addr=':${port}' --debug-api-addr=':${debugPort}'`
+    const cmd = `bee dev --api-addr=':${port}'`
 
     const childProcess = exec(cmd) as BeeProcess
     childProcess.port = port
     childProcess.url = `http://localhost:${port}`
-    childProcess.debugUrl = `http://localhost:${debugPort}`
 
     childProcess.on("error", error => {
       rej(error)

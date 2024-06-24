@@ -3,7 +3,7 @@ import { STAMPS_DEPTH_MIN } from "./utils/contants"
 
 import type { BeeClient } from "."
 import type { RequestOptions } from ".."
-import type { BatchId, PostageBatch } from "./types"
+import type { BatchId, PostageBatch, PostageBatchBucketsData } from "./types"
 
 const stampsEndpoint = "/stamps"
 
@@ -26,7 +26,7 @@ export class Stamps {
           label,
         },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: token ? `Bearer ${token}` : undefined,
           ...options?.headers,
         },
         timeout: options?.timeout,
@@ -45,7 +45,27 @@ export class Stamps {
       `${stampsEndpoint}/${batchId}`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: token ? `Bearer ${token}` : undefined,
+          ...options?.headers,
+        },
+        timeout: options?.timeout,
+        signal: options?.signal,
+      }
+    )
+    return postageResp.data
+  }
+
+  async downloadBuckets(
+    batchId: BatchId,
+    options?: RequestOptions
+  ): Promise<PostageBatchBucketsData> {
+    const token = this.instance.auth.token
+
+    const postageResp = await this.instance.request.get<PostageBatchBucketsData>(
+      `${stampsEndpoint}/${batchId}/buckets`,
+      {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
           ...options?.headers,
         },
         timeout: options?.timeout,
@@ -62,7 +82,7 @@ export class Stamps {
       stampsEndpoint,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: token ? `Bearer ${token}` : undefined,
           ...options?.headers,
         },
         timeout: options?.timeout,
@@ -113,7 +133,7 @@ export class Stamps {
       null,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: token ? `Bearer ${token}` : undefined,
           ...options?.headers,
         },
         timeout: options?.timeout,
@@ -138,7 +158,7 @@ export class Stamps {
       null,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: token ? `Bearer ${token}` : undefined,
           ...options?.headers,
         },
         timeout: options?.timeout,

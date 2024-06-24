@@ -118,7 +118,7 @@ export function fromBigEndian(bytes: Uint8Array): number {
     numbers.push(bytes[lastIndex - i]! << (8 * i))
   }
 
-  return numbers.reduce((bigEndian, num) => (bigEndian |= num))
+  return numbers.reduce((bigEndian, num) => (bigEndian |= num)) >>> 0
 }
 
 export function toBigEndianFromUint16(value: number): Bytes<2> {
