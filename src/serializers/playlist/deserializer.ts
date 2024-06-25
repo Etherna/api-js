@@ -20,40 +20,40 @@ export class PlaylistDeserializer extends BaseDeserializer<Playlist> {
 
     const type = playlistRaw.type
 
-    if (type === "public" || type === "unlisted") {
-      const playlist: Playlist = {
-        reference: opts.reference,
-        id: playlistRaw.id,
-        name: playlistRaw.name,
-        type: type,
-        owner: playlistRaw.owner,
-        createdAt: playlistRaw.createdAt,
-        updatedAt: playlistRaw.updatedAt,
-        description: playlistRaw.description ?? null,
-        videos: playlistRaw.videos.map(rawVideo => ({
-          reference: rawVideo.r,
-          title: rawVideo.t,
-          addedAt: rawVideo.a,
-          publishedAt: rawVideo.p,
-        })),
-      }
-      return playlist
-    } else if (type === "private") {
-      const playlist: Playlist = {
-        reference: opts.reference,
-        id: playlistRaw.id,
-        name: playlistRaw.name,
-        type: type,
-        owner: playlistRaw.owner,
-        createdAt: playlistRaw.createdAt,
-        updatedAt: playlistRaw.updatedAt,
-        encryptedData: playlistRaw.encryptedData,
-        description: null,
-        videos: [],
-      }
-      return playlist
-    } else {
-      throw new Error("Wrong Schema. Field 'type' is not a valid playlist type")
+    switch (type) {
+      case "public":
+        return {
+          reference: opts.reference,
+          id: playlistRaw.id,
+          name: playlistRaw.name,
+          type: type,
+          owner: playlistRaw.owner,
+          createdAt: playlistRaw.createdAt,
+          updatedAt: playlistRaw.updatedAt,
+          description: playlistRaw.description ?? null,
+          videos: playlistRaw.videos.map((rawVideo) => ({
+            reference: rawVideo.r,
+            title: rawVideo.t,
+            addedAt: rawVideo.a,
+            publishedAt: rawVideo.p,
+          })),
+        } satisfies Playlist
+      case "private":
+      case "protected":
+        return {
+          reference: opts.reference,
+          id: playlistRaw.id,
+          name: playlistRaw.name,
+          type: type,
+          owner: playlistRaw.owner,
+          createdAt: playlistRaw.createdAt,
+          updatedAt: playlistRaw.updatedAt,
+          encryptedData: playlistRaw.encryptedData,
+          description: null,
+          videos: [],
+        } satisfies Playlist
+      default:
+        throw new Error(`Playlist type "${type}" is not supported`)
     }
   }
 
@@ -63,11 +63,11 @@ export class PlaylistDeserializer extends BaseDeserializer<Playlist> {
     }
 
     const encryptedData = PlaylistEncryptedDataRawSchema.parse(
-      JSON.parse(decryptData(playlist.encryptedData, password))
+      JSON.parse(decryptData(playlist.encryptedData, password)),
     )
 
     playlist.description = encryptedData.description ?? null
-    playlist.videos = encryptedData.videos.map(rawVideo => ({
+    playlist.videos = encryptedData.videos.map((rawVideo) => ({
       reference: rawVideo.r,
       title: rawVideo.t,
       addedAt: rawVideo.a,

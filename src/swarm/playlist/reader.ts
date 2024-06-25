@@ -7,43 +7,34 @@ import type { BeeClient, EthAddress, Reference } from "../../clients"
 import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
 
 interface PlaylistReaderOptions extends ReaderOptions {
-  playlistId?: string
-  playlistOwner?: EthAddress
   prefetchData?: Playlist
 }
 
 export const PlaylistCache = new Cache<string, Playlist>()
 
+export const getPlaylistCacheId = (owner: EthAddress, id: string) => `${owner}/${id}`
+
 export const getFeedTopicName = (id: string) => `EthernaPlaylist:${id}`
 
-export class PlaylistReader extends BaseReader<
-  Playlist | null,
-  Reference | undefined,
-  PlaylistRaw
-> {
+export class PlaylistReader extends BaseReader<Playlist | null, string, PlaylistRaw> {
   private reference?: Reference
-  private id?: string
-  private owner?: EthAddress
+  private id: string
+  private owner: EthAddress
   private beeClient: BeeClient
 
-  static channelPlaylistId = "__channel" as const
-  static savedPlaylistId = "__saved" as const
+  static channelPlaylistId = "Channel" as const
+  static savedPlaylistId = "Saved" as const
 
-  constructor(reference: Reference | undefined, opts: PlaylistReaderOptions) {
-    super(reference, opts)
+  constructor(id: string, owner: EthAddress, opts: PlaylistReaderOptions) {
+    super(id, opts)
 
-    this.reference = reference
     this.beeClient = opts.beeClient
-    this.id = opts.playlistId
-    this.owner = opts.playlistOwner
+    this.id = id
+    this.owner = owner
   }
 
   async download(opts?: ReaderDownloadOptions): Promise<Playlist> {
-    if (!this.reference && (!this.id || !this.owner)) {
-      throw new Error("Cannot fetch playlist. Missing reference or identifier.")
-    }
-
-    const cacheId = this.reference || `${this.owner}/${this.id}`
+    const cacheId = getPlaylistCacheId(this.owner, this.id)
 
     if (PlaylistCache.has(cacheId)) {
       return PlaylistCache.get(cacheId)!

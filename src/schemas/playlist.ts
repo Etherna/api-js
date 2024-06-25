@@ -2,9 +2,9 @@ import { z } from "zod"
 
 import { beeReference, ethAddress } from "./base"
 
-export const PlaylistTypeEncryptedSchema = z.literal("private")
+export const PlaylistTypeEncryptedSchema = z.enum(["private", "protected"])
 
-export const PlaylistTypeVisibleSchema = z.union([z.literal("public"), z.literal("unlisted")])
+export const PlaylistTypeVisibleSchema = z.enum(["public"])
 
 export const PlaylistTypeSchema = z.union([PlaylistTypeEncryptedSchema, PlaylistTypeVisibleSchema])
 
@@ -48,7 +48,7 @@ export const PlaylistRawSchema = z
         /** Encrypted data of the playlist (only for private playlists) */
         encryptedData: z.string().min(1),
       }),
-    ])
+    ]),
   )
 
 export const PlaylistVideoSchema = z.object({
@@ -64,7 +64,7 @@ export const PlaylistVideoSchema = z.object({
 
 export const PlaylistSchema = z
   .object({
-    /** Video reference */
+    /** Epoch feed root manifest */
     reference: beeReference,
     /** Playlist id (used for feed update) */
     id: z.string().min(1),
@@ -93,7 +93,7 @@ export const PlaylistSchema = z
         /** Ecrypted data for private */
         encryptedData: z.string().min(1),
       }),
-    ])
+    ]),
   )
 
 export const PlaylistEncryptedDataRawSchema = z.object({
