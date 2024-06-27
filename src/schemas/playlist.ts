@@ -4,7 +4,7 @@ import { beeReference, ethAddress } from "./base"
 
 export const PlaylistTypeEncryptedSchema = z.enum(["private", "protected"])
 
-export const PlaylistTypeVisibleSchema = z.enum(["public"])
+export const PlaylistTypeVisibleSchema = z.literal("public")
 
 export const PlaylistTypeSchema = z.union([PlaylistTypeEncryptedSchema, PlaylistTypeVisibleSchema])
 

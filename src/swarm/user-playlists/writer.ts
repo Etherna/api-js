@@ -44,7 +44,7 @@ export class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     const feed = this.beeClient.feed.makeFeed(
       USER_PLAYLISTS_TOPIC,
       this.beeClient.signer!.address,
-      "epoch"
+      "epoch",
     )
     const writer = this.beeClient.feed.makeWriter(feed)
     await writer.upload(reference, {
@@ -80,7 +80,7 @@ export class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     return {
       id: PlaylistReader.savedPlaylistId,
       reference: EmptyReference,
-      type: "unlisted",
+      type: "public",
       owner,
       videos: [],
       name: "",

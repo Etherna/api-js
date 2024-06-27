@@ -46,7 +46,7 @@ export class Feed {
   makeFeed<T extends FeedType>(
     topicName: string,
     owner: EthAddress,
-    type: T = "sequence" as T
+    type: T = "sequence" as T,
   ): FeedInfo<T> {
     return {
       topic: etc.bytesToHex(keccak256Hash(topicName)),
@@ -68,11 +68,11 @@ export class Feed {
             toEthAccount(feed.owner),
             etc.hexToBytes(feed.topic),
             at,
-            options?.index ? EpochIndex.fromString(options.index) : undefined
+            options?.index ? EpochIndex.fromString(options.index) : undefined,
           )
 
           if (!chunk) {
-            throw new Error("No epoch feed found")
+            throw new Error(`No epoch feed found: '${feed.topic}', '0x${feed.owner}'`)
           }
 
           const reference = etc.bytesToHex(chunk.getContentPayload()) as Reference
@@ -91,7 +91,7 @@ export class Feed {
               headers: options?.headers,
               signal: options?.signal,
               timeout: options?.timeout,
-            }
+            },
           )
 
           return {
@@ -120,7 +120,7 @@ export class Feed {
           toEthAccount(feed.owner),
           etc.hexToBytes(feed.topic),
           canonicalReference,
-          options.index ? EpochIndex.fromString(options.index) : undefined
+          options.index ? EpochIndex.fromString(options.index) : undefined,
         )
 
         const identifier = EpochFeedChunk.buildIdentifier(etc.hexToBytes(feed.topic), chunk.index)
@@ -140,12 +140,7 @@ export class Feed {
         const timestamp = writeUint64BigEndian(at)
         const payloadBytes = serializeBytes(timestamp, canonicalReference)
         const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)
-
-        console.log("identifier: ", identifier)
-
         const reference = await this.instance.soc.upload(identifier, payloadBytes, options)
-
-        console.log("reference: ", reference)
 
         return {
           reference,
@@ -178,7 +173,7 @@ export class Feed {
         headers: extractUploadHeaders(options),
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
 
     return response.data.reference
@@ -189,12 +184,12 @@ export class Feed {
     node.addFork(encodePath("/"), ZeroHashReference, {
       [EntryMetadataFeedOwnerKey]: feed.owner.toLowerCase(),
       [EntryMetadataFeedTopicKey]: feed.topic,
-      [EntryMetadataFeedTypeKey]: feed.type.replace(/^./, c => c.toUpperCase()),
+      [EntryMetadataFeedTypeKey]: feed.type.replace(/^./, (c) => c.toUpperCase()),
     })
     node.getForkAtPath(encodePath("/")).node["makeValue"]()
     node.getForkAtPath(encodePath("/")).node.entry = ZeroHashReference
 
-    const reference = await node.save(async data => {
+    const reference = await node.save(async (data) => {
       return referenceToBytesReference(getReferenceFromData(data))
     })
 
@@ -202,7 +197,7 @@ export class Feed {
       reference: bytesReferenceToReference(reference),
       save: async (options: RequestUploadOptions) => {
         node.makeDirty()
-        await node.save(async data => {
+        await node.save(async (data) => {
           const { reference } = await this.instance.bytes.upload(data, options)
           return referenceToBytesReference(reference)
         })
@@ -212,7 +207,7 @@ export class Feed {
 
   async parseFeedFromRootManifest(reference: Reference, opts?: RequestOptions) {
     const node = new MantarayNode()
-    await node.load(async reference => {
+    await node.load(async (reference) => {
       try {
         const data = await this.instance.bytes.download(bytesReferenceToReference(reference), {
           signal: opts?.signal,
@@ -234,7 +229,9 @@ export class Feed {
     const fork = node.getForkAtPath(encodePath("/"))
     const owner = fork.node.metadata?.[EntryMetadataFeedOwnerKey]
     const topic = fork.node.metadata?.[EntryMetadataFeedTopicKey]
-    const type = fork.node.metadata?.[EntryMetadataFeedTypeKey].replace(/^./, c => c.toLowerCase())
+    const type = fork.node.metadata?.[EntryMetadataFeedTypeKey].replace(/^./, (c) =>
+      c.toLowerCase(),
+    )
 
     if (!owner || owner.length !== 40) {
       throw new Error(`Invalid feed owner: '${owner}'`)
@@ -247,7 +244,7 @@ export class Feed {
     }
 
     return {
-      owner: owner,
+      owner,
       topic,
       type: type as FeedType,
     } as FeedInfo<any>
@@ -261,7 +258,7 @@ export class Feed {
         params: {
           type: feed.type,
         },
-      }
+      },
     )
 
     return {
@@ -286,7 +283,7 @@ export class Feed {
   }
 
   private readFeedUpdateHeaders(
-    headers: RawAxiosResponseHeaders | AxiosResponseHeaders | Partial<Record<string, string>>
+    headers: RawAxiosResponseHeaders | AxiosResponseHeaders | Partial<Record<string, string>>,
   ): FeedUpdateHeaders {
     const feedIndex = headers["swarm-feed-index"]
     const feedIndexNext = headers["swarm-feed-index-next"]

@@ -1,6 +1,6 @@
 import { PlaylistSerializer } from "../../serializers"
 import { BaseWriter } from "../base-writer"
-import { getFeedTopicName, getPlaylistCacheId, PlaylistCache } from "./reader"
+import { createPlaylistTopicName, getPlaylistCacheId, PlaylistCache } from "./reader"
 
 import type { Playlist } from "../.."
 import type { BeeClient, Reference } from "../../clients"
@@ -46,8 +46,8 @@ export class PlaylistWriter extends BaseWriter<Playlist> {
       },
     })
 
-    const topicName = getFeedTopicName(this.playlist.id)
-    const feed = this.beeClient.feed.makeFeed(topicName, this.beeClient.signer!.address, "epoch")
+    const topicName = createPlaylistTopicName(this.playlist.id)
+    const feed = this.beeClient.feed.makeFeed(topicName, this.playlist.owner, "epoch")
     const writer = this.beeClient.feed.makeWriter(feed)
     await writer.upload(reference, {
       batchId,
@@ -61,7 +61,15 @@ export class PlaylistWriter extends BaseWriter<Playlist> {
       signal: opts?.signal,
       onUploadProgress: opts?.onUploadProgress,
     })
-    await this.beeClient.feed.createRootManifest(feed, {
+
+    const reader = this.beeClient.feed.makeReader(feed)
+    const { reference: feedReference } = await reader.download({
+      headers: {
+        // "x-etherna-reason": "playlist-feed",
+      },
+    })
+
+    const rootManifest = await this.beeClient.feed.createRootManifest(feed, {
       batchId,
       deferred: opts?.deferred,
       encrypt: opts?.encrypt,
@@ -71,6 +79,8 @@ export class PlaylistWriter extends BaseWriter<Playlist> {
         // "x-etherna-reason": "swarm-playlist-feed-root-manifest",
       },
     })
+
+    this.playlist.reference = rootManifest
 
     PlaylistCache.set(getPlaylistCacheId(this.playlist.owner, this.playlist.id), this.playlist)
 
