@@ -19,7 +19,7 @@ export async function imageToBlurhash(image: ArrayBuffer, imageWidth: number, im
 }
 
 function parsePixels(pixels: Uint8ClampedArray, width: number, height: number) {
-  const pixelsString = [...pixels].map(byte => String.fromCharCode(byte)).join("")
+  const pixelsString = [...pixels].map((byte) => String.fromCharCode(byte)).join("")
   const pngString = generatePng(width, height, pixelsString)
   const dataURL =
     typeof Buffer !== "undefined"
@@ -117,7 +117,7 @@ function generatePng(width: number, height: number, rgbaString: string) {
       (dword & 0xff000000) >>> 24,
       (dword & 0x00ff0000) >>> 16,
       (dword & 0x0000ff00) >>> 8,
-      dword & 0x000000ff
+      dword & 0x000000ff,
     )
   }
 

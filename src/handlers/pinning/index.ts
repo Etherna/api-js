@@ -21,11 +21,11 @@ export class EthernaPinningHandler {
   constructor(references: Reference[], opts: EthernaResourcesHandlerOptions)
   constructor(input: (Video | Reference)[], opts: EthernaResourcesHandlerOptions) {
     this.references = input
-      .map(input => (typeof input === "string" ? [input] : extractVideoReferences(input)))
+      .map((input) => (typeof input === "string" ? [input] : extractVideoReferences(input)))
       .flat()
       .filter(
         (reference, index, self) =>
-          self.indexOf(reference) === index && !isEmptyReference(reference)
+          self.indexOf(reference) === index && !isEmptyReference(reference),
       )
     this.client = opts.client
   }
@@ -40,13 +40,13 @@ export class EthernaPinningHandler {
     this.pinStatus = []
 
     const responses = await Promise.allSettled(
-      this.references.map(reference =>
+      this.references.map((reference) =>
         this.isGatewayClient(this.client)
           ? fetchByWhom
             ? this.client.resources.fetchPinUsers(reference)
             : this.client.resources.fetchIsPinned(reference)
-          : this.client.pins.isPinned(reference)
-      )
+          : this.client.pins.isPinned(reference),
+      ),
     )
 
     for (const [index, reference] of this.references.entries()) {
@@ -76,35 +76,35 @@ export class EthernaPinningHandler {
 
   async pinResources(opts?: RequestOptions) {
     await Promise.allSettled(
-      this.references.map(reference =>
+      this.references.map((reference) =>
         this.isGatewayClient(this.client)
           ? this.client.resources.pin(reference, opts)
-          : this.client.pins.pin(reference, opts)
-      )
+          : this.client.pins.pin(reference, opts),
+      ),
     )
   }
 
   async unpinResources(opts?: RequestOptions) {
     await Promise.allSettled(
-      this.references.map(reference =>
+      this.references.map((reference) =>
         this.isGatewayClient(this.client)
           ? this.client.resources.unpin(reference, opts)
-          : this.client.pins.unpin(reference, opts)
-      )
+          : this.client.pins.unpin(reference, opts),
+      ),
     )
   }
 
   getVideoReferencesStatus(video: Video): SwarmResourcePinStatus[] {
     const videoReferences = extractVideoReferences(video)
-    return (this.pinStatus ?? []).filter(status => videoReferences.includes(status.reference))
+    return (this.pinStatus ?? []).filter((status) => videoReferences.includes(status.reference))
   }
 
   getReferenceStatus(reference: string): SwarmResourcePinStatus | null {
-    return this.pinStatus?.find(status => status.reference === reference) ?? null
+    return this.pinStatus?.find((status) => status.reference === reference) ?? null
   }
 
   getVideoPinStatus(video: Video): SwarmResourcePinStatus[] {
     const videoReferences = extractVideoReferences(video)
-    return (this.pinStatus ?? []).filter(status => videoReferences.includes(status.reference))
+    return (this.pinStatus ?? []).filter((status) => videoReferences.includes(status.reference))
   }
 }

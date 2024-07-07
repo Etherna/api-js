@@ -35,7 +35,7 @@ export function serializeBytes(...arrays: Uint8Array[]): Uint8Array {
   const length = arrays.reduce((prev, curr) => prev + curr.length, 0)
   const buffer = new Uint8Array(length)
   let offset = 0
-  arrays.forEach(arr => {
+  arrays.forEach((arr) => {
     buffer.set(arr, offset)
     offset += arr.length
   })
@@ -44,7 +44,7 @@ export function serializeBytes(...arrays: Uint8Array[]): Uint8Array {
 }
 
 export function wrapBytesWithHelpers<T extends Record<string, unknown> = Record<string, unknown>>(
-  data: Uint8Array
+  data: Uint8Array,
 ): Data {
   return Object.assign(data, {
     text: () => new TextDecoder("utf-8").decode(data),

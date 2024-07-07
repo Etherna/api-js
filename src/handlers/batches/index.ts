@@ -48,7 +48,7 @@ export class BatchesHandler {
     this.network = opts.network ?? "mainnet"
     this.defaultBlockTime = this.network === "mainnet" ? 5 : 15
 
-    batchesStore.getState().updatingBatches.forEach(batchUpdate => {
+    batchesStore.getState().updatingBatches.forEach((batchUpdate) => {
       const flag = new FlagEnumManager(batchUpdate.flag)
       if (flag.has(BatchUpdateType.Create)) {
         this.onBatchCreating?.()
@@ -78,16 +78,16 @@ export class BatchesHandler {
 
     this.onBatchesLoading?.()
 
-    const batches = await Promise.allSettled(batchIds.map(id => this.fetchBatch(id, true)))
+    const batches = await Promise.allSettled(batchIds.map((id) => this.fetchBatch(id, true)))
 
     this.batches = batches
-      .filter(batch => batch.status === "fulfilled")
-      .map(batch => (batch as PromiseFulfilledResult<AnyBatch>).value)
+      .filter((batch) => batch.status === "fulfilled")
+      .map((batch) => (batch as PromiseFulfilledResult<AnyBatch>).value)
 
     this.onBatchesLoaded?.(this.batches)
 
     batches
-      .filter(batch => batch.status === "rejected")
+      .filter((batch) => batch.status === "rejected")
       .forEach((result, i) => {
         this.onBatchLoadError?.(batchIds[i]!, (result as PromiseRejectedResult).reason)
       })
@@ -180,7 +180,7 @@ export class BatchesHandler {
    * @returns The batch or undefined if not found
    */
   findBatchById(batchId: BatchId): AnyBatch | undefined {
-    return this.batches.find(batch => this.getBatchId(batch) === batchId)
+    return this.batches.find((batch) => this.getBatchId(batch) === batchId)
   }
 
   /**
@@ -209,7 +209,7 @@ export class BatchesHandler {
   async createBatchForSize(
     size: number,
     ttl = DEFAULT_TTL,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Promise<AnyBatch> {
     const { depth, amount } = await this.calcDepthAmount(size, ttl)
 
@@ -275,7 +275,7 @@ export class BatchesHandler {
   async waitBatchPropagation(
     batch: AnyBatch | UpdatingBatch,
     updateType: BatchUpdateType,
-    interval = 5000
+    interval = 5000,
   ) {
     let propagationPromiseResolve: ((batch: AnyBatch) => void) | undefined
 
@@ -302,7 +302,7 @@ export class BatchesHandler {
 
         if (canFinish) {
           const index = this.batches.findIndex(
-            b => this.getBatchId(b) === this.getBatchId(fetchedBatch)
+            (b) => this.getBatchId(b) === this.getBatchId(fetchedBatch),
           )
           this.batches[index] = fetchedBatch
 
@@ -321,7 +321,7 @@ export class BatchesHandler {
       }, interval)
     }
 
-    return new Promise<AnyBatch>(res => {
+    return new Promise<AnyBatch>((res) => {
       propagationPromiseResolve = res
       waitPropagation()
     })
@@ -332,9 +332,9 @@ export class BatchesHandler {
       batchesStore
         .getState()
         .updatingBatches.findIndex(
-          b =>
+          (b) =>
             b.id === this.getBatchId(batch) &&
-            new FlagEnumManager(b.flag).has(BatchUpdateType.Create)
+            new FlagEnumManager(b.flag).has(BatchUpdateType.Create),
         ) >= 0
 
     return isCreating
@@ -352,7 +352,7 @@ export class BatchesHandler {
    */
   async refreshBatch(batch: AnyBatch) {
     const batchId = this.getBatchId(batch)
-    const index = this.batches.findIndex(batch => this.getBatchId(batch) === batchId)
+    const index = this.batches.findIndex((batch) => this.getBatchId(batch) === batchId)
 
     if (index === -1) return
 

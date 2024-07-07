@@ -59,7 +59,7 @@ export class ImageWriter {
     for (const { data, width } of responsiveSourcesData) {
       const result = await this.beeClient.bzz.upload(data, {
         batchId,
-        onUploadProgress: completion => {
+        onUploadProgress: (completion) => {
           if (options?.onUploadProgress) {
             multipleCompletion += completion
             options.onUploadProgress(multipleCompletion / responsiveSourcesData.length)
@@ -133,7 +133,7 @@ export class ImageWriter {
       },
     ]
 
-    const inferiorSizes = this.responsiveSizes.filter(size => size < imageSize.width)
+    const inferiorSizes = this.responsiveSizes.filter((size) => size < imageSize.width)
     if (inferiorSizes.length < 2 && inferiorSizes[0] !== imageSize.width) {
       inferiorSizes.push(imageSize.width)
     }

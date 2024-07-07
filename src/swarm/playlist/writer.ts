@@ -1,4 +1,5 @@
 import { PlaylistSerializer } from "../../serializers"
+import { isEmptyReference } from "../../utils"
 import { BaseWriter } from "../base-writer"
 import { createPlaylistTopicName, getPlaylistCacheId, PlaylistCache } from "./reader"
 
@@ -49,36 +50,33 @@ export class PlaylistWriter extends BaseWriter<Playlist> {
     const topicName = createPlaylistTopicName(this.playlist.id)
     const feed = this.beeClient.feed.makeFeed(topicName, this.playlist.owner, "epoch")
     const writer = this.beeClient.feed.makeWriter(feed)
-    await writer.upload(reference, {
-      batchId,
-      deferred: opts?.deferred,
-      encrypt: opts?.encrypt,
-      pin: opts?.pin,
-      tag: opts?.tag,
-      headers: {
-        // "x-etherna-reason": "swarm-playlist-feed-upload",
-      },
-      signal: opts?.signal,
-      onUploadProgress: opts?.onUploadProgress,
-    })
 
-    const reader = this.beeClient.feed.makeReader(feed)
-    const { reference: feedReference } = await reader.download({
-      headers: {
-        // "x-etherna-reason": "playlist-feed",
-      },
-    })
-
-    const rootManifest = await this.beeClient.feed.createRootManifest(feed, {
-      batchId,
-      deferred: opts?.deferred,
-      encrypt: opts?.encrypt,
-      pin: opts?.pin,
-      tag: opts?.tag,
-      headers: {
-        // "x-etherna-reason": "swarm-playlist-feed-root-manifest",
-      },
-    })
+    const [, rootManifest] = await Promise.all([
+      writer.upload(reference, {
+        batchId,
+        deferred: opts?.deferred,
+        encrypt: opts?.encrypt,
+        pin: opts?.pin,
+        tag: opts?.tag,
+        headers: {
+          // "x-etherna-reason": "swarm-playlist-feed-upload",
+        },
+        signal: opts?.signal,
+        onUploadProgress: opts?.onUploadProgress,
+      }),
+      isEmptyReference(this.playlist.reference)
+        ? this.beeClient.feed.createRootManifest(feed, {
+            batchId,
+            deferred: opts?.deferred,
+            encrypt: opts?.encrypt,
+            pin: opts?.pin,
+            tag: opts?.tag,
+            headers: {
+              // "x-etherna-reason": "swarm-playlist-feed-root-manifest",
+            },
+          })
+        : Promise.resolve(this.playlist.reference),
+    ])
 
     this.playlist.reference = rootManifest
 

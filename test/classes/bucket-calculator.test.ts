@@ -41,7 +41,7 @@ describe("bucket", () => {
 
     const { buckets } = await bee.stamps.downloadBuckets(batchId)
 
-    console.log(buckets.filter(b => b.collisions > 0))
+    console.log(buckets.filter((b) => b.collisions > 0))
     console.log(bucket.bucketCollisions)
   })
 })

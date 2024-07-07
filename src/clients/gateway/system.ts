@@ -53,7 +53,7 @@ export class SystemClient {
       `/system/postagebatchref/${referenceId}`,
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     const batchId = resp.data

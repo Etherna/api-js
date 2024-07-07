@@ -35,10 +35,10 @@ const runProcess = (): Promise<BeeProcess> => {
     childProcess.port = port
     childProcess.url = `http://localhost:${port}`
 
-    childProcess.on("error", error => {
+    childProcess.on("error", (error) => {
       rej(error)
     })
-    childProcess.on("exit", code => {
+    childProcess.on("exit", (code) => {
       if (code !== 0) {
         rej(new Error(`Process exited with code ${code}`))
       }

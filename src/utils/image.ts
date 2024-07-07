@@ -19,7 +19,7 @@ declare global {
 export const resizeImage = async (
   imageBlob: File | Blob,
   toWidth: number,
-  quality = 90
+  quality = 90,
 ): Promise<Blob> => {
   const image = await createImage(imageBlob)
 
@@ -39,7 +39,7 @@ export const resizeImage = async (
   URL.revokeObjectURL(image.src)
 
   if (typeof canvas.toBlob !== "undefined") {
-    return new Promise(res => canvas.toBlob(blob => res(blob!), imageBlob.type, quality / 100))
+    return new Promise((res) => canvas.toBlob((blob) => res(blob!), imageBlob.type, quality / 100))
   } else if (typeof canvas.msToBlob !== "undefined") {
     return canvas.msToBlob()
   }
@@ -76,5 +76,5 @@ const createImage = (blob: File | Blob) =>
     const image = new Image()
     image.src = URL.createObjectURL(blob)
     image.onload = () => res(image)
-    image.onerror = error => rej(error)
+    image.onerror = (error) => rej(error)
   })

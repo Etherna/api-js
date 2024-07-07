@@ -25,7 +25,7 @@ export class ImageReader {
   static getBestImageUrl(image: Image, width = Number.MAX_SAFE_INTEGER): string {
     return (
       image.sources
-        .filter(source => isImageTypeSupported(source.type))
+        .filter((source) => isImageTypeSupported(source.type))
         .sort((a, b) => b.width - a.width)[0]?.url ?? image.url
     )
   }

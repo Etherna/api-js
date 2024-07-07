@@ -10,9 +10,9 @@ export function extractVideoReferences(video: Video | VideoPreview): Reference[]
   const details = "details" in video ? video.details : undefined
   const references = [
     ...(details?.sources ?? [])
-      .map(source => (source.type === "mp4" ? source.reference : null))
+      .map((source) => (source.type === "mp4" ? source.reference : null))
       .filter(Boolean),
-    ...(preview.thumbnail?.sources ?? []).map(source => source.reference).filter(Boolean),
+    ...(preview.thumbnail?.sources ?? []).map((source) => source.reference).filter(Boolean),
   ] as Reference[]
 
   if (preview.reference !== "0".repeat(64)) {
@@ -23,7 +23,7 @@ export function extractVideoReferences(video: Video | VideoPreview): Reference[]
 }
 
 export function isEmptyReference(ref: Reference): boolean {
-  return Array.from(ref).every(char => char === "0")
+  return Array.from(ref).every((char) => char === "0")
 }
 
 export function isInvalidReference(ref: string): boolean {

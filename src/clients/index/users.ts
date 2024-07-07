@@ -53,7 +53,7 @@ export class IndexUsers {
       {
         ...this.instance.prepareAxiosConfig(opts),
         params: { page, take },
-      }
+      },
     )
 
     if (typeof resp.data !== "object" || !Array.isArray(resp.data.elements)) {

@@ -87,7 +87,7 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       JSON.stringify(videoRaw.preview ?? opts.previewData ?? VideoReader.emptyVideoPreview),
       {
         reference: this.reference,
-      }
+      },
     )
     const details = videoRaw.details
       ? deserializer.deserializeDetails(JSON.stringify(videoRaw.details), {
@@ -121,8 +121,8 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
       videoDetailsRaw.batchId = video.lastValidManifest.batchId
       videoDetailsRaw.description = video.lastValidManifest.description ?? ""
-      videoDetailsRaw.sources = video.lastValidManifest.sources.map(s =>
-        VideoSourceRawSchema.parse(s)
+      videoDetailsRaw.sources = video.lastValidManifest.sources.map((s) =>
+        VideoSourceRawSchema.parse(s),
       )
     }
 

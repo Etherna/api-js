@@ -42,7 +42,7 @@ describe("bee client", () => {
     const token = await bee.auth.authenticate(username, password)
     expect(token).not.toBeNull()
 
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     const newToken = await bee.auth.refreshToken(token)
     expect(newToken).not.toBeNull()
@@ -174,10 +174,10 @@ describe("bee client", () => {
     await madeEpochRootManifest.save({ batchId })
 
     const parsedSequenceFeed = await bee.feed.parseFeedFromRootManifest(
-      madeSequenceRootManifest.reference
+      madeSequenceRootManifest.reference,
     )
     const parsedEpochFeed = await bee.feed.parseFeedFromRootManifest(
-      madeEpochRootManifest.reference
+      madeEpochRootManifest.reference,
     )
 
     expect(parsedSequenceFeed).toEqual(feedSequence)

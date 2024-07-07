@@ -3,7 +3,7 @@ import { z } from "zod"
 import { Reference } from "../clients"
 import { beeReference, nonEmptyRecord } from "./base"
 
-export const imageSize = z.custom<`${number}w`>(val => /^\d+w$/g.test(val as string))
+export const imageSize = z.custom<`${number}w`>((val) => /^\d+w$/g.test(val as string))
 
 export const imageType = z.enum(["jpeg", "png", "webp", "avif", "jpeg-xl"]).default("jpeg")
 
@@ -11,8 +11,8 @@ export const ImageRawLegacySourcesSchema = nonEmptyRecord(
   /** Image size with related bee reference */
   imageSize,
   /** Bee reference or path */
-  z.string()
-).transform(data => {
+  z.string(),
+).transform((data) => {
   const sources: ImageRawSource[] = []
   for (const [size, reference] of Object.entries(data)) {
     sources.push({ width: parseInt(size), type: "jpeg", reference: reference as Reference })
@@ -61,7 +61,7 @@ export const ImageRawSourcesSchema = z.array(
         message: "Either reference or path must be defined",
       })
     }
-  })
+  }),
 )
 
 export const ImageSourcesSchema = z.array(
@@ -72,7 +72,7 @@ export const ImageSourcesSchema = z.array(
         message: "Either reference or path must be defined",
       })
     }
-  })
+  }),
 )
 
 export const ImageRawSchema = z.object({

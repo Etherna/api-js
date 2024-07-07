@@ -38,7 +38,7 @@ export class ProfileWriter extends BaseWriter<ProfileBuilder> {
     const feed = this.beeClient.feed.makeFeed(
       PROFILE_TOPIC,
       this.profileBuilder.previewMeta.address,
-      "epoch"
+      "epoch",
     )
     const writer = this.beeClient.feed.makeWriter(feed)
     await writer.upload(reference, {

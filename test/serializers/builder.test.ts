@@ -71,11 +71,11 @@ describe("builder", () => {
     const videoOldManifest = await beeClient.bzz.download(legacyVideoReference)
     const videoPreview = new VideoDeserializer(beeClient.url).deserializePreview(
       videoOldManifest.data.text(),
-      { reference: legacyVideoReference }
+      { reference: legacyVideoReference },
     )
     const videoDetails = new VideoDeserializer(beeClient.url).deserializeDetails(
       videoOldManifest.data.text(),
-      { reference: legacyVideoReference }
+      { reference: legacyVideoReference },
     )
     videoDetails.batchId = batchId
 
@@ -95,11 +95,11 @@ describe("builder", () => {
 
     const videoPreview = new VideoDeserializer(beeClient.url).deserializePreview(
       videoPreviewManifest.data.text(),
-      { reference }
+      { reference },
     )
     const videoDetails = new VideoDeserializer(beeClient.url).deserializeDetails(
       videoDetailsManifest.data.text(),
-      { reference }
+      { reference },
     )
     videoDetails.batchId = batchId
 
@@ -117,11 +117,11 @@ describe("builder", () => {
 
     const videoPreview = new VideoDeserializer(beeClient.url).deserializePreview(
       videoPreviewManifest.data.text(),
-      { reference }
+      { reference },
     )
     const videoDetails = new VideoDeserializer(beeClient.url).deserializeDetails(
       videoDetailsManifest.data.text(),
-      { reference }
+      { reference },
     )
     videoDetails.batchId = batchId
 

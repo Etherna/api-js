@@ -1,4 +1,4 @@
-import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
+import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 import { immerable } from "immer"
 
 import { Queue } from "../../classes/Queue"
@@ -107,7 +107,7 @@ export class VideoBuilder {
 
   async loadNode(opts: VideoBuilderRequestOptions): Promise<void> {
     if (!isZeroBytesReference(this.reference)) {
-      await this.node.load(async reference => {
+      await this.node.load(async (reference) => {
         const data = await opts.beeClient.bytes.download(bytesReferenceToReference(reference), {
           signal: opts.signal,
         })
@@ -118,25 +118,25 @@ export class VideoBuilder {
     if (opts.signal?.aborted) return
 
     const videoReferences = this.detailsMeta.sources
-      .map(s => (s.type === "mp4" ? s.reference : null))
-      .filter(ref => ref && isValidReference(ref)) as Reference[]
+      .map((s) => (s.type === "mp4" ? s.reference : null))
+      .filter((ref) => ref && isValidReference(ref)) as Reference[]
     const thumbReferences = (this.previewMeta.thumbnail?.sources ?? [])
-      .map(source => source.reference)
-      .filter(ref => ref && isValidReference(ref)) as Reference[]
+      .map((source) => source.reference)
+      .filter((ref) => ref && isValidReference(ref)) as Reference[]
 
     const references = [...videoReferences, ...thumbReferences]
 
     const bytesReferences = await Promise.all(
-      references.map(ref => getBzzNodeInfo(ref, opts.beeClient, opts.signal))
+      references.map((ref) => getBzzNodeInfo(ref, opts.beeClient, opts.signal)),
     )
 
     if (opts.signal?.aborted) return
 
     if (this.previewMeta.thumbnail) {
-      this.previewMeta.thumbnail.sources = this.previewMeta.thumbnail.sources.map(source => {
+      this.previewMeta.thumbnail.sources = this.previewMeta.thumbnail.sources.map((source) => {
         if (source.path) return source
 
-        const reference = references.findIndex(ref => ref === source.reference)
+        const reference = references.findIndex((ref) => ref === source.reference)
         const contentType = bytesReferences[reference]?.contentType
         const typeParse = imageType.safeParse(contentType?.split("/")[1])
         const type = typeParse.success ? typeParse.data : "jpeg"
@@ -149,15 +149,15 @@ export class VideoBuilder {
         const newSource = this.addThumbSource(
           source.width,
           type,
-          bytesReferenceToReference(bytesReference)
+          bytesReferenceToReference(bytesReference),
         )
         return newSource
       })
     }
-    this.detailsMeta.sources = this.detailsMeta.sources.map(source => {
+    this.detailsMeta.sources = this.detailsMeta.sources.map((source) => {
       if (source.path || source.type !== "mp4") return source
 
-      const reference = references.findIndex(ref => ref === source.reference)
+      const reference = references.findIndex((ref) => ref === source.reference)
       const bytesReference = bytesReferences[reference]?.entry
 
       if (!bytesReference) {
@@ -167,7 +167,7 @@ export class VideoBuilder {
       const newSource = this.addVideoSource(
         source.quality,
         source.size,
-        bytesReferenceToReference(bytesReference)
+        bytesReferenceToReference(bytesReference),
       )
       return newSource
     })
@@ -189,17 +189,17 @@ export class VideoBuilder {
       new VideoSerializer().serializePreview(
         new VideoDeserializer("http://doesntmatter.com").deserializePreview(
           JSON.stringify(this.previewMeta),
-          { reference: EmptyReference }
-        )
-      )
+          { reference: EmptyReference },
+        ),
+      ),
     ) as VideoPreviewRaw
     this.detailsMeta = JSON.parse(
       new VideoSerializer().serializeDetails(
         new VideoDeserializer("http://doesntmatter.com").deserializeDetails(
           JSON.stringify(this.detailsMeta),
-          { reference: EmptyReference }
-        )
-      )
+          { reference: EmptyReference },
+        ),
+      ),
     ) as VideoDetailsRaw
 
     this.updateNode()
@@ -207,15 +207,15 @@ export class VideoBuilder {
     this.enqueueData(
       new TextEncoder().encode(JSON.stringify(this.previewMeta)),
       opts.beeClient,
-      batchId
+      batchId,
     )
     this.enqueueData(
       new TextEncoder().encode(JSON.stringify(this.detailsMeta)),
       opts.beeClient,
-      batchId
+      batchId,
     )
 
-    const reference = await this.node.save(async data => {
+    const reference = await this.node.save(async (data) => {
       return this.enqueueData(data, opts.beeClient, batchId, opts.signal)
     })
     await this.queue.drain()
@@ -228,7 +228,7 @@ export class VideoBuilder {
   async addMp4Source(data: Uint8Array) {
     const meta = await getVideoMeta(data)
     const quality: VideoQuality = `${meta.height}p`
-    const exists = this.detailsMeta.sources.some(s => s.type === "mp4" && s.quality === quality)
+    const exists = this.detailsMeta.sources.some((s) => s.type === "mp4" && s.quality === quality)
 
     if (exists) {
       throw new Error(`Video source with quality '${quality}' already exists`)
@@ -249,7 +249,7 @@ export class VideoBuilder {
     type: "dash" | "hls",
     data: Uint8Array,
     filename: string,
-    fullSize: number
+    fullSize: number,
   ) {
     const path = this.getAdaptivePath(filename, type)
     const exists = this.node.hasForkAtPath(encodePath(path))
@@ -274,7 +274,7 @@ export class VideoBuilder {
 
   removeAdapterSources(type: "dash" | "hls") {
     const basePath = this.getAdaptivePath("", type)
-    const paths = Object.keys(getAllPaths(this.node)).filter(path => path.startsWith(basePath))
+    const paths = Object.keys(getAllPaths(this.node)).filter((path) => path.startsWith(basePath))
     for (const path of paths) {
       this.node.removePath(encodePath(path))
     }
@@ -293,7 +293,7 @@ export class VideoBuilder {
     const path = this.getVideoPath(quality)
     this.node.removePath(encodePath(path))
     this.detailsMeta.sources = this.detailsMeta.sources.filter(
-      s => s.type === "mp4" && s.quality !== quality
+      (s) => s.type === "mp4" && s.quality !== quality,
     )
     this.updateNode()
   }
@@ -315,7 +315,7 @@ export class VideoBuilder {
       }),
       {
         reference: this.reference,
-      }
+      },
     )
     const details = new VideoDeserializer(beeUrl).deserializeDetails(
       JSON.stringify({
@@ -335,7 +335,7 @@ export class VideoBuilder {
       }),
       {
         reference: this.reference,
-      }
+      },
     )
 
     return {
@@ -385,7 +385,7 @@ export class VideoBuilder {
               [encodePath(path)[0]!]: fork,
             }
           },
-          {} as Record<number, MantarayFork>
+          {} as Record<number, MantarayFork>,
         )
       }
 
@@ -402,7 +402,7 @@ export class VideoBuilder {
     data: Uint8Array,
     beeClient: BeeClient,
     batchId: BatchId,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ) {
     const chunkedFile = makeChunkedFile(data)
     this.queue.enqueue(async () => {

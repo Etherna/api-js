@@ -41,7 +41,7 @@ export class BeeClient {
 
   constructor(
     public url: string,
-    opts?: BeeClientOptions
+    opts?: BeeClientOptions,
   ) {
     this.signer =
       typeof opts?.signer === "string" ? makePrivateKeySigner(opts.signer) : opts?.signer

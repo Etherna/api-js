@@ -35,7 +35,7 @@ export class Tags {
         headers: options?.headers,
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
     return resp.data
   }

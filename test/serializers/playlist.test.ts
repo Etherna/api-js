@@ -40,7 +40,7 @@ describe("playlist deserializer", () => {
     expect(() =>
       deserializer.deserialize(JSON.stringify(manifest), {
         reference: testManifestParsed.reference,
-      })
+      }),
     ).toThrowError()
 
     // name
@@ -49,7 +49,7 @@ describe("playlist deserializer", () => {
     expect(() =>
       deserializer.deserialize(JSON.stringify(manifest), {
         reference: testManifestParsed.reference,
-      })
+      }),
     ).toThrowError()
 
     // type
@@ -58,7 +58,7 @@ describe("playlist deserializer", () => {
     expect(() =>
       deserializer.deserialize(JSON.stringify(manifest), {
         reference: testManifestParsed.reference,
-      })
+      }),
     ).toThrowError()
 
     // owner
@@ -67,7 +67,7 @@ describe("playlist deserializer", () => {
     expect(() =>
       deserializer.deserialize(JSON.stringify(manifest), {
         reference: testManifestParsed.reference,
-      })
+      }),
     ).toThrowError()
 
     // createdAt
@@ -76,7 +76,7 @@ describe("playlist deserializer", () => {
     expect(() =>
       deserializer.deserialize(JSON.stringify(manifest), {
         reference: testManifestParsed.reference,
-      })
+      }),
     ).toThrowError()
 
     // updatedAt
@@ -85,7 +85,7 @@ describe("playlist deserializer", () => {
     expect(() =>
       deserializer.deserialize(JSON.stringify(manifest), {
         reference: testManifestParsed.reference,
-      })
+      }),
     ).toThrowError()
   })
 })
@@ -104,7 +104,7 @@ describe("playlist serializer", () => {
     const testParsedManifest = { ...testPrivateManifest } as Record<string, any>
     // Check encrypted data
     expect(JSON.parse(decryptData(parsedManifest.encryptedData, password))).toEqual(
-      JSON.parse(decryptData(testParsedManifest.encryptedData, password))
+      JSON.parse(decryptData(testParsedManifest.encryptedData, password)),
     )
     // Remove encrypted data (encrypted data changes every time)
     delete parsedManifest.encryptedData

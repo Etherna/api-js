@@ -12,14 +12,14 @@ export function checkReference(ref: BytesReference): void | never {
 
 export function checkBytes<Length extends number>(
   bytes: unknown,
-  length: number
+  length: number,
 ): asserts bytes is Bytes<Length> {
   if (!(bytes instanceof Uint8Array))
     throw Error("Cannot set given bytes, because is not an Uint8Array type")
 
   if (bytes.length !== 32) {
     throw Error(
-      `Cannot set given bytes, because it does not have ${length} length. Got ${bytes.length}`
+      `Cannot set given bytes, because it does not have ${length} length. Got ${bytes.length}`,
     )
   }
 }
@@ -50,7 +50,7 @@ export function findIndexOfArray(element: Uint8Array, searchFor: Uint8Array): nu
 export function overwriteBytes(a: Uint8Array, b: Uint8Array, i = 0): void {
   if (a.length < b.length + i) {
     throw Error(
-      `Cannot copy bytes because the base byte array length is lesser (${a.length}) than the others (${b.length})`
+      `Cannot copy bytes because the base byte array length is lesser (${a.length}) than the others (${b.length})`,
     )
   }
 
@@ -65,7 +65,7 @@ export function overwriteBytes(a: Uint8Array, b: Uint8Array, i = 0): void {
 export function flattenBytesArray(bytesArray: Uint8Array[]): Uint8Array {
   if (bytesArray.length === 0) return new Uint8Array(0)
 
-  const bytesLength = bytesArray.map(v => v.length).reduce((sum, v) => (sum += v))
+  const bytesLength = bytesArray.map((v) => v.length).reduce((sum, v) => (sum += v))
   const flattenBytes = new Uint8Array(bytesLength)
   let nextWriteIndex = 0
   for (const b of bytesArray) {
@@ -90,7 +90,7 @@ export function encryptDecrypt(
   key: Uint8Array,
   data: Uint8Array,
   startIndex = 0,
-  endIndex?: number
+  endIndex?: number,
 ): void {
   // FIXME: in Bee
   if (equalBytes(key, new Uint8Array(32))) return

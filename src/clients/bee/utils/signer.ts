@@ -17,7 +17,7 @@ export function makePrivateKeySigner(privateKey: string): Signer {
   const address = publicKeyToAddress(pubKey)
 
   return {
-    sign: digest => defaultSign(digest, etc.hexToBytes(privateKey)),
+    sign: (digest) => defaultSign(digest, etc.hexToBytes(privateKey)),
     address,
   }
 }
@@ -31,19 +31,19 @@ export function makePrivateKeySigner(privateKey: string): Signer {
  */
 export async function defaultSign(
   data: Uint8Array | string,
-  privateKey: Uint8Array
+  privateKey: Uint8Array,
 ): Promise<string> {
   // fix nodejs crypto
   if (typeof window === "undefined") {
-    const hmac = await import("@noble/hashes/hmac").then(mod => mod.hmac)
-    const sha256 = await import("@noble/hashes/sha256").then(mod => mod.sha256)
+    const hmac = await import("@noble/hashes/hmac").then((mod) => mod.hmac)
+    const sha256 = await import("@noble/hashes/sha256").then((mod) => mod.sha256)
 
     etc.hmacSha256Sync = (k, ...m) => hmac(sha256, k, etc.concatBytes(...m))
     etc.hmacSha256Async = (k, ...m) => Promise.resolve(etc.hmacSha256Sync!(k, ...m))
   }
 
   const hashedDigest = hashWithEthereumPrefix(
-    typeof data === "string" ? new TextEncoder().encode(data) : data
+    typeof data === "string" ? new TextEncoder().encode(data) : data,
   )
   const sig = await signAsync(hashedDigest, privateKey, {})
   const rawSig = sig.toCompactRawBytes()

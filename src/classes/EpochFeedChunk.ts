@@ -80,7 +80,7 @@ export class EpochFeedChunk {
   constructor(
     public index: EpochIndex,
     public payload: Uint8Array,
-    public reference: Reference
+    public reference: Reference,
   ) {
     if (payload.length < EpochFeedChunk.MinPayloadByteSize) {
       throw new Error(`Payload can't be shorter than ${EpochFeedChunk.TimeStampByteSize} bytes`)
@@ -115,7 +115,7 @@ export class EpochFeedChunk {
   public static buildChunkPayload(contentPayload: Uint8Array, at?: Date): Uint8Array {
     if (contentPayload.length > this.MaxContentPayloadBytesSize) {
       throw new Error(
-        `Content payload can't be longer than ${this.MaxContentPayloadBytesSize} bytes`
+        `Content payload can't be longer than ${this.MaxContentPayloadBytesSize} bytes`,
       )
     }
 
@@ -141,7 +141,7 @@ export class EpochFeedChunk {
   public static buildReferenceHash(
     account: string,
     topicOrIdentifier: Uint8Array,
-    index?: EpochIndex
+    index?: EpochIndex,
   ): Reference {
     if (!index) {
       // check if address is an eth address

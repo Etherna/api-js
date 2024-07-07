@@ -16,7 +16,7 @@ type ChunksUploadOptions = RequestUploadOptions & {
 export class ChunksUploader {
   constructor(
     public beeClient: BeeClient,
-    public concurrentChunks = 10
+    public concurrentChunks = 10,
   ) {}
 
   async uploadData(data: Uint8Array, options: ChunksUploadOptions) {
@@ -37,12 +37,12 @@ export class ChunksUploader {
     for (const level of levels) {
       for (const chunks of splitArrayInChunks(level, this.concurrentChunks)) {
         await Promise.all(
-          chunks.map(chunk =>
+          chunks.map((chunk) =>
             this.beeClient.chunk.upload(Uint8Array.from([...chunk.span(), ...chunk.payload]), {
               ...options,
               tag,
-            })
-          )
+            }),
+          ),
         )
 
         options.onBytesUploaded?.(chunks.length * MAX_CHUNK_PAYLOAD_SIZE)

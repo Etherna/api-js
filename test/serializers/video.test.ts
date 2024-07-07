@@ -64,62 +64,62 @@ describe("video deserializer", () => {
     let manifest: Record<string, any> = { ...testVideoRaw_1_1 }
     delete manifest.title
     expect(() =>
-      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // description
     manifest = { ...testVideoRawDetails_1_1_2_0 }
     delete manifest.description
     expect(() =>
-      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // createdAt
     manifest = { ...testVideoRawPreview_1_1_2_0 }
     delete manifest.createdAt
     expect(() =>
-      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // ownerAddress
     manifest = { ...testVideoRawPreview_1_1_2_0 }
     delete manifest.ownerAddress
     expect(() =>
-      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // duration
     manifest = { ...testVideoRawPreview_1_1_2_0 }
     delete manifest.duration
     expect(() =>
-      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // description
     manifest = { ...testVideoRawDetails_1_1_2_0 }
     delete manifest.description
     expect(() =>
-      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // thumbnail
     manifest = { ...testVideoRawPreview_1_1_2_0 }
     delete manifest.thumbnail
     expect(() =>
-      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializePreview(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // sources
     manifest = { ...testVideoRawDetails_1_1_2_0 }
     delete manifest.sources
     expect(() =>
-      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
 
     // sources empty
     manifest = { ...testVideoRawDetails_1_1_2_0, sources: [] }
     expect(() =>
-      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference })
+      deserializer.deserializeDetails(JSON.stringify(manifest), { reference: videoReference }),
     ).toThrowError()
   })
 })

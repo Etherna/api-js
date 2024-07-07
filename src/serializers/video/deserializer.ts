@@ -46,16 +46,16 @@ export class VideoDeserializer {
       description: videoRaw.description,
       aspectRatio: videoRaw.aspectRatio || null,
       personalData: videoRaw.personalData,
-      sources: videoRaw.sources.map(source =>
+      sources: videoRaw.sources.map((source) =>
         VideoSourceSchema.parse({
           ...source,
           type: source.type || "mp4",
           url: getBzzUrl(
             this.beeUrl,
             "reference" in source && source.reference ? source.reference : opts.reference,
-            source.path
+            source.path,
           ),
-        })
+        }),
       ),
       batchId: videoRaw.batchId || null,
     }

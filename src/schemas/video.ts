@@ -6,7 +6,7 @@ import { MantarayNodeSchema } from "./mantaray"
 
 import type { Reference } from "../clients"
 
-const quality = z.custom<`${number}p`>(val => /^\d+p$/g.test(val as string))
+const quality = z.custom<`${number}p`>((val) => /^\d+p$/g.test(val as string))
 
 /**
  * / --> preview
@@ -50,7 +50,7 @@ export const VideoSourceRawSchema = z
       size: z.number().min(0),
     }),
   ])
-  .transform(data => {
+  .transform((data) => {
     if (!("type" in data)) {
       // if index doesn't return the type, we can guess it from the path
       if (data.path?.startsWith("sources/hls")) {
@@ -130,7 +130,7 @@ export const VideoSourceSchema = z
         /** source url */
         url: z.string().url(),
       })
-      .transform(data => ({
+      .transform((data) => ({
         ...data,
         isMaster: data.path.endsWith("manifest.mpd") || data.path.endsWith("manifest.m3u8"),
         isAudio: data.path.endsWith("audio.mpd") || data.path.endsWith("audio.m3u8"),

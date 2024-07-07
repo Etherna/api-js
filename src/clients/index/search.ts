@@ -18,7 +18,7 @@ export class IndexSearch {
       {
         ...this.instance.prepareAxiosConfig(opts),
         params: { query, page, take },
-      }
+      },
     )
 
     if (typeof resp.data !== "object") {

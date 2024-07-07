@@ -83,7 +83,7 @@ export type FeedUpdateHeaders = {
   feedIndexNext: string
 }
 
-export type Chunk = {
+export type ContentAddressedChunk = {
   readonly data: Uint8Array
   /** span bytes (8) */
   span(): Uint8Array
@@ -92,7 +92,7 @@ export type Chunk = {
   address(): Uint8Array
 }
 
-export type SingleOwnerChunk = Chunk & {
+export type SingleOwnerChunk = ContentAddressedChunk & {
   identifier(): Uint8Array
   signature(): Uint8Array
   owner(): Uint8Array

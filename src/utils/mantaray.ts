@@ -1,4 +1,4 @@
-import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
+import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 import { keccak256 } from "js-sha3"
 
 import { MantarayNode } from "../handlers/mantaray"
@@ -33,14 +33,14 @@ export function bytesReferenceToReference(ref: BytesReference): Reference {
 
 export function jsonToReference(content: object): BytesReference {
   return referenceToBytesReference(
-    getReferenceFromData(new TextEncoder().encode(JSON.stringify(content)))
+    getReferenceFromData(new TextEncoder().encode(JSON.stringify(content))),
   )
 }
 
 export function keccak256Hash(...messages: Message[]): Bytes<32> {
   const hasher = keccak256.create()
 
-  messages.forEach(bytes => hasher.update(bytes))
+  messages.forEach((bytes) => hasher.update(bytes))
 
   return Uint8Array.from(hasher.digest()) as Bytes<32>
 }
@@ -55,19 +55,19 @@ export function decodePath(path: Uint8Array): string {
 
 export const isZeroBytesReference = (ref: BytesReference | Reference): boolean => {
   if (typeof ref === "string") {
-    return Array.from(ref).every(char => char === "0")
+    return Array.from(ref).every((char) => char === "0")
   }
-  return ref.every(byte => byte === 0)
+  return ref.every((byte) => byte === 0)
 }
 
 export async function getBzzNodeInfo(
   reference: Reference,
   beeClient: BeeClient,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<{ entry: BytesReference; contentType?: string } | null> {
   try {
     const node = new MantarayNode()
-    await node.load(async reference => {
+    await node.load(async (reference) => {
       const bmtData = await beeClient.bytes.download(toHexString(reference), { signal })
       return bmtData
     }, referenceToBytesReference(reference))

@@ -56,7 +56,7 @@ export class Pins {
       const controller = new AbortController()
       await this.instance.request.get(pinsEndpoint, {
         signal: controller.signal,
-        onDownloadProgress: p => {
+        onDownloadProgress: (p) => {
           controller.abort()
         },
       })

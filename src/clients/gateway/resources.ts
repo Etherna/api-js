@@ -37,7 +37,7 @@ export class ResourcesClient {
       references,
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     if (typeof resp.data !== "object") {

@@ -5,7 +5,7 @@ import { makeBytes } from "./bytes"
 // sequential feed indexes.
 export function writeUint64LittleEndian(
   value: number,
-  bytes: Uint8Array = makeBytes(8)
+  bytes: Uint8Array = makeBytes(8),
 ): Uint8Array {
   const dataView = new DataView(bytes.buffer)
   const valueLower32 = value & 0xffffffff

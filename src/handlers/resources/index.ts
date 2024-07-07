@@ -23,7 +23,7 @@ export class EthernaResourcesHandler {
   constructor(references: Reference[], opts: EthernaResourcesHandlerOptions)
   constructor(input: (AnyVideo | Reference)[], opts: EthernaResourcesHandlerOptions) {
     this.references = input
-      .map(input => (typeof input === "string" ? [input] : extractVideoReferences(input)))
+      .map((input) => (typeof input === "string" ? [input] : extractVideoReferences(input)))
       .flat()
       .filter((reference, index, self) => self.indexOf(reference) === index)
     this.gatewayClient = opts.gatewayClient
@@ -36,7 +36,7 @@ export class EthernaResourcesHandler {
 
     if (fetchByWhom) {
       const responses = await Promise.allSettled(
-        this.references.map(reference => this.gatewayClient.resources.fetchOffers(reference))
+        this.references.map((reference) => this.gatewayClient.resources.fetchOffers(reference)),
       )
 
       for (const [index, reference] of this.references.entries()) {
@@ -62,28 +62,30 @@ export class EthernaResourcesHandler {
 
   async offerResources(opts?: RequestOptions) {
     await Promise.allSettled(
-      this.references.map(reference => this.gatewayClient.resources.offer(reference, opts))
+      this.references.map((reference) => this.gatewayClient.resources.offer(reference, opts)),
     )
   }
 
   async unofferResources(opts?: RequestOptions) {
     await Promise.allSettled(
-      this.references.map(reference => this.gatewayClient.resources.cancelOffer(reference, opts))
+      this.references.map((reference) => this.gatewayClient.resources.cancelOffer(reference, opts)),
     )
   }
 
   getReferenceStatus(reference: string): SwarmResourceStatus | null {
-    return this.resourcesStatus?.find(status => status.reference === reference) ?? null
+    return this.resourcesStatus?.find((status) => status.reference === reference) ?? null
   }
 
   getVideoReferencesStatus(video: Video): SwarmResourceStatus[] {
     const videoReferences = extractVideoReferences(video)
-    return (this.resourcesStatus ?? []).filter(status => videoReferences.includes(status.reference))
+    return (this.resourcesStatus ?? []).filter((status) =>
+      videoReferences.includes(status.reference),
+    )
   }
 
   static videoReferenceType(
     video: Video,
-    reference: string
+    reference: string,
   ): "all" | "metadata" | "video" | "thumb" | null {
     // is folder metadata?
     if (reference === video.reference && +video.preview.v >= 2) return "all"
@@ -91,12 +93,12 @@ export class EthernaResourcesHandler {
     if (reference === video.reference) return "metadata"
     // is video source?
     const videoSource = video.details?.sources.find(
-      source => source.type === "mp4" && source.reference === reference
+      (source) => source.type === "mp4" && source.reference === reference,
     )
     if (videoSource) return "video"
     // is thumb image source?
     const thumbSource = (video.preview.thumbnail?.sources ?? []).find(
-      source => source.reference === reference
+      (source) => source.reference === reference,
     )
     if (thumbSource) return "thumb"
     // not found!
@@ -114,13 +116,13 @@ export class EthernaResourcesHandler {
         return `Source ${
           (
             video.details?.sources.find(
-              source => source.type === "mp4" && source.reference === reference
+              (source) => source.type === "mp4" && source.reference === reference,
             ) as VideoSource & { type: "mp4" }
           ).quality
         }`
       case "thumb":
         return `Thumbnail ${
-          (video.preview.thumbnail?.sources ?? []).find(source => source.reference === reference)!
+          (video.preview.thumbnail?.sources ?? []).find((source) => source.reference === reference)!
             .width
         }w`
       default:

@@ -153,7 +153,7 @@ describe("epoch index", () => {
       const childIndex = index.getChildAt(at)
       expect(childIndex.start).toEqual(expectedStart)
       expect(childIndex.level).toEqual(expectedLevel)
-    }
+    },
   )
 
   it.concurrent("should throw when next index is not higher than start", () => {

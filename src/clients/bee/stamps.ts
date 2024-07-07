@@ -14,7 +14,7 @@ export class Stamps {
     depth = STAMPS_DEPTH_MIN,
     amount: bigint | string = "10000000",
     label?: string,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<BatchId> {
     const token = this.instance.auth.token
 
@@ -31,7 +31,7 @@ export class Stamps {
         },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
     const batchId = resp.data.batchID
 
@@ -50,14 +50,14 @@ export class Stamps {
         },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
     return postageResp.data
   }
 
   async downloadBuckets(
     batchId: BatchId,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<PostageBatchBucketsData> {
     const token = this.instance.auth.token
 
@@ -70,7 +70,7 @@ export class Stamps {
         },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
     return postageResp.data
   }
@@ -87,10 +87,10 @@ export class Stamps {
         },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
     return postageResp.data.stamps.filter(
-      batch => !labelQuery || batch.label.toLowerCase().includes(labelQuery.toLowerCase())
+      (batch) => !labelQuery || batch.label.toLowerCase().includes(labelQuery.toLowerCase()),
     )
   }
 
@@ -124,7 +124,7 @@ export class Stamps {
   async topup(
     batchId: BatchId,
     byAmount: bigint | string,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<boolean> {
     const token = this.instance.auth.token
 
@@ -138,7 +138,7 @@ export class Stamps {
         },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
 
     return true
@@ -163,7 +163,7 @@ export class Stamps {
         },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
 
     return true

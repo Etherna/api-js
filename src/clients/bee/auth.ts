@@ -48,7 +48,7 @@ export class Auth {
   async authenticate(
     username: string,
     password: string,
-    options?: AuthenticationOptions
+    options?: AuthenticationOptions,
   ): Promise<string> {
     let token = this.token
     const expirationDate = this.tokenExpiration ?? new Date()
@@ -103,7 +103,7 @@ export class Auth {
           },
           timeout: options?.timeout,
           signal: options?.signal,
-        }
+        },
       )
       const newToken = resp.data.key
 

@@ -73,37 +73,37 @@ describe("epoch feed", () => {
   const chunkReference_4_0 = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_4_0
+    startingEpochIndex_4_0,
   )
   const chunkReference_4_1 = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_4_1
+    startingEpochIndex_4_1,
   )
   const chunkReference_4_1_Parent = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_4_1_Parent
+    startingEpochIndex_4_1_Parent,
   )
   const chunkReference_4_2 = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_4_2
+    startingEpochIndex_4_2,
   )
   const chunkReference_6_1 = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_6_1
+    startingEpochIndex_6_1,
   )
   const chunkReference_6_1_Left = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_6_1_Left
+    startingEpochIndex_6_1_Left,
   )
   const chunkReference_0_Max = EpochFeedChunk.buildReferenceHash(
     account,
     topic,
-    startingEpochIndex_0_Max
+    startingEpochIndex_0_Max,
   )
   const chunkTimestamp_0_4 = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 4]) //1970-01-01 00:00:04
   const chunkTimestamp_0_5 = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 5]) //1970-01-01 00:00:05
@@ -123,7 +123,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_0,
         socPayload_0_5,
-        chunkReference_4_0
+        chunkReference_4_0,
       ),
       mockedChunks: {},
     },
@@ -136,7 +136,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_0,
         socPayload_0_4,
-        chunkReference_4_0
+        chunkReference_4_0,
       ),
       mockedChunks: {
         [chunkReference_4_0]: makeChunkPayload(socPayload_0_4),
@@ -151,7 +151,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_0,
         socPayload_0_4,
-        chunkReference_4_0
+        chunkReference_4_0,
       ),
       mockedChunks: {
         [chunkReference_4_0]: makeChunkPayload(socPayload_0_4),
@@ -166,7 +166,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_2,
         socPayload_0_4,
-        chunkReference_4_2
+        chunkReference_4_2,
       ),
       mockedChunks: {},
     },
@@ -179,7 +179,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_2,
         socPayload_0_4,
-        chunkReference_4_2
+        chunkReference_4_2,
       ),
       mockedChunks: {},
     },
@@ -193,7 +193,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_2,
         socPayload_0_4,
-        chunkReference_4_2
+        chunkReference_4_2,
       ),
       mockedChunks: {
         [chunkReference_6_1]: makeChunkPayload(socPayload_0_7),
@@ -242,7 +242,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_2,
         socPayload_0_5,
-        chunkReference_4_2
+        chunkReference_4_2,
       ),
       mockedChunks: {
         [chunkReference_4_2]: makeChunkPayload(socPayload_0_5),
@@ -277,7 +277,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_6_1_Left,
         socPayload_0_5,
-        chunkReference_6_1_Left
+        chunkReference_6_1_Left,
       ),
       mockedChunks: {
         [chunkReference_6_1_Left]: makeChunkPayload(socPayload_0_5),
@@ -292,7 +292,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_6_1_Left,
         socPayload_0_5,
-        chunkReference_6_1_Left
+        chunkReference_6_1_Left,
       ),
       mockedChunks: {
         [chunkReference_6_1]: makeChunkPayload(socPayload_0_7),
@@ -308,7 +308,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_1_Parent,
         socPayload_0_5,
-        chunkReference_4_1_Parent
+        chunkReference_4_1_Parent,
       ),
       mockedChunks: {
         [chunkReference_4_1_Parent]: makeChunkPayload(socPayload_0_5),
@@ -323,7 +323,7 @@ describe("epoch feed", () => {
       expectedResult: new EpochFeedChunk(
         startingEpochIndex_4_1_Parent,
         socPayload_0_5,
-        chunkReference_4_1_Parent
+        chunkReference_4_1_Parent,
       ),
       mockedChunks: {
         [chunkReference_4_1]: makeChunkPayload(socPayload_0_7),
@@ -332,50 +332,56 @@ describe("epoch feed", () => {
     },
   ]
 
-  it.each(beforeDateTests)("should find last epoch feed before date ($description)", async test => {
-    vi.spyOn(bee.chunk, "download").mockImplementation(async (hash: string) => {
-      if (hash in test.mockedChunks) return test.mockedChunks[hash] as any
-      throw new Error("Chunk not found")
-    })
+  it.each(beforeDateTests)(
+    "should find last epoch feed before date ($description)",
+    async (test) => {
+      vi.spyOn(bee.chunk, "download").mockImplementation(async (hash: string) => {
+        if (hash in test.mockedChunks) return test.mockedChunks[hash] as any
+        throw new Error("Chunk not found")
+      })
 
-    const result = await epochFeed["findLastEpochChunkBeforeDate"](
-      test.account,
-      test.topic,
-      test.at,
-      test.startingChunk
-    )
+      const result = await epochFeed["findLastEpochChunkBeforeDate"](
+        test.account,
+        test.topic,
+        test.at,
+        test.startingChunk,
+      )
 
-    expect(result.index).toEqual(test.expectedResult.index)
-    expect(result.payload).toEqual(test.expectedResult.payload)
-    expect(result.reference).toEqual(test.expectedResult.reference)
-  })
+      expect(result.index).toEqual(test.expectedResult.index)
+      expect(result.payload).toEqual(test.expectedResult.payload)
+      expect(result.reference).toEqual(test.expectedResult.reference)
+    },
+  )
 
   it.concurrent.each(offlineTests)(
     "should find starting epoch feed offline ($description)",
-    async test => {
+    async (test) => {
       const result = epochFeed["findStartingEpochOffline"](test.knownNearEpoch, test.at)
 
       expect(result).toEqual(test.expectedResult)
-    }
+    },
   )
 
-  it.each(onlineTests)("should try find starting epoch feed online ($description)", async test => {
-    vi.spyOn(bee.chunk, "download").mockImplementation(async (hash: string) => {
-      if (hash in test.mockedChunks) return test.mockedChunks[hash] as any
-      throw new Error("Chunk not found")
-    })
+  it.each(onlineTests)(
+    "should try find starting epoch feed online ($description)",
+    async (test) => {
+      vi.spyOn(bee.chunk, "download").mockImplementation(async (hash: string) => {
+        if (hash in test.mockedChunks) return test.mockedChunks[hash] as any
+        throw new Error("Chunk not found")
+      })
 
-    const result = await epochFeed["tryFindStartingEpochChunkOnline"](
-      test.account,
-      test.topic,
-      test.at,
-      test.index
-    )
+      const result = await epochFeed["tryFindStartingEpochChunkOnline"](
+        test.account,
+        test.topic,
+        test.at,
+        test.index,
+      )
 
-    expect(result).toEqual(test.expectedResult)
-  })
+      expect(result).toEqual(test.expectedResult)
+    },
+  )
 
-  it.each([false, true])("should try find chunk (exists: %s)", async exists => {
+  it.each([false, true])("should try find chunk (exists: %s)", async (exists) => {
     const reference =
       "aeef03dde6685d5a1c9ae5af374cce84b25aab391222801d8c4dc5d108929592" as Reference
     const index = new EpochIndex(2n, 1)

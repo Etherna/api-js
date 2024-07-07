@@ -55,7 +55,7 @@ export class BaseBuilder {
     meta?: {
       filename?: string
       contentType?: string | null
-    }
+    },
   ) {
     this.node.addFork(encodePath(path), referenceToBytesReference(getReferenceFromData(data)), {
       ...(meta?.filename ? { [EntryMetadataFilenameKey]: meta?.filename } : {}),

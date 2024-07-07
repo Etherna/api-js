@@ -2,6 +2,7 @@ import { Chunk, makeChunk } from "@fairdatasociety/bmt-js"
 import { etc } from "@noble/secp256k1"
 
 import { keccak256Hash } from "../../utils"
+import { bmtHash } from "./utils/bmt"
 import { bytesEqual, serializeBytes } from "./utils/bytes"
 import { makeContentAddressedChunk } from "./utils/chunk"
 import {
@@ -19,7 +20,13 @@ import { recoverAddress } from "./utils/signer"
 
 import type { BeeClient } from "."
 import type { RequestOptions } from ".."
-import type { EthAddress, ReferenceResponse, RequestUploadOptions, SingleOwnerChunk } from "./types"
+import type {
+  ContentAddressedChunk,
+  EthAddress,
+  ReferenceResponse,
+  RequestUploadOptions,
+  SingleOwnerChunk,
+} from "./types"
 
 const socEndpoint = "/soc"
 
@@ -54,7 +61,7 @@ export class Soc {
         params: { sig: signature },
         timeout: options?.timeout,
         signal: options?.signal,
-      }
+      },
     )
 
     return {
@@ -70,7 +77,10 @@ export class Soc {
    * @param chunk       A chunk object used for the span and payload
    * @param identifier  The identifier of the chunk
    */
-  async makeSingleOwnerChunk(chunk: Chunk, identifier: Uint8Array): Promise<SingleOwnerChunk> {
+  async makeSingleOwnerChunk(
+    chunk: ContentAddressedChunk,
+    identifier: Uint8Array,
+  ): Promise<SingleOwnerChunk> {
     if (!this.instance.signer) {
       throw new Error("No signer provided")
     }
@@ -79,7 +89,7 @@ export class Soc {
 
     const digest = keccak256Hash(identifier, chunkAddress)
     const signature = etc.hexToBytes(makeHexString(await this.instance.signer.sign(digest)))
-    const data = serializeBytes(identifier, signature, chunk.span(), chunk.payload)
+    const data = serializeBytes(identifier, signature, chunk.span(), chunk.payload())
     const signerAddress = etc.hexToBytes(makeHexString(this.instance.signer!.address))
     const address = this.makeSOCAddress(identifier, signerAddress)
 
@@ -88,7 +98,7 @@ export class Soc {
       identifier: () => identifier,
       signature: () => signature,
       span: () => chunk.span(),
-      payload: () => chunk.payload,
+      payload: () => chunk.payload(),
       address: () => address,
       owner: () => signerAddress,
     }
@@ -124,7 +134,7 @@ export class Soc {
 
   private recoverChunkOwner(data: Uint8Array): Uint8Array {
     const cacData = data.slice(SOC_SPAN_OFFSET)
-    const chunkAddress = makeChunk(cacData).address()
+    const chunkAddress = bmtHash(cacData)
     const signature = data.slice(SOC_SIGNATURE_OFFSET, SOC_SIGNATURE_OFFSET + SIGNATURE_SIZE)
     const identifier = data.slice(SOC_IDENTIFIER_OFFSET, SOC_IDENTIFIER_OFFSET + IDENTIFIER_SIZE)
     const digest = keccak256Hash(identifier, chunkAddress)

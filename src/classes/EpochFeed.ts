@@ -11,7 +11,7 @@ export class EpochFeed {
     account: string,
     topic: Uint8Array,
     contentPayload: Uint8Array,
-    knownNearEpochIndex?: EpochIndex
+    knownNearEpochIndex?: EpochIndex,
   ): Promise<EpochFeedChunk> {
     const at = new Date()
 
@@ -38,7 +38,7 @@ export class EpochFeed {
     account: string,
     topic: Uint8Array,
     at: Date,
-    knownNearEpochIndex?: EpochIndex
+    knownNearEpochIndex?: EpochIndex,
   ): Promise<EpochFeedChunk | null> {
     const timestamp = at.toUnixTimestamp().normalized()
 
@@ -107,22 +107,22 @@ export class EpochFeed {
   public async tryGetFeedChunk(
     account: string,
     topic: Uint8Array,
-    index: EpochIndex
+    index: EpochIndex,
   ): Promise<EpochFeedChunk | null>
   public async tryGetFeedChunk(
     chunkReferenceHash: Reference,
-    index: EpochIndex
+    index: EpochIndex,
   ): Promise<EpochFeedChunk | null>
   public async tryGetFeedChunk(
     accountOrReference: string | Reference,
     topicOrIndex: Uint8Array | EpochIndex,
-    index?: EpochIndex
+    index?: EpochIndex,
   ): Promise<EpochFeedChunk | null> {
     if (topicOrIndex instanceof Uint8Array) {
       const topic = topicOrIndex
       return this.tryGetFeedChunk(
         EpochFeedChunk.buildReferenceHash(accountOrReference, topic, index!),
-        index!
+        index!,
       )
     }
 
@@ -144,7 +144,7 @@ export class EpochFeed {
     account: string,
     topic: Uint8Array,
     at: Date,
-    currentChunk: EpochFeedChunk
+    currentChunk: EpochFeedChunk,
   ): Promise<EpochFeedChunk> {
     // If currentChunk is at max resolution, return it.
     const currentIndex = currentChunk.index
@@ -208,7 +208,7 @@ export class EpochFeed {
     account: string,
     topic: Uint8Array,
     at: Date,
-    epochIndex: EpochIndex
+    epochIndex: EpochIndex,
   ): Promise<EpochFeedChunk | null> {
     // Try get chunk payload on network.
     const chunk = await this.tryGetFeedChunk(account, topic, epochIndex)

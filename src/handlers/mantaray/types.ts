@@ -22,7 +22,7 @@ export type StorageLoader = (reference: BytesReference) => Promise<Uint8Array>
 
 export type StorageSaver = (
   data: Uint8Array,
-  options?: { ecrypt?: boolean }
+  options?: { ecrypt?: boolean },
 ) => Promise<BytesReference>
 
 export type StorageHandler = {

@@ -58,7 +58,7 @@ export default abstract class FolderBuilder {
     }
 
     this.node.addFork(encodePath(RootPath), ZeroHashReference, metadata)
-    const reference = await this.node.save(async data => {
+    const reference = await this.node.save(async (data) => {
       return this.enqueueData(data)
     })
     await this.queue.drain()
@@ -79,7 +79,7 @@ export default abstract class FolderBuilder {
         await this.config.beeClient.bytes.upload(data, {
           batchId: this.config.batchId,
           signal: this.abortController.signal,
-          onUploadProgress: completion => {
+          onUploadProgress: (completion) => {
             this.bytesProgress += (completion / 100) * data.length
 
             const progress =

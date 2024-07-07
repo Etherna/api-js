@@ -7,7 +7,7 @@ export function fromHexString(hexString: string): Uint8Array {
   if (!matches) {
     throw Error(`Invalid hex string: ${hexString}`)
   }
-  return Uint8Array.from(matches.map(byte => parseInt(byte, 16)))
+  return Uint8Array.from(matches.map((byte) => parseInt(byte, 16)))
 }
 
 export function toHexString(bytes: Uint8Array): string {

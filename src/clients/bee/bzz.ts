@@ -38,7 +38,7 @@ export class Bzz {
         headers: options?.headers,
         timeout: options?.timeout,
         signal: signal,
-        onDownloadProgress: e => {
+        onDownloadProgress: (e) => {
           if (options?.onDownloadProgress) {
             const progress = Math.round((e.progress ?? 0) * 100)
             options.onDownloadProgress(progress)
@@ -47,7 +47,7 @@ export class Bzz {
             abortController.abort("Response size exceeded")
           }
         },
-      }
+      },
     )
 
     const file = {
@@ -65,7 +65,7 @@ export class Bzz {
       },
       timeout: options?.timeout,
       signal: options?.signal,
-      onUploadProgress: e => {
+      onUploadProgress: (e) => {
         if (options?.onUploadProgress) {
           const progress = Math.round((e.progress ?? 0) * 100)
           options.onUploadProgress(progress)

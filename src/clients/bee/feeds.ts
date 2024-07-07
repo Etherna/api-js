@@ -50,7 +50,7 @@ export class Feed {
   ): FeedInfo<T> {
     return {
       topic: etc.bytesToHex(keccak256Hash(topicName)),
-      owner: makeHexString(owner),
+      owner: makeHexString(owner).toLowerCase(),
       type,
     }
   }
@@ -124,7 +124,7 @@ export class Feed {
         )
 
         const identifier = EpochFeedChunk.buildIdentifier(etc.hexToBytes(feed.topic), chunk.index)
-        const reference = await this.instance.soc.upload(identifier, chunk.payload, options)
+        const { reference } = await this.instance.soc.upload(identifier, chunk.payload, options)
 
         return {
           reference,
@@ -140,7 +140,7 @@ export class Feed {
         const timestamp = writeUint64BigEndian(at)
         const payloadBytes = serializeBytes(timestamp, canonicalReference)
         const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)
-        const reference = await this.instance.soc.upload(identifier, payloadBytes, options)
+        const { reference } = await this.instance.soc.upload(identifier, payloadBytes, options)
 
         return {
           reference,

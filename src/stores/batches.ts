@@ -26,17 +26,17 @@ export type BatchesState = {
 export const batchesStore = createStore<BatchesState>()(
   devtools(
     persist(
-      immer(set => ({
+      immer((set) => ({
         updatingBatches: [],
         addBatchUpdate(batch, type) {
-          set(state => {
+          set((state) => {
             const id = "id" in batch ? batch.id : batch.batchID
             const index = state.updatingBatches.findIndex(
-              b =>
+              (b) =>
                 b.id === id &&
                 b.depth === batch.depth &&
                 b.amount === batch.amount &&
-                b.flag === type
+                b.flag === type,
             )
 
             if (index === -1) {
@@ -50,10 +50,10 @@ export const batchesStore = createStore<BatchesState>()(
           })
         },
         removeBatchUpdate(batchId) {
-          set(state => {
+          set((state) => {
             state.updatingBatches.splice(
-              state.updatingBatches.findIndex(b => b.id === batchId),
-              1
+              state.updatingBatches.findIndex((b) => b.id === batchId),
+              1,
             )
           })
         },
@@ -61,10 +61,10 @@ export const batchesStore = createStore<BatchesState>()(
       {
         name: "etherna:batches",
         storage: createJSONStorage(() => localStorage),
-      }
+      },
     ),
     {
       name: "batches",
-    }
-  )
+    },
+  ),
 )

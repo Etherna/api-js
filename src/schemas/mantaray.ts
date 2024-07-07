@@ -7,7 +7,7 @@ export const MantarayNodeSchema: z.ZodSchema<MantarayNode> = z.lazy(() =>
     contentAddress: z.string().optional(),
     metadata: z.record(z.string()).optional(),
     forks: z.record(MantarayForkSchema),
-  })
+  }),
 )
 
 export const MantarayForkSchema = z.object({

@@ -9,7 +9,7 @@ export function getVideoMeta(data: Uint8Array): Promise<VideoMeta> {
   return new Promise<VideoMeta>((resolve, reject) => {
     const video = document.createElement("video")
     video.preload = "metadata"
-    video.onerror = error => {
+    video.onerror = (error) => {
       reject(error)
     }
     video.onloadedmetadata = () => {

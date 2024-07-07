@@ -27,7 +27,7 @@ export class Queue {
 
   async drain() {
     while (this.activeTasks > 0 || this.tasks.length > 0) {
-      await new Promise(resolve => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 10))
     }
   }
 }

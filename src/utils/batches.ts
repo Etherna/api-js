@@ -149,7 +149,7 @@ export const calcBatchPrice = (depth: number, amount: bigint | string): string =
 export const calcDilutedTTL = (
   currentTTL: number,
   currentDepth: number,
-  newDepth: number
+  newDepth: number,
 ): number => {
   return Math.ceil(currentTTL / 2 ** (newDepth - currentDepth))
 }

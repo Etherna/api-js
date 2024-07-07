@@ -4,7 +4,7 @@
  * @param data any string, ArrayBuffer or Uint8Array
  */
 export function prepareData(
-  data: string | File | Uint8Array
+  data: string | File | Uint8Array,
 ): Blob | ReadableStream<Uint8Array> | never {
   if (typeof data === "string") return new Blob([data], { type: "text/plain" })
 

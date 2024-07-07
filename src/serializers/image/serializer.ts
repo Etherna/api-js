@@ -10,17 +10,17 @@ export class ImageSerializer {
 
     const aspectRatio = image.aspectRatio
     const blurhash = image.blurhash
-    const sources: ImageRawSources = image.sources.map(source => ({
+    const sources: ImageRawSources = image.sources.map((source) => ({
       type: source.type,
       width: source.width,
       path: source.path,
       reference: source.reference,
     }))
 
-    sources.forEach(src =>
+    sources.forEach((src) =>
       (Object.keys(src) as (keyof typeof src)[]).forEach(
-        key => src[key] === undefined && delete src[key]
-      )
+        (key) => src[key] === undefined && delete src[key],
+      ),
     )
 
     const imageRaw = ImageRawSchema.parse({

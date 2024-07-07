@@ -37,7 +37,7 @@ export class VideoSerializer {
       description: videoDetails.description,
       aspectRatio: videoDetails.aspectRatio,
       personalData: videoDetails.personalData,
-      sources: videoDetails.sources.map(source => ({
+      sources: videoDetails.sources.map((source) => ({
         type: source.type,
         path: source.path,
         size: source.size,

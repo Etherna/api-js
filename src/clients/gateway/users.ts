@@ -108,7 +108,7 @@ export class UsersClient {
     depth: number,
     amount: bigint | string,
     label?: string,
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<GatewayBatch> {
     const resp = await this.instance.request.post<string>(`/users/current/batches`, null, {
       ...this.instance.prepareAxiosConfig(opts),
@@ -170,7 +170,7 @@ export class UsersClient {
       `/users/current/batches/${batchId}`,
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     if (typeof resp.data !== "object") {

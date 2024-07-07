@@ -1,4 +1,4 @@
-import { makeChunkedFile } from "@fairdatasociety/bmt-js/src/file"
+import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 import { immerable } from "immer"
 
 import { MantarayNode as MantarayNodeType } from "../.."

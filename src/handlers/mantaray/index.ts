@@ -60,7 +60,7 @@ class NotFoundError extends Error {
       ? `Prefix on lookup: ${new TextDecoder().decode(checkedPrefixBytes)}`
       : "No fork on the level"
     super(
-      `Path has not found in the manifest. Remaining path on lookup: ${remainingPath}. ${prefixInfo}`
+      `Path has not found in the manifest. Remaining path on lookup: ${remainingPath}. ${prefixInfo}`,
     )
   }
 }
@@ -96,7 +96,7 @@ export class MantarayFork {
    */
   constructor(
     public prefix: Uint8Array,
-    public node: MantarayNode
+    public node: MantarayNode,
   ) {}
 
   private createMetadataPadding(metadataSizeWithSize: number): Uint8Array {
@@ -158,14 +158,14 @@ export class MantarayFork {
         refBytesSize: number
         metadataByteSize: number
       }
-    }
+    },
   ): MantarayFork {
     const nodeType = data[0]!
     const prefixLength = data[1]!
 
     if (prefixLength === 0 || prefixLength > nodeForkSizes.prefixMaxSize()) {
       throw Error(
-        `Prefix length of fork is greater than ${nodeForkSizes.prefixMaxSize()}. Got: ${prefixLength}`
+        `Prefix length of fork is greater than ${nodeForkSizes.prefixMaxSize()}. Got: ${prefixLength}`,
       )
     }
 
@@ -182,7 +182,7 @@ export class MantarayFork {
       if (metadataByteSize > 0) {
         node.entry = data.slice(
           nodeForkSizes.preReference,
-          nodeForkSizes.preReference + refBytesSize
+          nodeForkSizes.preReference + refBytesSize,
         ) as Bytes<32> | Bytes<64>
 
         const startMetadata = nodeForkSizes.preReference + refBytesSize + nodeForkSizes.metadata
@@ -296,7 +296,7 @@ export class MantarayNode {
             node: this.forks![+key]!.node.readable,
           },
         }),
-        {}
+        {},
       ),
     }
   }
@@ -606,7 +606,7 @@ export class MantarayNode {
     /// Forks
     const forkSerializations: Uint8Array[] = []
 
-    index.forEach(byte => {
+    index.forEach((byte) => {
       const fork = this.forks![byte]
 
       if (!fork) throw Error(`Fork indexing error: fork has not found under ${byte} index`)
@@ -634,19 +634,19 @@ export class MantarayNode {
 
     if (data.length < nodeHeaderSize) {
       throw Error(
-        `The serialised input is too short, received = ${data.length}, expected >= ${nodeHeaderSize}`
+        `The serialised input is too short, received = ${data.length}, expected >= ${nodeHeaderSize}`,
       )
     }
 
     this._obfuscationKey = new Uint8Array(
-      data.slice(0, nodeHeaderSizes.obfuscationKey)
+      data.slice(0, nodeHeaderSizes.obfuscationKey),
     ) as Bytes<32>
     // perform XOR decryption on bytes after obfuscation key
     encryptDecrypt(this._obfuscationKey, data, this._obfuscationKey.length)
 
     const versionHash = data.slice(
       nodeHeaderSizes.obfuscationKey,
-      nodeHeaderSizes.obfuscationKey + nodeHeaderSizes.versionHash
+      nodeHeaderSizes.obfuscationKey + nodeHeaderSizes.versionHash,
     )
 
     if (equalBytes(versionHash, serializeVersion("0.1"))) throw NotImplemented
@@ -674,7 +674,7 @@ export class MantarayNode {
       indexForks.setBytes = indexBytes
       offset += 32
 
-      indexForks.forEach(byte => {
+      indexForks.forEach((byte) => {
         let fork: MantarayFork
 
         if (data.length < offset + nodeForkSizes.nodeType) {
@@ -693,7 +693,7 @@ export class MantarayNode {
           }
 
           const metadataByteSize = fromBigEndian(
-            data.slice(offset + nodeForkSize, offset + nodeForkSize + nodeForkSizes.metadata)
+            data.slice(offset + nodeForkSize, offset + nodeForkSize + nodeForkSizes.metadata),
           )
           nodeForkSize += nodeForkSizes.metadata + metadataByteSize
 
@@ -702,7 +702,7 @@ export class MantarayNode {
             this._obfuscationKey!,
             {
               withMetadata: { refBytesSize, metadataByteSize },
-            }
+            },
           )
         } else {
           if (data.length < offset + nodeForkSizes.preReference + refBytesSize) {
@@ -711,7 +711,7 @@ export class MantarayNode {
 
           fork = MantarayFork.deserialize(
             data.slice(offset, offset + nodeForkSize),
-            this._obfuscationKey!
+            this._obfuscationKey!,
           )
         }
 
@@ -726,7 +726,7 @@ export class MantarayNode {
 
   private async recursiveLoad(
     storageLoader: StorageLoader,
-    reference: BytesReference
+    reference: BytesReference,
   ): Promise<BytesReference | undefined> {
     const data = await storageLoader(reference)
     this.deserialize(data)
@@ -759,7 +759,7 @@ export class MantarayNode {
     }
     const savedReturns = await Promise.all(savePromises)
 
-    if (this._contentAddress && savedReturns.every(v => !v.changed)) {
+    if (this._contentAddress && savedReturns.every((v) => !v.changed)) {
       return { reference: this._contentAddress, changed: false }
     }
 
@@ -780,7 +780,7 @@ function nodeTypeIsWithMetadataType(nodeType: number): boolean {
 /** Checks for separator character in the node and its descendants prefixes */
 export function checkForSeparator(node: MantarayNode): boolean {
   for (const fork of Object.values(node.forks || {})) {
-    const pathIncluded = fork.prefix.some(v => v === PATH_SEPARATOR_BYTE)
+    const pathIncluded = fork.prefix.some((v) => v === PATH_SEPARATOR_BYTE)
 
     if (pathIncluded) return true
 
@@ -816,7 +816,7 @@ function serializeReferenceLength(entry: BytesReference): Bytes<1> {
 /** loads all nodes recursively */
 export async function loadAllNodes(
   storageLoader: StorageLoader,
-  node: MantarayNode
+  node: MantarayNode,
 ): Promise<void> {
   if (!node.forks) return
 
@@ -837,19 +837,19 @@ export async function loadAllNodes(
 export const equalNodes = (
   a: MantarayNode,
   b: MantarayNode,
-  accumulatedPrefix = ""
+  accumulatedPrefix = "",
 ): void | never => {
   // node type comparisation
   if (a.type !== b.type) {
     throw Error(
-      `Nodes do not have same type at prefix "${accumulatedPrefix}"\na: ${a.type} <-> b: ${b.type}`
+      `Nodes do not have same type at prefix "${accumulatedPrefix}"\na: ${a.type} <-> b: ${b.type}`,
     )
   }
 
   // node metadata comparisation
   if (!a.metadata !== !b.metadata) {
     throw Error(
-      `One of the nodes do not have metadata defined. \n a: ${a.metadata} \n b: ${b.metadata}`
+      `One of the nodes do not have metadata defined. \n a: ${a.metadata} \n b: ${b.metadata}`,
     )
   } else if (a.metadata && b.metadata) {
     let aMetadata, bMetadata: string
@@ -858,7 +858,7 @@ export const equalNodes = (
       bMetadata = JSON.stringify(b.metadata)
     } catch (e) {
       throw Error(
-        `Either of the nodes has invalid JSON metadata. \n a: ${a.metadata} \n b: ${b.metadata}`
+        `Either of the nodes has invalid JSON metadata. \n a: ${a.metadata} \n b: ${b.metadata}`,
       )
     }
 
@@ -879,7 +879,7 @@ export const equalNodes = (
 
   if (!b.forks || aKeys.length !== Object.keys(b.forks).length) {
     throw Error(
-      `Nodes do not have same fork length on equality check at prefix ${accumulatedPrefix}`
+      `Nodes do not have same fork length on equality check at prefix ${accumulatedPrefix}`,
     )
   }
 
@@ -891,7 +891,7 @@ export const equalNodes = (
 
     if (!equalBytes(prefix, bFork.prefix)) {
       throw Error(
-        `Nodes do not have same prefix under the same key "${key}" at prefix ${accumulatedPrefix}`
+        `Nodes do not have same prefix under the same key "${key}" at prefix ${accumulatedPrefix}`,
       )
     }
 

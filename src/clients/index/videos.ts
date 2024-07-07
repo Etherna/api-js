@@ -33,7 +33,7 @@ export class IndexVideos {
       },
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     if (typeof resp.data !== "string") {
@@ -95,7 +95,7 @@ export class IndexVideos {
       {
         ...this.instance.prepareAxiosConfig(opts),
         params: { page, take },
-      }
+      },
     )
 
     if (typeof resp.data !== "object") {
@@ -117,7 +117,7 @@ export class IndexVideos {
       `/videos/${id}/validation2`,
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     if (Array.isArray(resp.data)) {
@@ -139,7 +139,7 @@ export class IndexVideos {
       `/videos/manifest/${hash}/validation`,
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     if (typeof resp.data !== "object") {
@@ -162,7 +162,7 @@ export class IndexVideos {
       hashes,
       {
         ...this.instance.prepareAxiosConfig(opts),
-      }
+      },
     )
 
     if (!Array.isArray(resp.data)) {
@@ -187,7 +187,7 @@ export class IndexVideos {
       {
         ...this.instance.prepareAxiosConfig(opts),
         params: { newHash },
-      }
+      },
     )
 
     if (typeof resp.data !== "object") {
@@ -253,7 +253,7 @@ export class IndexVideos {
           accept: "text/plain",
           "Content-Type": "application/json",
         },
-      }
+      },
     )
 
     return resp.data
@@ -290,7 +290,7 @@ export class IndexVideos {
       {
         ...this.instance.prepareAxiosConfig(opts),
         params: { description: code },
-      }
+      },
     )
 
     return resp.data

@@ -18,7 +18,7 @@ export class ImageDeserializer {
     const imageRaw = ImageRawSchema.parse(item)
     const rawSources = imageRaw.sources
     const sources = rawSources
-      .map(source => ({
+      .map((source) => ({
         ...source,
         url: beeReference.safeParse(source.reference!).success
           ? getBzzUrl(this.beeUrl, source.reference!)
