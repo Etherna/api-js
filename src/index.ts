@@ -14,8 +14,12 @@ export type {
 export type { MantarayFork, MantarayNode } from "./schemas/mantaray"
 export type {
   Playlist,
-  PlaylistEncryptedDataRaw,
-  PlaylistRaw,
+  PlaylistId,
+  PlaylistThumb,
+  PlaylistPreview,
+  PlaylistPreviewRaw,
+  PlaylistDetails,
+  PlaylistDetailsRaw,
   PlaylistType,
   PlaylistVideo,
   PlaylistVideoRaw,

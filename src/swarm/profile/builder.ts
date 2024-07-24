@@ -88,8 +88,16 @@ export class ProfileBuilder {
 
   initialize(reference: Reference, previewMeta: ProfilePreview, detailsMeta?: ProfileDetails) {
     this.reference = reference || this.reference
-    this.previewMeta = previewMeta ? ProfilePreviewRawSchema.parse(previewMeta) : this.previewMeta
-    this.detailsMeta = detailsMeta ? ProfileDetailsRawSchema.parse(detailsMeta) : this.detailsMeta
+    this.previewMeta = previewMeta
+      ? ProfilePreviewRawSchema.parse(
+          JSON.parse(new ProfileSerializer().serializePreview(previewMeta)),
+        )
+      : this.previewMeta
+    this.detailsMeta = detailsMeta
+      ? ProfileDetailsRawSchema.parse(
+          JSON.parse(new ProfileSerializer().serializeDetails(detailsMeta)),
+        )
+      : this.detailsMeta
     this.previewMeta.address = previewMeta?.address
     this.updateNode()
   }
@@ -264,6 +272,18 @@ export class ProfileBuilder {
       this.node.removePath(encodePath(path))
     }
     this.detailsMeta.cover = null
+    this.updateNode()
+  }
+
+  addPlaylist(rootManifest: Reference) {
+    this.detailsMeta.playlists.push(rootManifest)
+    this.updateNode()
+  }
+
+  removePlaylist(rootManifest: Reference) {
+    this.detailsMeta.playlists = this.detailsMeta.playlists.filter(
+      (playlist) => playlist !== rootManifest,
+    )
     this.updateNode()
   }
 

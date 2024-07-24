@@ -16,6 +16,7 @@ import {
   EntryMetadataFeedTopicKey,
   EntryMetadataFeedTypeKey,
 } from "../../utils/mantaray"
+import { dateToTimestamp } from "../../utils/time"
 import { makeBytes, serializeBytes } from "./utils/bytes"
 import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
@@ -136,7 +137,7 @@ export class Feed {
             ? options.index
             : await this.findNextIndex(feed)
 
-        const at = Math.floor((options.at?.getTime() ?? Date.now()) / 1000.0)
+        const at = dateToTimestamp(options.at ?? new Date())
         const timestamp = writeUint64BigEndian(at)
         const payloadBytes = serializeBytes(timestamp, canonicalReference)
         const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)

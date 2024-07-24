@@ -1,62 +1,48 @@
+import { PlaylistDetails, PlaylistPreview } from "../../schemas/playlist"
 import { PlaylistDeserializer } from "../../serializers"
-import { EmptyReference, isEmptyReference } from "../../utils"
-import { Cache } from "../../utils/cache"
-import { BaseReader } from "../base-reader"
+import { EmptyReference, fetchAddressFromEns, isEmptyReference, isEnsAddress } from "../../utils"
 
-import type { Playlist, PlaylistRaw } from "../.."
-import type { BeeClient, EthAddress, FeedInfo, Reference } from "../../clients"
-import type { ReaderDownloadOptions, ReaderOptions } from "../base-reader"
+import type { BeeClient, EnsAddress, EthAddress, FeedInfo, Reference } from "../../clients"
+import type { ReaderOptions } from "../base-reader"
 
-interface PlaylistReaderOptions extends ReaderOptions {
-  prefetchData?: Playlist
+interface PlaylistReaderOptions extends ReaderOptions {}
+
+interface PlaylistReaderDownloadOptions {
+  mode: "preview" | "details" | "full"
+  signal?: AbortSignal
+  prefetchedPreview?: PlaylistPreview
 }
-
-export const PlaylistCache = new Cache<string, Playlist>()
-
-export const getPlaylistCacheId = (owner: EthAddress, id: string) => `${owner}/${id}`
 
 export const createPlaylistTopicName = (id: string) => `EthernaPlaylist:${id}`
 
-export const parsePlaylistIdFromTopic = (topic: string) => topic.split(":")[1]
+export type PlaylistIdentification =
+  | { id: string; owner: EthAddress | EnsAddress }
+  | { rootManifest: Reference }
 
-type PlaylistReaderIdentification = { id: string; owner: EthAddress } | { rootManifest: Reference }
-
-export class PlaylistReader extends BaseReader<
-  Playlist | null,
-  PlaylistReaderIdentification,
-  PlaylistRaw
-> {
-  private reference: Reference
+export class PlaylistReader {
+  private rootManifest: Reference
   private id: string
-  private owner: EthAddress
+  private owner: EthAddress | EnsAddress
   private beeClient: BeeClient
 
   static channelPlaylistId = "Channel" as const
   static savedPlaylistId = "Saved" as const
 
-  constructor(identification: PlaylistReaderIdentification, opts: PlaylistReaderOptions) {
-    super(identification, opts)
-
+  constructor(identification: PlaylistIdentification, opts: PlaylistReaderOptions) {
     this.beeClient = opts.beeClient
 
     if ("rootManifest" in identification) {
-      this.reference = identification.rootManifest
+      this.rootManifest = identification.rootManifest
       this.id = ""
       this.owner = "0x0"
     } else {
       this.id = identification.id
       this.owner = identification.owner
-      this.reference = EmptyReference
+      this.rootManifest = EmptyReference
     }
   }
 
-  async download(opts?: ReaderDownloadOptions): Promise<Playlist> {
-    const cacheId = getPlaylistCacheId(this.owner, this.id)
-
-    if (PlaylistCache.has(cacheId)) {
-      return PlaylistCache.get(cacheId)!
-    }
-
+  async download(opts: PlaylistReaderDownloadOptions) {
     const feed = await this.getPlaylistFeed()
     const reader = this.beeClient.feed.makeReader(feed)
 
@@ -66,41 +52,67 @@ export class PlaylistReader extends BaseReader<
       },
     })
 
-    const [playlistData, rootManifest] = await Promise.all([
-      this.beeClient.bzz.download(playlistReference, {
-        headers: {
-          // "x-etherna-reason": "playlist",
-        },
-        maxResponseSize: opts?.maxResponseSize,
-        onDownloadProgress: opts?.onDownloadProgress,
-      }),
+    const [playlistPreviewData, playlistDetailsData, rootManifest] = await Promise.all([
+      opts.prefetchedPreview && opts.mode !== "preview"
+        ? Promise.resolve(JSON.stringify(opts.prefetchedPreview))
+        : this.beeClient.bzz
+            .download(playlistReference, {
+              headers: {
+                // "x-etherna-reason": "playlist-preview",
+              },
+            })
+            .then((res) => res.data.text()),
+      opts.mode !== "preview"
+        ? this.beeClient.bzz
+            .downloadPath(playlistReference, "details", {
+              headers: {
+                // "x-etherna-reason": "playlist-details",
+              },
+            })
+            .then((res) => res.data.text())
+        : Promise.resolve(null),
       this.beeClient.feed.makeRootManifest(feed),
     ])
 
-    const rawPlaylist = playlistData.data.text()
-    const playlist = new PlaylistDeserializer().deserialize(rawPlaylist, {
-      reference: this.reference,
+    const deserializer = new PlaylistDeserializer()
+    const preview = deserializer.deserializePreview(playlistPreviewData, {
+      rootManifest: rootManifest.reference,
     })
+    const { details, encryptedData } = playlistDetailsData
+      ? deserializer.deserializeDetails(playlistDetailsData)
+      : { details: { videos: [] } as PlaylistDetails, encryptedData: null }
 
-    this.reference = rootManifest.reference
-    this.id = playlist.id // can't derive from feed topic when only rootManifest is provided
-    this.rawResponse = playlistData.data.json<PlaylistRaw>()
+    this.rootManifest = rootManifest.reference
+    this.id = preview.id // can't derive from feed topic when only rootManifest is provided
 
-    PlaylistCache.set(cacheId, playlist)
-
-    return playlist
+    return {
+      reference: playlistReference,
+      preview,
+      details,
+      encryptedData,
+    }
   }
 
   async getPlaylistFeed(): Promise<FeedInfo<"epoch">> {
-    if ((!this.id || this.owner === "0x0") && isEmptyReference(this.reference)) {
+    if ((!this.id || this.owner === "0x0") && isEmptyReference(this.rootManifest)) {
       throw new Error("id + owner or rootManifest must be provided")
+    }
+
+    if (isEnsAddress(this.owner)) {
+      const ethAddress = await fetchAddressFromEns(this.owner)
+
+      if (!ethAddress) {
+        throw new Error(`Could not resolve ENS address: '${this.owner}'`)
+      }
+
+      this.owner = ethAddress
     }
 
     const topicName = createPlaylistTopicName(this.id)
     const feed = this.beeClient.feed.makeFeed(topicName, this.owner, "epoch")
 
     if (!this.id || this.owner === "0x0") {
-      const playlistFeed = await this.beeClient.feed.parseFeedFromRootManifest(this.reference)
+      const playlistFeed = await this.beeClient.feed.parseFeedFromRootManifest(this.rootManifest)
       this.owner = `0x${playlistFeed.owner}`
 
       feed.owner = playlistFeed.owner

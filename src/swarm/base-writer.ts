@@ -1,4 +1,4 @@
-import type { BeeClient, Reference } from "../clients"
+import type { BatchId, BeeClient, Reference } from "../clients"
 
 export interface WriterOptions {
   beeClient: BeeClient
@@ -10,7 +10,7 @@ export interface WriterUploadOptions {
   deferred?: boolean
   encrypt?: boolean
   tag?: string
-  batchId?: string
+  batchId?: BatchId
   onUploadProgress?(completion: number): void
 }
 

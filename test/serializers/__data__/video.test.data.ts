@@ -1,4 +1,4 @@
-import { Reference } from "../../../src/clients"
+import { BatchId, Reference } from "../../../src/clients"
 import { testImageParsed, testImageRaw } from "./image.test.data"
 
 import type { VideoDetails, VideoDetailsRaw, VideoPreview, VideoPreviewRaw } from "../../../src"
@@ -15,10 +15,10 @@ export const testVideoRaw_1_0: VideoPreviewRaw & VideoDetailsRaw & { originalQua
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
   originalQuality: "720p",
-  createdAt: 1661515209109,
+  createdAt: 1661515209,
   sources: [
     {
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
@@ -34,17 +34,17 @@ export const testVideoRaw_1_1: VideoPreviewRaw & VideoDetailsRaw & { originalQua
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
   originalQuality: "720p",
-  createdAt: 1661515209109,
+  createdAt: 1661515209,
   updatedAt: null,
   sources: [
     {
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
   v: "1.1",
 }
 export const testVideoRawPreview_1_1_2_0: VideoPreviewRaw = {
@@ -52,7 +52,7 @@ export const testVideoRawPreview_1_1_2_0: VideoPreviewRaw = {
   thumbnail: testImageRaw,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
+  createdAt: 1661515209,
   updatedAt: null,
   v: "2.0",
 }
@@ -62,13 +62,13 @@ export const testVideoRawDetails_1_1_2_0: VideoDetailsRaw = {
   sources: [
     {
       type: "mp4",
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }
 
 export const testVideoIndex: VideoPreviewRaw & VideoDetailsRaw & { originalQuality: string } = {
@@ -78,16 +78,16 @@ export const testVideoIndex: VideoPreviewRaw & VideoDetailsRaw & { originalQuali
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
   originalQuality: "720p",
-  createdAt: 1661515209109,
+  createdAt: 1661515209,
   sources: [
     {
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }
 
 export const testVideoPreviewRaw_2_0: VideoPreviewRaw = {
@@ -95,8 +95,8 @@ export const testVideoPreviewRaw_2_0: VideoPreviewRaw = {
   thumbnail: testImageRaw,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
-  updatedAt: 1661515209109,
+  createdAt: 1661515209,
+  updatedAt: 1661515209,
   v: "2.0",
 }
 export const testVideoDetailsRaw_2_0: VideoDetailsRaw = {
@@ -109,7 +109,7 @@ export const testVideoDetailsRaw_2_0: VideoDetailsRaw = {
       size: 0,
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }
 
 export const testVideoPreviewParsed_1_0: VideoPreview = {
@@ -119,7 +119,7 @@ export const testVideoPreviewParsed_1_0: VideoPreview = {
   thumbnail: null,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
+  createdAt: new Date(1661515209 * 1000),
   updatedAt: null,
 }
 export const testVideoDetailsParsed_1_0: VideoDetails = {
@@ -128,7 +128,7 @@ export const testVideoDetailsParsed_1_0: VideoDetails = {
   sources: [
     {
       type: "mp4",
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
@@ -145,7 +145,7 @@ export const testVideoPreviewParsed_1_1: VideoPreview = {
   thumbnail: testImageParsed,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
+  createdAt: new Date(1661515209 * 1000),
   updatedAt: null,
 }
 export const testVideoDetailsParsed_1_1: VideoDetails = {
@@ -154,14 +154,14 @@ export const testVideoDetailsParsed_1_1: VideoDetails = {
   sources: [
     {
       type: "mp4",
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
       url: "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123/",
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }
 
 export const testVideoPreviewIndexParsed: VideoPreview = {
@@ -171,7 +171,7 @@ export const testVideoPreviewIndexParsed: VideoPreview = {
   thumbnail: testImageParsed,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
+  createdAt: new Date(1661515209 * 1000),
   updatedAt: null,
 }
 export const testVideoDetailsIndexParsed: VideoDetails = {
@@ -181,14 +181,14 @@ export const testVideoDetailsIndexParsed: VideoDetails = {
   sources: [
     {
       type: "mp4",
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
       url: "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123/",
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }
 
 export const testVideoPreviewParsed_1_1_2_0: VideoPreview = {
@@ -198,7 +198,7 @@ export const testVideoPreviewParsed_1_1_2_0: VideoPreview = {
   thumbnail: testImageParsed,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
+  createdAt: new Date(1661515209 * 1000),
   updatedAt: null,
 }
 export const testVideoDetailsParsed_1_1_2_0: VideoDetails = {
@@ -207,14 +207,14 @@ export const testVideoDetailsParsed_1_1_2_0: VideoDetails = {
   sources: [
     {
       type: "mp4",
-      reference: "0123456789012345678901234567890123456789012345678901234567890123",
+      reference: "0123456789012345678901234567890123456789012345678901234567890123" as Reference,
       quality: "720p",
       size: 12345,
       bitrate: 12,
       url: "http://localhost:1633/bzz/0123456789012345678901234567890123456789012345678901234567890123/",
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }
 
 export const testVideoPreviewParsed_2_0: VideoPreview = {
@@ -224,8 +224,8 @@ export const testVideoPreviewParsed_2_0: VideoPreview = {
   thumbnail: testImageParsed,
   duration: 120,
   ownerAddress: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
-  updatedAt: 1661515209109,
+  createdAt: new Date(1661515209 * 1000),
+  updatedAt: new Date(1661515209 * 1000),
 }
 export const testVideoDetailsParsed_2_0: VideoDetails = {
   description: "test description",
@@ -240,5 +240,5 @@ export const testVideoDetailsParsed_2_0: VideoDetails = {
       isMaster: true,
     },
   ],
-  batchId: "0123456789012345678901234567890123456789012345678901234567890123",
+  batchId: "0123456789012345678901234567890123456789012345678901234567890123" as BatchId,
 }

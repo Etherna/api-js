@@ -1,70 +1,61 @@
-import { encryptData } from "../../../src/utils"
-
-import type { Playlist, PlaylistEncryptedDataRaw, PlaylistRaw } from "../../../src"
+import {
+  PlaylistDetails,
+  PlaylistDetailsRaw,
+  PlaylistPreview,
+  PlaylistPreviewRaw,
+} from "../../../src"
+import { Reference } from "../../../src/clients"
 
 export const password = "test"
+export const playlistId = "Channel"
+export const playlistOwner = "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485"
+export const rootManifest =
+  "1fa42c14a91c1fac8985eae48474c86512cf277da8af01a626930975be17c8eb" as Reference
 
-export const testManifest: PlaylistRaw = {
-  id: "__channel",
+export const testManifestPreview: PlaylistPreviewRaw = {
+  id: playlistId,
   name: "",
-  description: null,
   type: "public",
-  owner: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
-  updatedAt: 1661515209109,
+  owner: playlistOwner,
+  thumb: null,
+  createdAt: 1661515209,
+  updatedAt: 1661515209,
+}
+
+export const testManifestDetails: PlaylistDetailsRaw = {
+  description: "My Channel",
   videos: [
     {
-      r: "1234567890123456789012345678901234567890123456789012345678901234",
+      r: "1234567890123456789012345678901234567890123456789012345678901234" as Reference,
       t: "video",
-      a: 1661515209109,
+      a: 1661515209,
     },
   ],
 }
 
-export const testPrivateData: PlaylistEncryptedDataRaw = {
-  description: "Whaat?",
-  videos: testManifest.videos,
-}
+export const testEncryptedDetails =
+  "U2FsdGVkX18/gY38kzPFNcYOy2/83RA4Imen/Di2hGk0LogLZXxkhk8bUcY/YpOoGWOzvgeVnz0vMA6aZX8Te7C9ceP0zyQn62POK41/D8ZqI18qBPSMBK8xT4tgP1QKndVXEr5m/QGUrwWoWcB0o2vkuOpcgFAAQmq5nS2nMnfwVIEgsYNZQQdUQi+mg4Sb9fUZCcoZMyzf6Cf2ZVZnMQ=="
 
-export const testEncryptedData = encryptData(JSON.stringify(testPrivateData), password)
-
-export const testPrivateManifest: PlaylistRaw = {
-  id: "__channel",
-  name: "You can't see me",
-  type: "private",
-  owner: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
-  updatedAt: 1661515209109,
-  encryptedData: testEncryptedData,
-}
-
-export const testManifestParsed: Playlist = {
-  reference: "1234567890123456789012345678901234567890123456789012345678901234",
-  id: "__channel",
+export const testManifestPreviewParsed: PlaylistPreview = {
+  rootManifest: rootManifest,
+  id: playlistId,
   name: "",
-  description: null,
   type: "public",
-  owner: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
-  updatedAt: 1661515209109,
+  owner: playlistOwner,
+  thumb: null,
+  createdAt: new Date(1661515209 * 1000),
+  updatedAt: new Date(1661515209 * 1000),
+}
+
+export const testManifestDetailsParsed: PlaylistDetails = {
+  name: undefined,
+  description: "My Channel",
   videos: [
     {
-      reference: "1234567890123456789012345678901234567890123456789012345678901234",
+      reference: "1234567890123456789012345678901234567890123456789012345678901234" as Reference,
       title: "video",
-      addedAt: 1661515209109,
+      addedAt: new Date(1661515209 * 1000),
+      publishedAt: undefined,
     },
   ],
-}
-
-export const testPrivateManifestParsed: Playlist = {
-  reference: "1234567890123456789012345678901234567890123456789012345678901234",
-  id: "__channel",
-  name: "You can't see me",
-  description: "Whaat?",
-  type: "private",
-  owner: "0xF14ba1B335BdF007aB746005Fb0D3c0149ac3485",
-  createdAt: 1661515209109,
-  updatedAt: 1661515209109,
-  encryptedData: testEncryptedData,
-  videos: testManifestParsed.videos,
 }

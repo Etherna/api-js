@@ -32,9 +32,11 @@ export function bytesReferenceToReference(ref: BytesReference): Reference {
 }
 
 export function jsonToReference(content: object): BytesReference {
-  return referenceToBytesReference(
-    getReferenceFromData(new TextEncoder().encode(JSON.stringify(content))),
-  )
+  return textToReference(JSON.stringify(content))
+}
+
+export function textToReference(content: string): BytesReference {
+  return referenceToBytesReference(getReferenceFromData(new TextEncoder().encode(content)))
 }
 
 export function keccak256Hash(...messages: Message[]): Bytes<32> {

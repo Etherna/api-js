@@ -12,7 +12,11 @@ export class Bzz {
   url(reference: string, path = "") {
     const safeReference = reference.replace(/(^\/|\/$)/g, "")
     const safePath = path.replace(/(^\/|\/$)/g, "")
-    let url = `${this.instance.url}${bzzEndpoint}/${safeReference}/${safePath}`
+
+    let url = [this.instance.url, bzzEndpoint.replace("/", ""), safeReference, safePath]
+      .filter(Boolean)
+      .join("/")
+
     // add trailing slash to root to avoid CORS errors due to redirects
     if (!safePath) {
       url = url.replace(/\/?$/, "/")

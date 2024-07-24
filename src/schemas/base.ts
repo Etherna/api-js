@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { dateToTimestamp, timestampToDate } from "../utils"
+
 import type { BatchId, EnsAddress, EthAddress, Reference } from "../clients"
 
 export const schemaVersion = z.literal(`${z.string()}.${z.string()}`)
@@ -68,6 +70,18 @@ export const nonEmptyRecord = <Keys extends z.ZodTypeAny, Values extends z.ZodTy
   z.record(key, value).refine((val) => Object.keys(val).length > 0, {
     message: "must not be empty",
   })
+
+export const timestamp = z
+  .number()
+  .min(0)
+  .transform((val) => {
+    return dateToTimestamp(timestampToDate(val))
+  })
+  .or(
+    z.string().transform((val) => {
+      return dateToTimestamp(new Date(val))
+    }),
+  )
 
 // Types
 export type SchemaVersion = z.infer<typeof schemaVersion>

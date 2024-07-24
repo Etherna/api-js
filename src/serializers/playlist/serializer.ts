@@ -1,65 +1,46 @@
-import { PlaylistEncryptedDataRawSchema, PlaylistSchema } from "../../schemas/playlist"
+import {
+  PlaylistDetailsRaw,
+  PlaylistDetailsSchema,
+  PlaylistPreviewRaw,
+  PlaylistPreviewSchema,
+} from "../../schemas/playlist"
 import { encryptData } from "../../utils/crypto"
-import { BaseSerializer } from "../base-serializer"
+import { dateToTimestamp } from "../../utils/time"
 
-import type { PlaylistRaw } from "../.."
+export class PlaylistSerializer {
+  constructor() {}
 
-export class PlaylistSerializer extends BaseSerializer {
-  constructor() {
-    super()
+  serializePreview(item: object): string {
+    const { rootManifest, ...preview } = PlaylistPreviewSchema.parse(item)
+    const rawPreview = {
+      ...preview,
+      createdAt: dateToTimestamp(preview.createdAt),
+      updatedAt: dateToTimestamp(preview.updatedAt),
+    } satisfies PlaylistPreviewRaw
+
+    return JSON.stringify(rawPreview)
   }
 
-  serialize(item: object, password?: string): string {
-    const playlist = PlaylistSchema.parse(item)
+  serializeDetails(item: object, password?: string): string {
+    const details = PlaylistDetailsSchema.parse(item)
 
-    const type = playlist.type
+    const detailsRaw = {
+      name: details.name,
+      description: details.description,
+      videos: details.videos.map((video) => ({
+        r: video.reference,
+        t: video.title,
+        a: dateToTimestamp(video.addedAt),
+        p: video.publishedAt ? dateToTimestamp(video.publishedAt) : undefined,
+      })),
+    } satisfies PlaylistDetailsRaw
 
-    switch (type) {
-      case "public":
-        const playlistRaw: PlaylistRaw = {
-          id: playlist.id,
-          name: playlist.name,
-          type,
-          owner: playlist.owner,
-          createdAt: playlist.createdAt,
-          updatedAt: playlist.updatedAt,
-          description: playlist.description,
-          videos: playlist.videos.map((video) => ({
-            r: video.reference,
-            t: video.title,
-            a: video.addedAt,
-            p: video.publishedAt,
-          })),
-        }
-        return JSON.stringify(playlistRaw)
-      case "private":
-      case "protected":
-        if (!password) {
-          throw new Error("Cannot serialize encrypted data. Password is not provided.")
-        }
+    let data = JSON.stringify(detailsRaw)
 
-        const encryptedValues = PlaylistEncryptedDataRawSchema.parse({
-          description: playlist.description,
-          videos: playlist.videos.map((video) => ({
-            r: video.reference,
-            t: video.title,
-            a: video.addedAt,
-            p: video.publishedAt,
-          })),
-        })
-        const encryptedData = encryptData(JSON.stringify(encryptedValues), password)
-        const encryptedPlaylistRaw: PlaylistRaw = {
-          id: playlist.id,
-          name: playlist.name,
-          type,
-          owner: playlist.owner,
-          createdAt: playlist.createdAt,
-          updatedAt: playlist.updatedAt,
-          encryptedData,
-        }
-        return JSON.stringify(encryptedPlaylistRaw)
-      default:
-        throw new Error(`Playlist type ${type} is not supported.`)
+    if (password) {
+      data = encryptData(data, password)
     }
+
+    return data
   }
 }

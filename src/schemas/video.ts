@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { beeReference, ethAddress, slicedString } from "./base"
+import { beeReference, ethAddress, slicedString, timestamp } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 import { MantarayNodeSchema } from "./mantaray"
 
@@ -77,9 +77,9 @@ export const VideoPreviewRawSchema = z.object({
   /** Title of the video */
   title: slicedString(150),
   /** Video creation timestamp */
-  createdAt: z.number().min(0),
+  createdAt: timestamp,
   /** Video creation timestamp */
-  updatedAt: z.number().min(0).optional().nullable(),
+  updatedAt: timestamp.optional().nullable(),
   /** Address of the owner of the video */
   ownerAddress: ethAddress,
   /** Duration of the video in seconds */
@@ -151,9 +151,9 @@ export const VideoPreviewSchema = z.object({
   /** Title of the video */
   title: slicedString(150),
   /** Video creation timestamp */
-  createdAt: z.number().min(0),
+  createdAt: z.date(),
   /** Video update timestamp */
-  updatedAt: z.number().min(0).nullable(),
+  updatedAt: z.date().nullable(),
   /** Address of the owner of the video */
   ownerAddress: ethAddress,
   /** Duration of the video in seconds */

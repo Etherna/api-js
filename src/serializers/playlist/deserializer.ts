@@ -1,79 +1,82 @@
 import { Reference } from "../../clients"
-import { PlaylistEncryptedDataRawSchema, PlaylistRawSchema } from "../../schemas/playlist"
+import {
+  PlaylistDetails,
+  PlaylistDetailsRawSchema,
+  PlaylistPreview,
+  PlaylistPreviewRawSchema,
+} from "../../schemas/playlist"
 import { decryptData } from "../../utils/crypto"
-import { BaseDeserializer } from "../base-deserializer"
-
-import type { Playlist } from "../.."
+import { timestampToDate } from "../../utils/time"
 
 export type PlaylistDeserializerOptions = {
-  /** Video swarm reference */
-  reference: Reference
+  /** Root manifest reference */
+  rootManifest: Reference
 }
 
-export class PlaylistDeserializer extends BaseDeserializer<Playlist> {
-  constructor() {
-    super()
+export class PlaylistDeserializer {
+  constructor() {}
+
+  deserializePreview(data: string, opts: PlaylistDeserializerOptions): PlaylistPreview {
+    const previewRaw = PlaylistPreviewRawSchema.parse(JSON.parse(data))
+    const preview = {
+      ...previewRaw,
+      rootManifest: opts.rootManifest,
+      createdAt: new Date(previewRaw.createdAt * 1000),
+      updatedAt: new Date(previewRaw.updatedAt * 1000),
+    } satisfies PlaylistPreview
+
+    return preview
   }
 
-  deserialize(data: string, opts: PlaylistDeserializerOptions): Playlist {
-    const playlistRaw = PlaylistRawSchema.parse(JSON.parse(data))
+  deserializeDetails(data: string): { details: PlaylistDetails; encryptedData?: string } {
+    let json
 
-    const type = playlistRaw.type
+    try {
+      json = JSON.parse(data)
+    } catch (error) {
+      json = null
+    }
 
-    switch (type) {
-      case "public":
-        return {
-          reference: opts.reference,
-          id: playlistRaw.id,
-          name: playlistRaw.name,
-          type: type,
-          owner: playlistRaw.owner,
-          createdAt: playlistRaw.createdAt,
-          updatedAt: playlistRaw.updatedAt,
-          description: playlistRaw.description ?? null,
-          videos: playlistRaw.videos.map((rawVideo) => ({
-            reference: rawVideo.r,
-            title: rawVideo.t,
-            addedAt: rawVideo.a,
-            publishedAt: rawVideo.p,
-          })),
-        } satisfies Playlist
-      case "private":
-      case "protected":
-        return {
-          reference: opts.reference,
-          id: playlistRaw.id,
-          name: playlistRaw.name,
-          type: type,
-          owner: playlistRaw.owner,
-          createdAt: playlistRaw.createdAt,
-          updatedAt: playlistRaw.updatedAt,
-          encryptedData: playlistRaw.encryptedData,
-          description: null,
+    if (json) {
+      const detailsRaw = PlaylistDetailsRawSchema.parse(json)
+      const details = {
+        name: detailsRaw.name,
+        description: detailsRaw.description,
+        videos: detailsRaw.videos.map((rawVideo) => ({
+          reference: rawVideo.r,
+          title: rawVideo.t,
+          addedAt: timestampToDate(rawVideo.a),
+          publishedAt: rawVideo.p ? timestampToDate(rawVideo.p) : undefined,
+        })),
+      } satisfies PlaylistDetails
+
+      return { details }
+    } else {
+      return {
+        details: {
           videos: [],
-        } satisfies Playlist
-      default:
-        throw new Error(`Playlist type "${type}" is not supported`)
+        } satisfies PlaylistDetails,
+        encryptedData: data,
+      }
     }
   }
 
-  deserializeEncryptedData(playlist: Playlist, password: string): Playlist {
-    if (playlist.type !== "private") {
-      throw new Error("Cannot deserialize encrypted data. Playlist is not private.")
-    }
-
-    const encryptedData = PlaylistEncryptedDataRawSchema.parse(
-      JSON.parse(decryptData(playlist.encryptedData, password)),
+  deserializeEncryptedDetails(encryptedData: string, password: string): PlaylistDetails {
+    const rawDetails = PlaylistDetailsRawSchema.parse(
+      JSON.parse(decryptData(encryptedData, password)),
     )
 
-    playlist.description = encryptedData.description ?? null
-    playlist.videos = encryptedData.videos.map((rawVideo) => ({
-      reference: rawVideo.r,
-      title: rawVideo.t,
-      addedAt: rawVideo.a,
-      publishedAt: rawVideo.p,
-    }))
+    const details = {
+      name: rawDetails.name,
+      description: rawDetails.description,
+      videos: rawDetails.videos.map((rawVideo) => ({
+        reference: rawVideo.r,
+        title: rawVideo.t,
+        addedAt: timestampToDate(rawVideo.a),
+        publishedAt: rawVideo.p ? timestampToDate(rawVideo.p) : undefined,
+      })),
+    } satisfies PlaylistDetails
 
-    return playlist
+    return details
   }
 }

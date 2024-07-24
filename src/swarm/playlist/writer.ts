@@ -1,54 +1,42 @@
-import { PlaylistSerializer } from "../../serializers"
-import { isEmptyReference } from "../../utils"
-import { BaseWriter } from "../base-writer"
-import { createPlaylistTopicName, getPlaylistCacheId, PlaylistCache } from "./reader"
+import { Playlist } from "../../schemas/playlist"
+import { PlaylistDeserializer, PlaylistSerializer } from "../../serializers"
+import { EmptyReference, isEmptyReference } from "../../utils"
+import { PlaylistBuilder } from "./builder"
+import { createPlaylistTopicName } from "./reader"
 
-import type { Playlist } from "../.."
-import type { BeeClient, Reference } from "../../clients"
+import type { BeeClient, EthAddress, Reference } from "../../clients"
 import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
 interface PlaylistWriterOptions extends WriterOptions {}
 
-interface PlaylistWriterUploadOptions extends WriterUploadOptions {
-  encryptionPassword?: string
-}
+interface PlaylistWriterUploadOptions extends WriterUploadOptions {}
 
-export class PlaylistWriter extends BaseWriter<Playlist> {
-  private playlist: Playlist
+export class PlaylistWriter {
+  private playlistBuilder: PlaylistBuilder
   private beeClient: BeeClient
 
-  constructor(playlist: Playlist, opts: PlaylistWriterOptions) {
-    super(playlist, opts)
-
-    this.playlist = playlist
+  constructor(playlistBuilder: PlaylistBuilder, opts: PlaylistWriterOptions) {
+    this.playlistBuilder = playlistBuilder
     this.beeClient = opts.beeClient
   }
 
-  async upload(opts?: PlaylistWriterUploadOptions): Promise<Reference> {
-    const isEncrypted = ["private", "protected"].includes(this.playlist.type)
-    if (isEncrypted && !opts?.encryptionPassword) {
-      throw new Error("Please insert a password for a private playlist")
-    }
-
-    this.playlist.updatedAt = Date.now()
-
+  async upload(opts?: PlaylistWriterUploadOptions) {
     const batchId = opts?.batchId ?? (await this.beeClient.stamps.fetchBestBatchId())
-    const rawPlaylist = new PlaylistSerializer().serialize(this.playlist, opts?.encryptionPassword)
 
-    const { reference } = await this.beeClient.bzz.upload(rawPlaylist, {
+    // save mantary node
+    const reference = await this.playlistBuilder.saveNode({
+      beeClient: this.beeClient,
       batchId,
-      deferred: opts?.deferred,
-      encrypt: opts?.encrypt,
-      pin: opts?.pin,
-      tag: opts?.tag,
-      headers: {
-        "Content-Type": "application/json",
-        // "x-etherna-reason": "swarm-playlist-upload",
-      },
+      signal: opts?.signal,
     })
 
-    const topicName = createPlaylistTopicName(this.playlist.id)
-    const feed = this.beeClient.feed.makeFeed(topicName, this.playlist.owner, "epoch")
+    // update feed
+    const topicName = createPlaylistTopicName(this.playlistBuilder.previewMeta.id)
+    const feed = this.beeClient.feed.makeFeed(
+      topicName,
+      this.playlistBuilder.previewMeta.owner,
+      "epoch",
+    )
     const writer = this.beeClient.feed.makeWriter(feed)
 
     const [, rootManifest] = await Promise.all([
@@ -59,29 +47,47 @@ export class PlaylistWriter extends BaseWriter<Playlist> {
         pin: opts?.pin,
         tag: opts?.tag,
         headers: {
-          // "x-etherna-reason": "swarm-playlist-feed-upload",
+          // "x-etherna-reason": "playlist-feed-update",
         },
         signal: opts?.signal,
-        onUploadProgress: opts?.onUploadProgress,
       }),
-      isEmptyReference(this.playlist.reference)
-        ? this.beeClient.feed.createRootManifest(feed, {
-            batchId,
-            deferred: opts?.deferred,
-            encrypt: opts?.encrypt,
-            pin: opts?.pin,
-            tag: opts?.tag,
-            headers: {
-              // "x-etherna-reason": "swarm-playlist-feed-root-manifest",
-            },
-          })
-        : Promise.resolve(this.playlist.reference),
+      this.beeClient.feed.createRootManifest(feed, { batchId }),
     ])
 
-    this.playlist.reference = rootManifest
+    const deserializer = new PlaylistDeserializer()
+    const preview = deserializer.deserializePreview(
+      JSON.stringify(this.playlistBuilder.previewMeta),
+      {
+        rootManifest,
+      },
+    )
+    const { details } = deserializer.deserializeDetails(
+      JSON.stringify(this.playlistBuilder.detailsMeta),
+    )
 
-    PlaylistCache.set(getPlaylistCacheId(this.playlist.owner, this.playlist.id), this.playlist)
+    return {
+      reference,
+      preview,
+      details,
+    }
+  }
 
-    return reference
+  static emptyPlaylist(owner: EthAddress, id?: string): Playlist {
+    return {
+      reference: EmptyReference,
+      preview: {
+        id: id ?? crypto.randomUUID(),
+        type: "public",
+        name: "",
+        owner,
+        thumb: null,
+        rootManifest: EmptyReference,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      details: {
+        videos: [],
+      },
+    }
   }
 }

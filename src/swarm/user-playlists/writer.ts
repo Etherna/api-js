@@ -4,7 +4,7 @@ import { BaseWriter } from "../base-writer"
 import { PlaylistReader } from "../playlist/reader"
 import { USER_PLAYLISTS_TOPIC } from "./reader"
 
-import type { Playlist, UserPlaylists } from "../.."
+import type { UserPlaylists } from "../.."
 import type { BeeClient, EthAddress, Reference } from "../../clients"
 import type { WriterOptions, WriterUploadOptions } from "../base-writer"
 
@@ -60,33 +60,5 @@ export class UserPlaylistsWriter extends BaseWriter<UserPlaylists> {
     })
 
     return reference
-  }
-
-  static defaultChannelPlaylists(owner: EthAddress): Playlist {
-    return {
-      id: PlaylistReader.channelPlaylistId,
-      reference: EmptyReference,
-      type: "public",
-      owner,
-      videos: [],
-      name: "",
-      description: "",
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    }
-  }
-
-  static defaultSavedPlaylists(owner: EthAddress): Playlist {
-    return {
-      id: PlaylistReader.savedPlaylistId,
-      reference: EmptyReference,
-      type: "public",
-      owner,
-      videos: [],
-      name: "",
-      description: "",
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    }
   }
 }

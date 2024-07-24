@@ -17,7 +17,6 @@
     "declarationMap": true,
     "resolveJsonModule": true,
     "emitDeclarationOnly": true,
-    "declarationDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -29,5 +28,6 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "include": ["src", "test*.*", "env.d.ts"]
+  "include": ["src", "test*.*", "env.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }

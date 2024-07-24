@@ -12,7 +12,7 @@ import {
   VideoPreviewRawSchema,
 } from "../../schemas/video"
 import { VideoDeserializer, VideoSerializer } from "../../serializers"
-import { EmptyReference, isValidReference } from "../../utils"
+import { dateToTimestamp, EmptyReference, isValidReference } from "../../utils"
 import {
   bytesReferenceToReference,
   encodePath,
@@ -71,8 +71,8 @@ export class VideoBuilder {
       duration: 0,
       thumbnail: null,
       ownerAddress: "0x0",
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: dateToTimestamp(new Date()),
+      updatedAt: dateToTimestamp(new Date()),
     }
     this.detailsMeta = {
       description: "",
@@ -99,8 +99,12 @@ export class VideoBuilder {
 
   initialize(ownerAddress: EthAddress, previewMeta?: VideoPreview, detailsMeta?: VideoDetails) {
     this.reference = (previewMeta?.reference as Reference) || this.reference
-    this.previewMeta = previewMeta ? VideoPreviewRawSchema.parse(previewMeta) : this.previewMeta
-    this.detailsMeta = detailsMeta ? VideoDetailsRawSchema.parse(detailsMeta) : this.detailsMeta
+    this.previewMeta = previewMeta
+      ? VideoPreviewRawSchema.parse(JSON.parse(new VideoSerializer().serializePreview(previewMeta)))
+      : this.previewMeta
+    this.detailsMeta = detailsMeta
+      ? VideoDetailsRawSchema.parse(JSON.parse(new VideoSerializer().serializeDetails(detailsMeta)))
+      : this.detailsMeta
     this.previewMeta.ownerAddress = ownerAddress
     this.updateNode()
   }
@@ -179,8 +183,8 @@ export class VideoBuilder {
     if (!batchId) throw new Error("BatchId is missing")
 
     // update timestamps
-    this.previewMeta.createdAt = this.previewMeta.createdAt || Date.now()
-    this.previewMeta.updatedAt = Date.now()
+    this.previewMeta.createdAt = this.previewMeta.createdAt || dateToTimestamp(new Date())
+    this.previewMeta.updatedAt = dateToTimestamp(new Date())
 
     // 1. deserialize with dummy params
     // 2. re-serialize in a raw format

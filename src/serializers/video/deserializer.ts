@@ -4,6 +4,7 @@ import {
   VideoPreviewRawSchema,
   VideoSourceSchema,
 } from "../../schemas/video"
+import { timestampToDate } from "../../utils"
 import { getBzzUrl } from "../../utils/bzz"
 import { ImageDeserializer } from "../image/deserializer"
 
@@ -28,8 +29,8 @@ export class VideoDeserializer {
       title: videoRaw.title,
       duration: videoRaw.duration,
       ownerAddress: videoRaw.ownerAddress,
-      createdAt: videoRaw.createdAt,
-      updatedAt: videoRaw.updatedAt || null,
+      createdAt: timestampToDate(videoRaw.createdAt),
+      updatedAt: videoRaw.updatedAt ? timestampToDate(videoRaw.updatedAt) : null,
       thumbnail: videoRaw.thumbnail
         ? imageDeserializer.deserialize(videoRaw.thumbnail, { reference: opts.reference })
         : null,

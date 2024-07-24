@@ -4,143 +4,163 @@ import { PlaylistDeserializer, PlaylistSerializer } from "../../src/serializers"
 import { decryptData } from "../../src/utils"
 import {
   password,
-  testManifest,
-  testManifestParsed,
-  testPrivateManifest,
-  testPrivateManifestParsed,
+  rootManifest,
+  testEncryptedDetails,
+  testManifestDetails,
+  testManifestDetailsParsed,
+  testManifestPreview,
+  testManifestPreviewParsed,
 } from "./__data__/playlist.test.data"
 
 describe("playlist deserializer", () => {
   const deserializer = new PlaylistDeserializer()
 
-  it("should parse a raw playlist", () => {
-    const playlist = deserializer.deserialize(JSON.stringify(testManifest), {
-      reference: testManifestParsed.reference,
+  it("should parse a raw playlist preview", () => {
+    const preview = deserializer.deserializePreview(JSON.stringify(testManifestPreview), {
+      rootManifest,
     })
-    expect(playlist).toEqual(testManifestParsed)
+    expect(preview).toEqual(testManifestPreviewParsed)
   })
 
-  it("should parse a private playlist", () => {
-    const manifest = deserializer.deserialize(JSON.stringify(testPrivateManifest), {
-      reference: testPrivateManifestParsed.reference,
-    })
-    expect(manifest).toEqual({
-      ...testPrivateManifestParsed,
-      description: null,
-      videos: [],
-    })
-    const manifestWithPrivateData = deserializer.deserializeEncryptedData(manifest, password)
-    expect(manifestWithPrivateData).toEqual(testPrivateManifestParsed)
+  it("should parse a raw playlist details", () => {
+    const { details } = deserializer.deserializeDetails(JSON.stringify(testManifestDetails))
+    expect(details).toEqual(testManifestDetailsParsed)
+  })
+
+  it("should parse a private playlist details", () => {
+    const details = deserializer.deserializeEncryptedDetails(testEncryptedDetails, password)
+    expect(details).toEqual(testManifestDetailsParsed)
   })
 
   it("should throw when required field is missing", () => {
     // id
-    let manifest: Record<string, any> = { ...testManifest }
+    let manifest: Record<string, any> = { ...testManifestPreview }
     delete manifest.id
     expect(() =>
-      deserializer.deserialize(JSON.stringify(manifest), {
-        reference: testManifestParsed.reference,
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
       }),
     ).toThrowError()
 
     // name
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.name
     expect(() =>
-      deserializer.deserialize(JSON.stringify(manifest), {
-        reference: testManifestParsed.reference,
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
       }),
     ).toThrowError()
 
     // type
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.type
     expect(() =>
-      deserializer.deserialize(JSON.stringify(manifest), {
-        reference: testManifestParsed.reference,
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
       }),
     ).toThrowError()
 
     // owner
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.owner
     expect(() =>
-      deserializer.deserialize(JSON.stringify(manifest), {
-        reference: testManifestParsed.reference,
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
+      }),
+    ).toThrowError()
+
+    // thumb
+    manifest = { ...testManifestPreview }
+    delete manifest.thumb
+    expect(() =>
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
       }),
     ).toThrowError()
 
     // createdAt
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.createdAt
     expect(() =>
-      deserializer.deserialize(JSON.stringify(manifest), {
-        reference: testManifestParsed.reference,
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
       }),
     ).toThrowError()
 
     // updatedAt
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.updatedAt
     expect(() =>
-      deserializer.deserialize(JSON.stringify(manifest), {
-        reference: testManifestParsed.reference,
+      deserializer.deserializePreview(JSON.stringify(manifest), {
+        rootManifest,
       }),
     ).toThrowError()
+
+    // videos
+    manifest = { ...testManifestDetails }
+    delete manifest.videos
+    expect(() => deserializer.deserializeDetails(JSON.stringify(manifest))).toThrowError()
   })
 })
 
 describe("playlist serializer", () => {
   const serializer = new PlaylistSerializer()
 
-  it("should serialize a public playlist into swarm manifest", () => {
-    const manifest = serializer.serialize(testManifestParsed)
-    expect(JSON.parse(manifest)).toEqual(testManifest)
+  it("should serialize a public playlist preview into swarm manifest", () => {
+    const manifest = serializer.serializePreview(testManifestPreviewParsed)
+    expect(JSON.parse(manifest)).toEqual(testManifestPreview)
   })
 
-  it("should serialize a private playlist into swarm manifest", () => {
-    const manifest = serializer.serialize(testPrivateManifestParsed, password)
-    const parsedManifest = JSON.parse(manifest)
-    const testParsedManifest = { ...testPrivateManifest } as Record<string, any>
-    // Check encrypted data
-    expect(JSON.parse(decryptData(parsedManifest.encryptedData, password))).toEqual(
-      JSON.parse(decryptData(testParsedManifest.encryptedData, password)),
-    )
-    // Remove encrypted data (encrypted data changes every time)
-    delete parsedManifest.encryptedData
-    delete testParsedManifest.encryptedData
-    expect(parsedManifest).toEqual(testParsedManifest)
+  it("should serialize a public playlist details into swarm manifest", () => {
+    const manifest = serializer.serializeDetails(testManifestDetailsParsed)
+    expect(JSON.parse(manifest)).toEqual(testManifestDetails)
+  })
+
+  it("should serialize a private playlist details into swarm manifest", () => {
+    const encryptedDetails = serializer.serializeDetails(testManifestDetailsParsed, password)
+    const descripted = JSON.parse(decryptData(encryptedDetails, password))
+    expect(descripted).toEqual(testManifestDetails)
   })
 
   it("should throw when required field is missing", () => {
     // id
-    let manifest: Record<string, any> = { ...testManifest }
+    let manifest: Record<string, any> = { ...testManifestPreview }
     delete manifest.id
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // name
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.name
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // type
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.type
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // owner
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.owner
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
+
+    // thumb
+    manifest = { ...testManifestPreview }
+    delete manifest.thumb
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // createdAt
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.createdAt
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
 
     // updatedAt
-    manifest = { ...testManifest }
+    manifest = { ...testManifestPreview }
     delete manifest.updatedAt
-    expect(() => serializer.serialize(manifest)).toThrowError()
+    expect(() => serializer.serializePreview(manifest)).toThrowError()
+
+    // videos
+    manifest = { ...testManifestDetails }
+    delete manifest.videos
+    expect(() => serializer.serializeDetails(manifest)).toThrowError()
   })
 })

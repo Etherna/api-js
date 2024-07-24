@@ -5,6 +5,7 @@ import {
   VideoSourceRawSchema,
 } from "../../schemas/video"
 import { VideoDeserializer } from "../../serializers"
+import { dateToTimestamp } from "../../utils"
 import { BaseReader } from "../base-reader"
 
 import type { Profile, Video, VideoDetailsRaw, VideoPreviewRaw, VideoRaw } from "../.."
@@ -115,8 +116,8 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       videoPreviewRaw.duration = video.lastValidManifest.duration
       videoPreviewRaw.thumbnail = video.lastValidManifest.thumbnail
       videoPreviewRaw.ownerAddress = video.ownerAddress
-      videoPreviewRaw.createdAt = new Date(video.creationDateTime).getTime()
-      videoPreviewRaw.updatedAt = new Date(video.creationDateTime).getTime()
+      videoPreviewRaw.createdAt = dateToTimestamp(new Date(video.creationDateTime))
+      videoPreviewRaw.updatedAt = dateToTimestamp(new Date(video.creationDateTime))
 
       videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
       videoDetailsRaw.batchId = video.lastValidManifest.batchId

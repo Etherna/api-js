@@ -5,6 +5,7 @@ import {
   VideoPreviewRawSchema,
   VideoPreviewSchema,
 } from "../../schemas/video"
+import { dateToTimestamp } from "../../utils"
 import { ImageSerializer } from "../image/serializer"
 
 import type { VideoDetailsRaw } from "../.."
@@ -22,8 +23,8 @@ export class VideoSerializer {
       title: videoPreview.title,
       duration: videoPreview.duration,
       ownerAddress: videoPreview.ownerAddress,
-      createdAt: videoPreview.createdAt,
-      updatedAt: videoPreview.updatedAt,
+      createdAt: dateToTimestamp(videoPreview.createdAt),
+      updatedAt: videoPreview.updatedAt ? dateToTimestamp(videoPreview.updatedAt) : null,
       thumbnail: videoPreview.thumbnail ? imageSerializer.serialize(videoPreview.thumbnail) : null,
     })
 
