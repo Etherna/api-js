@@ -1,8 +1,7 @@
+import { RequestOptions } from "@/types/clients"
+import { composeUrl } from "@/utils"
 import axios from "axios"
 
-import { composeUrl } from "../utils"
-
-import type { RequestOptions } from "./types"
 import type { AxiosInstance, AxiosRequestConfig } from "axios"
 
 export interface BaseClientOptions {

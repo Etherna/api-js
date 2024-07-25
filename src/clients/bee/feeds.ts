@@ -1,5 +1,3 @@
-import { etc } from "@noble/secp256k1"
-
 import { EpochFeed, EpochFeedChunk, EpochIndex } from "../../classes"
 import { MantarayNode } from "../../handlers"
 import {
@@ -17,11 +15,12 @@ import {
   EntryMetadataFeedTypeKey,
 } from "../../utils/mantaray"
 import { dateToTimestamp } from "../../utils/time"
+import { writeUint64BigEndian } from "../../utils/uint64"
 import { makeBytes, serializeBytes } from "./utils/bytes"
 import { extractUploadHeaders } from "./utils/headers"
 import { makeHexString } from "./utils/hex"
 import { makeBytesReference } from "./utils/reference"
-import { writeUint64BigEndian } from "./utils/uint64"
+import { hexToBytes } from "@/utils/hex"
 
 import type { BeeClient } from "."
 import type { RequestOptions } from "../types"
@@ -37,7 +36,11 @@ import type {
   ReferenceResponse,
   RequestUploadOptions,
 } from "./types"
-import type { AxiosError, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios"
+import type {
+  AxiosError,
+  AxiosResponseHeaders,
+  RawAxiosResponseHeaders,
+} from "axios"
 
 const feedEndpoint = "/feeds"
 
@@ -50,7 +53,7 @@ export class Feed {
     type: T = "sequence" as T,
   ): FeedInfo<T> {
     return {
-      topic: etc.bytesToHex(keccak256Hash(topicName)),
+      topic: bytesToHex(keccak256Hash(topicName)),
       owner: makeHexString(owner).toLowerCase(),
       type,
     }
@@ -67,16 +70,18 @@ export class Feed {
           const epochFeed = new EpochFeed(instance)
           const chunk = await epochFeed.tryFindEpochFeed(
             toEthAccount(feed.owner),
-            etc.hexToBytes(feed.topic),
+            hexToBytes(feed.topic),
             at,
             options?.index ? EpochIndex.fromString(options.index) : undefined,
           )
 
           if (!chunk) {
-            throw new Error(`No epoch feed found: '${feed.topic}', '0x${feed.owner}'`)
+            throw new Error(
+              `No epoch feed found: '${feed.topic}', '0x${feed.owner}'`,
+            )
           }
 
-          const reference = etc.bytesToHex(chunk.getContentPayload()) as Reference
+          const reference = bytesToHex(chunk.getContentPayload()) as Reference
 
           return {
             reference,
@@ -108,7 +113,10 @@ export class Feed {
       throw new Error("No signer provided")
     }
 
-    if (makeHexString(this.instance.signer.address).toLowerCase() !== feed.owner.toLowerCase()) {
+    if (
+      makeHexString(this.instance.signer.address).toLowerCase() !==
+      feed.owner.toLowerCase()
+    ) {
       throw new Error("Signer address does not match feed owner")
     }
 
@@ -119,13 +127,20 @@ export class Feed {
         const epochFeed = new EpochFeed(this.instance)
         const chunk = await epochFeed.createNextEpochFeedChunk(
           toEthAccount(feed.owner),
-          etc.hexToBytes(feed.topic),
+          hexToBytes(feed.topic),
           canonicalReference,
           options.index ? EpochIndex.fromString(options.index) : undefined,
         )
 
-        const identifier = EpochFeedChunk.buildIdentifier(etc.hexToBytes(feed.topic), chunk.index)
-        const { reference } = await this.instance.soc.upload(identifier, chunk.payload, options)
+        const identifier = EpochFeedChunk.buildIdentifier(
+          hexToBytes(feed.topic),
+          chunk.index,
+        )
+        const { reference } = await this.instance.soc.upload(
+          identifier,
+          chunk.payload,
+          options,
+        )
 
         return {
           reference,
@@ -141,7 +156,11 @@ export class Feed {
         const timestamp = writeUint64BigEndian(at)
         const payloadBytes = serializeBytes(timestamp, canonicalReference)
         const identifier = this.makeFeedIdentifier(feed.topic, nextIndex)
-        const { reference } = await this.instance.soc.upload(identifier, payloadBytes, options)
+        const { reference } = await this.instance.soc.upload(
+          identifier,
+          payloadBytes,
+          options,
+        )
 
         return {
           reference,
@@ -155,7 +174,10 @@ export class Feed {
     }
   }
 
-  async createRootManifest<T extends FeedType>(feed: FeedInfo<T>, options: FeedUploadOptions) {
+  async createRootManifest<T extends FeedType>(
+    feed: FeedInfo<T>,
+    options: FeedUploadOptions,
+  ) {
     if (feed.type === "epoch") {
       // epoch not yet supported in bee
       const epochRoot = await this.makeRootManifest(feed)
@@ -185,7 +207,9 @@ export class Feed {
     node.addFork(encodePath("/"), ZeroHashReference, {
       [EntryMetadataFeedOwnerKey]: feed.owner.toLowerCase(),
       [EntryMetadataFeedTopicKey]: feed.topic,
-      [EntryMetadataFeedTypeKey]: feed.type.replace(/^./, (c) => c.toUpperCase()),
+      [EntryMetadataFeedTypeKey]: feed.type.replace(/^./, (c) =>
+        c.toUpperCase(),
+      ),
     })
     node.getForkAtPath(encodePath("/")).node["makeValue"]()
     node.getForkAtPath(encodePath("/")).node.entry = ZeroHashReference
@@ -210,11 +234,14 @@ export class Feed {
     const node = new MantarayNode()
     await node.load(async (reference) => {
       try {
-        const data = await this.instance.bytes.download(bytesReferenceToReference(reference), {
-          signal: opts?.signal,
-          timeout: opts?.timeout,
-          headers: opts?.headers,
-        })
+        const data = await this.instance.bytes.download(
+          bytesReferenceToReference(reference),
+          {
+            signal: opts?.signal,
+            timeout: opts?.timeout,
+            headers: opts?.headers,
+          },
+        )
         return data
       } catch (error) {
         const node = new MantarayNode()
@@ -230,8 +257,9 @@ export class Feed {
     const fork = node.getForkAtPath(encodePath("/"))
     const owner = fork.node.metadata?.[EntryMetadataFeedOwnerKey]
     const topic = fork.node.metadata?.[EntryMetadataFeedTopicKey]
-    const type = fork.node.metadata?.[EntryMetadataFeedTypeKey].replace(/^./, (c) =>
-      c.toLowerCase(),
+    const type = fork.node.metadata?.[EntryMetadataFeedTypeKey].replace(
+      /^./,
+      (c) => c.toLowerCase(),
     )
 
     if (!owner || owner.length !== 40) {
@@ -277,14 +305,17 @@ export class Feed {
       const error = e as AxiosError
 
       if (error.response?.status === 404) {
-        return etc.bytesToHex(makeBytes(8))
+        return bytesToHex(makeBytes(8))
       }
       throw e
     }
   }
 
   private readFeedUpdateHeaders(
-    headers: RawAxiosResponseHeaders | AxiosResponseHeaders | Partial<Record<string, string>>,
+    headers:
+      | RawAxiosResponseHeaders
+      | AxiosResponseHeaders
+      | Partial<Record<string, string>>,
   ): FeedUpdateHeaders {
     const feedIndex = headers["swarm-feed-index"]
     const feedIndexNext = headers["swarm-feed-index-next"]
@@ -294,7 +325,9 @@ export class Feed {
     }
 
     if (!feedIndexNext) {
-      throw new Error("Response did not contain expected swarm-feed-index-next!")
+      throw new Error(
+        "Response did not contain expected swarm-feed-index-next!",
+      )
     }
 
     return {
@@ -303,24 +336,30 @@ export class Feed {
     }
   }
 
-  private makeFeedIdentifier(topic: string, index: Index | EpochIndex): Uint8Array {
+  private makeFeedIdentifier(
+    topic: string,
+    index: Index | EpochIndex,
+  ): Uint8Array {
     if (typeof index === "number") {
       return this.makeSequentialFeedIdentifier(topic, index)
     } else if (typeof index === "string") {
       const indexBytes = this.makeFeedIndexBytes(index)
       return this.hashFeedIdentifier(topic, indexBytes)
     } else if (index instanceof EpochIndex) {
-      return EpochFeedChunk.buildIdentifier(etc.hexToBytes(topic), index)
+      return EpochFeedChunk.buildIdentifier(hexToBytes(topic), index)
     }
 
     return this.hashFeedIdentifier(topic, index)
   }
 
   private hashFeedIdentifier(topic: string, index: Uint8Array): Uint8Array {
-    return keccak256Hash(etc.hexToBytes(topic), index)
+    return keccak256Hash(hexToBytes(topic), index)
   }
 
-  private makeSequentialFeedIdentifier(topic: string, index: number): Uint8Array {
+  private makeSequentialFeedIdentifier(
+    topic: string,
+    index: number,
+  ): Uint8Array {
     const indexBytes = writeUint64BigEndian(index)
 
     return this.hashFeedIdentifier(topic, indexBytes)
@@ -329,6 +368,6 @@ export class Feed {
   private makeFeedIndexBytes(s: string): Uint8Array {
     const hex = makeHexString(s)
 
-    return etc.hexToBytes(hex)
+    return hexToBytes(hex)
   }
 }

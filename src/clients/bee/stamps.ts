@@ -1,5 +1,5 @@
+import { STAMPS_DEPTH_MIN } from "../../consts"
 import { getBatchPercentUtilization } from "../../utils"
-import { STAMPS_DEPTH_MIN } from "./utils/contants"
 
 import type { BeeClient } from "."
 import type { RequestOptions } from ".."

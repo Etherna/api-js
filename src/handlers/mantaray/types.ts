@@ -1,12 +1,8 @@
+import { BytesReference } from "@/types/swarm"
+
 export const marshalVersionValues = ["0.1", "0.2"] as const
 
 export type MarshalVersion = (typeof marshalVersionValues)[number]
-
-export interface Bytes<Length extends number> extends Uint8Array {
-  readonly length: Length
-}
-
-export type BytesReference = Bytes<32 | 64>
 
 export enum NodeType {
   value = 2,

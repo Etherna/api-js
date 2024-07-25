@@ -1,5 +1,5 @@
 import { keccak256Hash } from "../utils"
-import { buffersEquals } from "../utils/buffer"
+import { bytesEqual } from "../utils/buffer"
 import { fromHexString, toHexString } from "../utils/bytes"
 
 import type { Reference } from "../clients"
@@ -83,10 +83,14 @@ export class EpochFeedChunk {
     public reference: Reference,
   ) {
     if (payload.length < EpochFeedChunk.MinPayloadByteSize) {
-      throw new Error(`Payload can't be shorter than ${EpochFeedChunk.TimeStampByteSize} bytes`)
+      throw new Error(
+        `Payload can't be shorter than ${EpochFeedChunk.TimeStampByteSize} bytes`,
+      )
     }
     if (payload.length > EpochFeedChunk.MaxPayloadBytesSize) {
-      throw new Error(`Payload can't be longer than ${EpochFeedChunk.MaxPayloadBytesSize} bytes`)
+      throw new Error(
+        `Payload can't be longer than ${EpochFeedChunk.MaxPayloadBytesSize} bytes`,
+      )
     }
     if (!EpochFeedChunk.ReferenceHashRegex.test(reference)) {
       throw new Error("Not a valid swarm hash")
@@ -103,7 +107,7 @@ export class EpochFeedChunk {
     return (
       this.reference === chunk.reference &&
       this.index.isEqual(chunk.index) &&
-      buffersEquals(this.payload, chunk.payload)
+      bytesEqual(this.payload, chunk.payload)
     )
   }
 
@@ -112,7 +116,10 @@ export class EpochFeedChunk {
   }
 
   // Static helpers.
-  public static buildChunkPayload(contentPayload: Uint8Array, at?: Date): Uint8Array {
+  public static buildChunkPayload(
+    contentPayload: Uint8Array,
+    at?: Date,
+  ): Uint8Array {
     if (contentPayload.length > this.MaxContentPayloadBytesSize) {
       throw new Error(
         `Content payload can't be longer than ${this.MaxContentPayloadBytesSize} bytes`,
@@ -121,23 +128,39 @@ export class EpochFeedChunk {
 
     const timestamp = at ?? new Date()
 
-    const chunkPayload = new Uint8Array([...timestamp.toBytes(), ...contentPayload])
+    const chunkPayload = new Uint8Array([
+      ...timestamp.toBytes(),
+      ...contentPayload,
+    ])
 
     return chunkPayload
   }
 
-  public static buildIdentifier(topic: Uint8Array, index: EpochIndex): Uint8Array {
-    if (topic.length !== this.TopicBytesLength) throw new Error("Invalid topic length")
+  public static buildIdentifier(
+    topic: Uint8Array,
+    index: EpochIndex,
+  ): Uint8Array {
+    if (topic.length !== this.TopicBytesLength)
+      throw new Error("Invalid topic length")
 
-    const newArray = new Uint8Array(this.TopicBytesLength + this.IndexBytesLength)
+    const newArray = new Uint8Array(
+      this.TopicBytesLength + this.IndexBytesLength,
+    )
     newArray.set(topic, 0)
     newArray.set(index.marshalBinary, topic.length)
 
     return keccak256Hash(newArray)
   }
 
-  public static buildReferenceHash(account: string, identifier: Uint8Array): Reference
-  public static buildReferenceHash(account: string, topic: Uint8Array, index: EpochIndex): Reference
+  public static buildReferenceHash(
+    account: string,
+    identifier: Uint8Array,
+  ): Reference
+  public static buildReferenceHash(
+    account: string,
+    topic: Uint8Array,
+    index: EpochIndex,
+  ): Reference
   public static buildReferenceHash(
     account: string,
     topicOrIdentifier: Uint8Array,
@@ -158,13 +181,18 @@ export class EpochFeedChunk {
         throw new Error("Invalid identifier length")
       }
 
-      const newArray = new Uint8Array(this.IdentifierBytesLength + this.AccountBytesLength)
+      const newArray = new Uint8Array(
+        this.IdentifierBytesLength + this.AccountBytesLength,
+      )
       newArray.set(topicOrIdentifier, 0)
       newArray.set(accountBytes, this.IdentifierBytesLength)
 
       return toHexString(keccak256Hash(newArray)) as Reference
     } else {
-      return this.buildReferenceHash(account, this.buildIdentifier(topicOrIdentifier, index))
+      return this.buildReferenceHash(
+        account,
+        this.buildIdentifier(topicOrIdentifier, index),
+      )
     }
   }
 }

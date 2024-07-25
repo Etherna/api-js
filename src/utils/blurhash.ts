@@ -2,6 +2,12 @@ import { decode, encode, isBlurhashValid } from "blurhash"
 
 // Credit: https://gist.github.com/mattiaz9/53cb67040fa135cb395b1d015a200aff
 
+/**
+ * Convert blurhash to data URL image
+ *
+ * @param hash Blurhash string
+ * @returns Data URL image
+ */
 export function blurHashToDataURL(hash: string | null | undefined): string {
   if (!hash || !isBlurhashValid(hash).result) {
     // fallback to random blur hash
@@ -13,13 +19,27 @@ export function blurHashToDataURL(hash: string | null | undefined): string {
   return dataURL
 }
 
-export async function imageToBlurhash(image: ArrayBuffer, imageWidth: number, imageHeight: number) {
+/**
+ * Convert image to blurhash
+ *
+ * @param image Image buffer
+ * @param imageWidth Output image width
+ * @param imageHeight Output image height
+ * @returns Blurhash string
+ */
+export async function imageToBlurhash(
+  image: ArrayBuffer,
+  imageWidth: number,
+  imageHeight: number,
+) {
   const data = await getImageData(image, imageWidth, imageHeight)
   return encode(data, imageWidth, imageHeight, 4, 4)
 }
 
 function parsePixels(pixels: Uint8ClampedArray, width: number, height: number) {
-  const pixelsString = [...pixels].map((byte) => String.fromCharCode(byte)).join("")
+  const pixelsString = [...pixels]
+    .map((byte) => String.fromCharCode(byte))
+    .join("")
   const pngString = generatePng(width, height, pixelsString)
   const dataURL =
     typeof Buffer !== "undefined"
@@ -75,8 +95,13 @@ function generatePng(width: number, height: number, rgbaString: string) {
         blockType = String.fromCharCode(0x00)
       }
       // little-endian
-      storeBuffer += blockType + String.fromCharCode(remaining & 0xff, (remaining & 0xff00) >>> 8)
-      storeBuffer += String.fromCharCode(~remaining & 0xff, (~remaining & 0xff00) >>> 8)
+      storeBuffer +=
+        blockType +
+        String.fromCharCode(remaining & 0xff, (remaining & 0xff00) >>> 8)
+      storeBuffer += String.fromCharCode(
+        ~remaining & 0xff,
+        (~remaining & 0xff00) >>> 8,
+      )
 
       storeBuffer += data.substring(i, i + remaining)
     }
@@ -85,7 +110,7 @@ function generatePng(width: number, height: number, rgbaString: string) {
   }
 
   function adler32(data: string) {
-    let MOD_ADLER = 65521
+    const MOD_ADLER = 65521
     let a = 1
     let b = 0
 
@@ -103,6 +128,7 @@ function generatePng(width: number, height: number, rgbaString: string) {
 
     for (let n = 0; n < buf.length; n++) {
       b = buf.charCodeAt(n)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       c = CRC_TABLE[(c ^ b) & 0xff]! ^ (c >>> 8)
     }
     return c
@@ -157,6 +183,7 @@ function generatePng(width: number, height: number, rgbaString: string) {
     scanline = NO_FILTER
     if (Array.isArray(rgbaString)) {
       for (let x = 0; x < width * 4; x++) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         scanline += String.fromCharCode(+rgbaString[y + x]! & 0xff)
       }
     } else {
@@ -167,16 +194,25 @@ function generatePng(width: number, height: number, rgbaString: string) {
 
   const compressedScanlines =
     DEFLATE_METHOD + inflateStore(scanlines) + dwordAsString(adler32(scanlines))
-  const IDAT = createChunk(compressedScanlines.length, "IDAT", compressedScanlines)
+  const IDAT = createChunk(
+    compressedScanlines.length,
+    "IDAT",
+    compressedScanlines,
+  )
 
   const pngString = SIGNATURE + IHDR + IDAT + IEND
   return pngString
 }
 
-async function getImageData(imageData: ArrayBuffer, width: number, height: number) {
+async function getImageData(
+  imageData: ArrayBuffer,
+  width: number,
+  height: number,
+) {
   const canvas = document.createElement("canvas")
   canvas.width = width
   canvas.height = height
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const ctx = canvas.getContext("2d")!
   const image = await loadImage(imageData)
   image && ctx.drawImage(image, 0, 0)

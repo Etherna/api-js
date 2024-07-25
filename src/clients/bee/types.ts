@@ -1,16 +1,8 @@
-import type { RequestOptions } from ".."
-import type { BATCH_ID_HEX_LENGTH, REFERENCE_HEX_LENGTH } from "./utils/contants"
+import { EthAddress } from "@/types/eth"
 
-export type EthAddress = `0x${string}`
-export type EnsAddress = `${string}.eth`
-
-type SyncSigner = (digest: string | Uint8Array) => string
-type AsyncSigner = (digest: string | Uint8Array) => Promise<string>
-
-export type Signer = {
-  sign: SyncSigner | AsyncSigner
-  address: EthAddress
-}
+import type { RequestOptions } from "@/types/clients"
+import type { Reference } from "@/types/swarm"
+import type { HexString } from "@/types/utils"
 
 export type FeedType = "sequence" | "epoch"
 
@@ -18,69 +10,6 @@ export type FeedInfo<T extends FeedType> = {
   topic: string
   owner: string
   type: T
-}
-
-export type Index = number | Uint8Array | string
-
-export declare type HexString<Length = number> = string & {
-  readonly length: Length
-}
-
-export type BatchId = HexString<typeof BATCH_ID_HEX_LENGTH>
-
-export type PostageBatchBucketsData = {
-  depth: number
-  bucketDepth: number
-  bucketUpperBound: number
-  buckets: PostageBatchBucket[]
-}
-
-export type PostageBatchBucket = {
-  bucketID: number
-  collisions: number
-}
-
-export type Reference = HexString<typeof REFERENCE_HEX_LENGTH>
-
-export type PostageBatch = {
-  batchID: BatchId
-  utilization: number
-  usable: boolean
-  label: string
-  depth: number
-  amount: string
-  bucketDepth: number
-  blockNumber: number
-  immutableFlag: boolean
-  /**
-   * The time (in seconds) remaining until the batch expires;
-   * -1 signals that the batch never expires;
-   * 0 signals that the batch has already expired.
-   */
-  batchTTL: number
-  exists: boolean
-}
-
-export type Tag = {
-  uid: number
-  startedAt: string
-  split: number
-  seen: number
-  stored: number
-  sent: number
-  synced: number
-}
-
-export type FeedUpdateHeaders = {
-  /**
-   * The current feed's index
-   */
-  feedIndex: string
-  /**
-   * The feed's index for next update.
-   * Only set for the latest update. If update is fetched using previous index, then this is an empty string.
-   */
-  feedIndexNext: string
 }
 
 export type ContentAddressedChunk = {

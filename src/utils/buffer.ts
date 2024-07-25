@@ -4,9 +4,9 @@
  * @param file File to convert
  * @returns The array buffer data
  */
-export const fileToBuffer = (file: File | Blob) => {
+export function fileToBuffer(file: File | Blob) {
   return new Promise<ArrayBuffer>((resolve, reject) => {
-    let fr = new FileReader()
+    const fr = new FileReader()
     fr.onload = () => {
       resolve(fr.result as ArrayBuffer)
     }
@@ -21,7 +21,7 @@ export const fileToBuffer = (file: File | Blob) => {
  * @param file File to convert
  * @returns The array buffer data
  */
-export const fileToUint8Array = async (file: File) => {
+export async function fileToUint8Array(file: File) {
   const buffer = await fileToBuffer(file)
   return new Uint8Array(buffer)
 }
@@ -32,7 +32,7 @@ export const fileToUint8Array = async (file: File) => {
  * @param file File to convert
  * @returns The base64 data URL
  */
-export const fileToDataURL = (file: File) => {
+export function fileToDataURL(file: File) {
   return new Promise<string>((resolve, reject) => {
     const fr = new FileReader()
     fr.onload = () => {
@@ -51,7 +51,7 @@ export const fileToDataURL = (file: File) => {
  * @param contentType Mime type of the array buffer
  * @returns The file object
  */
-export const bufferToFile = (buffer: ArrayBuffer, contentType?: string) => {
+export function bufferToFile(buffer: ArrayBuffer, contentType?: string) {
   return new Blob([buffer], { type: contentType }) as File
 }
 
@@ -61,22 +61,20 @@ export const bufferToFile = (buffer: ArrayBuffer, contentType?: string) => {
  * @param buffer Buffer to convert
  * @returns The base64 data URL
  */
-export const bufferToDataURL = (buffer: ArrayBuffer) => fileToDataURL(bufferToFile(buffer))
+export function bufferToDataURL(buffer: ArrayBuffer) {
+  return fileToDataURL(bufferToFile(buffer))
+}
 
 /**
  * Convert a string to bae64
  *
  * @param str String to convert
- * @returns
+ * @returns The base64 string
  */
-export const stringToBase64 = (str: string): string => {
+export function stringToBase64(str: string): string {
   if (typeof window === "undefined") {
     return Buffer.from(str).toString("base64")
   } else {
     return window.btoa(str)
   }
-}
-
-export const buffersEquals = (a: Uint8Array, b: Uint8Array) => {
-  return a.length === b.length && a.every((value, index) => value === b[index])
 }

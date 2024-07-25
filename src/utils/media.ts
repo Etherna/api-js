@@ -1,10 +1,16 @@
-type VideoMeta = {
+interface VideoMeta {
   duration: number
   width: number
   height: number
   bitrate: number
 }
 
+/**
+ * Get the video metadata
+ *
+ * @param data The video bytes
+ * @returns The video metadata
+ */
 export function getVideoMeta(data: Uint8Array): Promise<VideoMeta> {
   return new Promise<VideoMeta>((resolve, reject) => {
     const video = document.createElement("video")
@@ -28,6 +34,13 @@ export function getVideoMeta(data: Uint8Array): Promise<VideoMeta> {
   })
 }
 
+/**
+ * Get the video bitrate
+ *
+ * @param size Video size in bytes
+ * @param duration Video duration in seconds
+ * @returns The video bitrate
+ */
 export function getBitrate(size: number, duration: number): number {
   return Math.round((size * 8) / duration)
 }

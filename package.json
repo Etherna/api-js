@@ -1,6 +1,6 @@
 {
   "name": "@etherna/sdk-js",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Etherna SDKs for operations on the network",
   "author": "Mattia Dalzocchio",
   "license": "Apache-2.0",
@@ -25,6 +25,7 @@
     "url": "https://etherna.atlassian.net/jira/software/c/projects/ESJ/issues"
   },
   "homepage": "https://github.com/etherna/clients#readme",
+  "type": "module",
   "scripts": {
     "dev": "node bundle.mjs --watch",
     "build": "node bundle.mjs && pnpm tsc -p tsconfig.build.json",
@@ -35,9 +36,7 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "axios": ">=1.7",
-    "immer": ">=10.0",
-    "zustand": ">=4.5"
+    "axios": ">=1.7"
   },
   "dependencies": {
     "@fairdatasociety/bmt-js": "2.1.0",
@@ -47,11 +46,9 @@
     "blurhash": "2.0.5",
     "cookiejs": "2.1.3",
     "crypto-ts": "1.0.2",
-    "immer": "10.0.4",
     "js-sha3": "0.9.3",
     "viem": "2.9.16",
-    "zod": "3.22.4",
-    "zustand": "4.5.2"
+    "zod": "3.22.4"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "4.2.1",
@@ -59,11 +56,11 @@
     "@types/node": "20.12.7",
     "@typescript-eslint/eslint-plugin": "7.6.0",
     "@typescript-eslint/parser": "7.6.0",
-    "eslint": "9.0.0",
+    "eslint": "8.52.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.1.3",
     "prettier": "3.2.5",
-    "typescript": "5.4.5",
+    "typescript": "5.5.4",
     "vite": "5.2.8",
     "vitest": "1.5.0"
   },

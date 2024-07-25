@@ -1,12 +1,10 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
-import { keccak256 } from "js-sha3"
 
-import { MantarayNode } from "../handlers/mantaray"
-import { fromHexString, toHexString } from "./bytes"
+import { toHexString } from "./hex"
+import { referenceToBytesReference } from "./reference"
 
-import type { BeeClient, Reference } from "../clients"
-import type { Bytes, BytesReference } from "../handlers/mantaray/types"
-import type { Message } from "js-sha3"
+import type { MantarayNode } from "../handlers/mantaray"
+import type { BytesReference, Reference } from "@/types/swarm"
 
 export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
 export const RootPath = "/"
@@ -18,88 +16,77 @@ export const EntryMetadataFeedOwnerKey = "swarm-feed-owner"
 export const EntryMetadataFeedTopicKey = "swarm-feed-topic"
 export const EntryMetadataFeedTypeKey = "swarm-feed-type"
 
+/**
+ * Get the reference from bytes data
+ *
+ * @param data The data
+ * @returns The reference
+ */
 export function getReferenceFromData(data: Uint8Array): Reference {
   const chunkedFile = makeChunkedFile(data)
   return toHexString(chunkedFile.address()) as Reference
 }
 
-export function referenceToBytesReference(ref: Reference): BytesReference {
-  return fromHexString(ref) as BytesReference
-}
-
-export function bytesReferenceToReference(ref: BytesReference): Reference {
-  return toHexString(ref) as Reference
-}
-
+/**
+ * Get the reference from json data
+ *
+ * @param data The data
+ * @returns The reference
+ */
 export function jsonToReference(content: object): BytesReference {
   return textToReference(JSON.stringify(content))
 }
 
+/**
+ * Get the reference from text data
+ *
+ * @param data The data
+ * @returns The reference
+ */
 export function textToReference(content: string): BytesReference {
   return referenceToBytesReference(getReferenceFromData(new TextEncoder().encode(content)))
 }
 
-export function keccak256Hash(...messages: Message[]): Bytes<32> {
-  const hasher = keccak256.create()
-
-  messages.forEach((bytes) => hasher.update(bytes))
-
-  return Uint8Array.from(hasher.digest()) as Bytes<32>
-}
-
+/**
+ * Encode the path to bytes
+ *
+ * @param data The path
+ * @returns The bytes
+ */
 export function encodePath(path: string): Uint8Array {
   return new TextEncoder().encode(path)
 }
 
+/**
+ * Decode the path from bytes
+ *
+ * @param data The bytes
+ * @returns The path
+ */
 export function decodePath(path: Uint8Array): string {
   return new TextDecoder().decode(path)
 }
 
-export const isZeroBytesReference = (ref: BytesReference | Reference): boolean => {
+/**
+ * Check if the reference is zero bytes
+ *
+ * @param ref The reference
+ * @returns True if the reference is zero bytes
+ */
+export function isZeroBytesReference(ref: BytesReference | Reference): boolean {
   if (typeof ref === "string") {
     return Array.from(ref).every((char) => char === "0")
   }
   return ref.every((byte) => byte === 0)
 }
 
-export async function getBzzNodeInfo(
-  reference: Reference,
-  beeClient: BeeClient,
-  signal?: AbortSignal,
-): Promise<{ entry: BytesReference; contentType?: string } | null> {
-  try {
-    const node = new MantarayNode()
-    await node.load(async (reference) => {
-      const bmtData = await beeClient.bytes.download(toHexString(reference), { signal })
-      return bmtData
-    }, referenceToBytesReference(reference))
-
-    if (signal?.aborted) return null
-
-    const fork = node.getForkAtPath(encodePath(RootPath))
-    const metadata = fork?.node.metadata
-    const indexEntry = metadata?.[WebsiteIndexDocumentSuffixKey]
-
-    if (!fork?.node.entry) {
-      throw new Error("No root fork found")
-    }
-
-    const isZero = isZeroBytesReference(fork.node.entry)
-
-    if (isZero && !indexEntry) {
-      throw new Error("No root entry found")
-    }
-
-    return {
-      entry: isZero ? referenceToBytesReference(indexEntry as Reference) : fork.node.entry,
-      contentType: fork.node.metadata?.[EntryMetadataContentTypeKey],
-    }
-  } catch (error) {
-    return null
-  }
-}
-
-export const getAllPaths = (node: MantarayNode) => {
+/**
+ * Get all paths from the mantaray node
+ *
+ * @param node The mantaray node
+ * @returns The paths in a nested object
+ */
+export function getAllPaths(node: MantarayNode) {
   const paths: Record<string, MantarayNode> = {}
 
   for (const fork of Object.values(node.forks ?? {})) {
@@ -119,7 +106,14 @@ export const getAllPaths = (node: MantarayNode) => {
   return paths
 }
 
-export const getNodesWithPrefix = (node: MantarayNode, prefix: string): MantarayNode[] => {
+/**
+ * Find all nodes with a prefix
+ *
+ * @param node The mantaray node
+ * @param prefix The prefix to search for
+ * @returns An array of nodes with the prefix
+ */
+export function getNodesWithPrefix(node: MantarayNode, prefix: string): MantarayNode[] {
   const allPaths = getAllPaths(node)
   const entries = Object.entries(allPaths)
   return entries.filter(([path]) => path.startsWith(prefix)).map(([_, node]) => node)

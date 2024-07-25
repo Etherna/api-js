@@ -1,4 +1,4 @@
-import { extractVideoReferences, isEmptyReference } from "../../utils/references"
+import { extractVideoReferences, isEmptyReference } from "../../utils/reference"
 
 import type { Video } from "../.."
 import type { BeeClient, EthernaGatewayClient, Reference, RequestOptions } from "../../clients"

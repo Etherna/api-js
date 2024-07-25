@@ -1,4 +1,4 @@
-import { extractVideoReferences } from "../../utils/references"
+import { extractVideoReferences } from "../../utils/reference"
 
 import type { Video, VideoPreview, VideoSource } from "../.."
 import type { EthernaGatewayClient, Reference, RequestOptions } from "../../clients"

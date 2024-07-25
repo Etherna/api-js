@@ -1,7 +1,5 @@
 import type { ImageType } from "../schemas/image"
 
-export {}
-
 declare global {
   interface HTMLCanvasElement {
     msToBlob(): Blob
@@ -16,11 +14,11 @@ declare global {
  * @param quality Image quality (0-100)
  * @returns The resized image blob
  */
-export const resizeImage = async (
+export async function resizeImage(
   imageBlob: File | Blob,
   toWidth: number,
   quality = 90,
-): Promise<Blob> => {
+): Promise<Blob> {
   const image = await createImage(imageBlob)
 
   const ratio = toWidth / image.width
@@ -31,6 +29,7 @@ export const resizeImage = async (
   canvas.width = width
   canvas.height = height
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const ctx = canvas.getContext("2d")!
   ctx.fillStyle = "white"
   ctx.fillRect(0, 0, width, height)
@@ -39,7 +38,9 @@ export const resizeImage = async (
   URL.revokeObjectURL(image.src)
 
   if (typeof canvas.toBlob !== "undefined") {
-    return new Promise((res) => canvas.toBlob((blob) => res(blob!), imageBlob.type, quality / 100))
+    return new Promise((res) =>
+      canvas.toBlob((blob) => res(blob as Blob), imageBlob.type, quality / 100),
+    )
   } else if (typeof canvas.msToBlob !== "undefined") {
     return canvas.msToBlob()
   }
@@ -47,7 +48,13 @@ export const resizeImage = async (
   throw new Error("Cannot create blob from canvas")
 }
 
-export const isImageTypeSupported = (type: ImageType) => {
+/**
+ * Get the image type from the file name
+ *
+ * @param fileName The file name
+ * @returns The image type
+ */
+export function isImageTypeSupported(type: ImageType) {
   switch (type) {
     case "jpeg":
     case "png":
@@ -61,20 +68,31 @@ export const isImageTypeSupported = (type: ImageType) => {
   }
 }
 
-export const isAvifSupported = () => {
+/**
+ * Check if the browser supports the AVIF image format
+ *
+ * @returns true if AVIF is supported, false otherwise
+ */
+export function isAvifSupported() {
   const canvas = document.createElement("canvas")
   return canvas.toDataURL("image/avif").indexOf("data:image/avif") === 0
 }
 
-export const isWebpSupported = () => {
+/**
+ * Check if the browser supports the WebP image format
+ *
+ * @returns true if WebP is supported, false otherwise
+ */
+export function isWebpSupported() {
   const canvas = document.createElement("canvas")
   return canvas.toDataURL("image/webp").indexOf("data:image/webp") === 0
 }
 
-const createImage = (blob: File | Blob) =>
-  new Promise<HTMLImageElement>((res, rej) => {
+function createImage(blob: File | Blob) {
+  return new Promise<HTMLImageElement>((res, rej) => {
     const image = new Image()
     image.src = URL.createObjectURL(blob)
     image.onload = () => res(image)
     image.onerror = (error) => rej(error)
   })
+}

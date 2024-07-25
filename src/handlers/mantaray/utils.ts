@@ -1,26 +1,43 @@
-import type { Bytes, BytesReference } from "./types"
+import { bytesEqual, checkBytes } from "@/utils/bytes"
 
-export function checkReference(ref: BytesReference): void | never {
-  if (!(ref instanceof Uint8Array)) {
-    throw new Error("Given referennce is not an Uint8Array instance.")
-  }
+import type { Bytes } from "@/types/utils"
 
-  if (ref.length !== 32 && ref.length !== 64) {
-    throw new Error(`Wrong reference length. Entry only can be 32 or 64 length in bytes`)
-  }
-}
+export async function getBzzNodeInfo(
+  reference: Reference,
+  beeClient: BeeClient,
+  signal?: AbortSignal,
+): Promise<{ entry: BytesReference; contentType?: string } | null> {
+  try {
+    const node = new MantarayNode()
+    await node.load(async (reference) => {
+      const bmtData = await beeClient.bytes.download(toHexString(reference), {
+        signal,
+      })
+      return bmtData
+    }, referenceToBytesReference(reference))
 
-export function checkBytes<Length extends number>(
-  bytes: unknown,
-  length: number,
-): asserts bytes is Bytes<Length> {
-  if (!(bytes instanceof Uint8Array))
-    throw Error("Cannot set given bytes, because is not an Uint8Array type")
+    if (signal?.aborted) return null
 
-  if (bytes.length !== 32) {
-    throw Error(
-      `Cannot set given bytes, because it does not have ${length} length. Got ${bytes.length}`,
-    )
+    const fork = node.getForkAtPath(encodePath(RootPath))
+    const metadata = fork?.node.metadata
+    const indexEntry = metadata?.[WebsiteIndexDocumentSuffixKey]
+
+    if (!fork?.node.entry) {
+      throw new Error("No root fork found")
+    }
+
+    const isZero = isZeroBytesReference(fork.node.entry)
+
+    if (isZero && !indexEntry) {
+      throw new Error("No root entry found")
+    }
+
+    return {
+      entry: isZero ? referenceToBytesReference(indexEntry as Reference) : fork.node.entry,
+      contentType: fork.node.metadata?.[EntryMetadataContentTypeKey],
+    }
+  } catch (error) {
+    return null
   }
 }
 
@@ -46,42 +63,6 @@ export function findIndexOfArray(element: Uint8Array, searchFor: Uint8Array): nu
   return -1
 }
 
-/** Overwrites `a` bytearrays elements with elements of `b` starts from `i` */
-export function overwriteBytes(a: Uint8Array, b: Uint8Array, i = 0): void {
-  if (a.length < b.length + i) {
-    throw Error(
-      `Cannot copy bytes because the base byte array length is lesser (${a.length}) than the others (${b.length})`,
-    )
-  }
-
-  for (let index = 0; index < b.length; index++) {
-    a[index + i] = b[index]!
-  }
-}
-
-/**
- * Flattens the given array that consist of Uint8Arrays.
- */
-export function flattenBytesArray(bytesArray: Uint8Array[]): Uint8Array {
-  if (bytesArray.length === 0) return new Uint8Array(0)
-
-  const bytesLength = bytesArray.map((v) => v.length).reduce((sum, v) => (sum += v))
-  const flattenBytes = new Uint8Array(bytesLength)
-  let nextWriteIndex = 0
-  for (const b of bytesArray) {
-    overwriteBytes(flattenBytes, b, nextWriteIndex)
-    nextWriteIndex += b.length
-  }
-
-  return flattenBytes
-}
-
-export function equalBytes(a: Uint8Array, b: Uint8Array): boolean {
-  if (a.length !== b.length) return false
-
-  return a.every((byte, index) => b[index] === byte)
-}
-
 /**
  * runs a XOR operation on data, encrypting it if it
  * hasn't already been, and decrypting it if it has, using the key provided.
@@ -93,7 +74,7 @@ export function encryptDecrypt(
   endIndex?: number,
 ): void {
   // FIXME: in Bee
-  if (equalBytes(key, new Uint8Array(32))) return
+  if (bytesEqual(key, new Uint8Array(32))) return
 
   endIndex ||= data.length
 
@@ -106,49 +87,6 @@ export function encryptDecrypt(
     }
     data.set(encryptionChunk, i)
   }
-}
-
-/** Tested only for Uint16 BigEndian */
-export function fromBigEndian(bytes: Uint8Array): number {
-  if (bytes.length === 0) throw Error("fromBigEndian got 0 length bytes")
-  const numbers: number[] = []
-  const lastIndex = bytes.length - 1
-
-  for (let i = 0; i < bytes.length; i++) {
-    numbers.push(bytes[lastIndex - i]! << (8 * i))
-  }
-
-  return numbers.reduce((bigEndian, num) => (bigEndian |= num)) >>> 0
-}
-
-export function toBigEndianFromUint16(value: number): Bytes<2> {
-  if (value < 0) throw Error(`toBigEndianFromUint16 got lesser than 0 value: ${value}`)
-  const maxValue = (1 << 16) - 1
-  if (value > maxValue)
-    throw Error(`toBigEndianFromUint16 got greater value then ${maxValue}: ${value} `)
-
-  const buffer = new ArrayBuffer(2)
-  const view = new DataView(buffer)
-  view.setUint16(0, value, false)
-  return new Uint8Array(buffer) as Bytes<2>
-}
-
-export function toBigEndianFromUint32(value: number): Bytes<4> {
-  if (value < 0) throw Error(`toBigEndianFromUint32 got lesser than 0 value: ${value}`)
-
-  const buffer = new ArrayBuffer(4)
-  const view = new DataView(buffer)
-  view.setUint32(0, value, false)
-  return new Uint8Array(buffer) as Bytes<4>
-}
-
-export function toBigEndianFromBigInt64(value: bigint): Bytes<8> {
-  if (value < 0) throw Error(`toBigEndianFromBigInt64 got lesser than 0 value: ${value}`)
-
-  const buffer = new ArrayBuffer(8)
-  const view = new DataView(buffer)
-  view.setBigUint64(0, value, false)
-  return new Uint8Array(buffer) as Bytes<8>
 }
 
 /** It returns the common bytes of the two given byte arrays until the first byte difference */
