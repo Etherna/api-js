@@ -4,8 +4,6 @@ import { fromHexString, makeHexString, toHexString } from "./hex"
 
 import type { BytesReference, Reference } from "@/types/swarm"
 
-export const EmptyReference = "0".repeat(64) as Reference
-
 /**
  * Check if the given string is a valid swarm reference
  *

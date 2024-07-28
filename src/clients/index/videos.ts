@@ -1,4 +1,4 @@
-import { throwSdkError } from "@/classes/error"
+import { throwSdkError } from "@/classes"
 
 import type { EthernaIndexClient } from "."
 import type {

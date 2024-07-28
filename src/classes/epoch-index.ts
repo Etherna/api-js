@@ -1,5 +1,4 @@
-import { toBigEndianFromBigInt64 } from "../handlers/mantaray/utils"
-import { keccak256Hash } from "../utils"
+import { keccak256Hash, toBigEndianFromBigInt64 } from "@/utils"
 
 export class EpochIndex {
   public static readonly maxLevel = 32n // valid from 01/01/1970 to 16/03/2242
@@ -70,7 +69,7 @@ export class EpochIndex {
     if (timestamp >= this.start + this.length) throw new Error("'at' is out of level")
 
     let childStart = this.start
-    let childLength = this.length >> 1n
+    const childLength = this.length >> 1n
 
     if ((timestamp & childLength) > 0) childStart |= childLength
 
@@ -89,8 +88,8 @@ export class EpochIndex {
   public getParent(): EpochIndex {
     if (BigInt(this.level) === EpochIndex.maxLevel) throw new Error("'level' is too big")
 
-    let parentLevel = this.level + 1
-    let parentStart = (this.start >> BigInt(parentLevel)) << BigInt(parentLevel)
+    const parentLevel = this.level + 1
+    const parentStart = (this.start >> BigInt(parentLevel)) << BigInt(parentLevel)
     return new EpochIndex(parentStart, parentLevel)
   }
 

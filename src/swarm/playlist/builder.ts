@@ -1,6 +1,6 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
-import { Queue } from "../../classes/Queue"
+import { Queue } from "../../classes/queue"
 import { MantarayNode } from "../../handlers/mantaray"
 import { PlaylistDetailsRawSchema, PlaylistPreviewRawSchema } from "../../schemas/playlist"
 import { Video } from "../../schemas/video"

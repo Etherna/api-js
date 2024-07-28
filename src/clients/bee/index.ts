@@ -1,3 +1,5 @@
+// Forked from: https://github.com/ethersphere/bee
+
 import { BaseClient } from "../base-client"
 import { Auth } from "./auth"
 import { Bytes } from "./bytes"

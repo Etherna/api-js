@@ -1,5 +1,7 @@
 import { AES, enc } from "crypto-ts"
 
+import { bytesEqual } from "./bytes"
+
 /**
  * Encrypts the given data using the provided password.
  *
@@ -29,5 +31,38 @@ export function decryptData(data: string, password: string): string {
     return decryptedData
   } catch (error) {
     throw new Error("Cannot unlock playlist. Make sure the password is correct.")
+  }
+}
+
+/**
+ *
+ * runs a XOR operation on data, encrypting it if it
+ * hasn't already been, and decrypting it if it has, using the key provided.
+ *
+ * @param key
+ * @param data
+ * @param startIndex
+ * @param endIndex
+ * @returns
+ */
+export function encryptDecrypt(
+  key: Uint8Array,
+  data: Uint8Array,
+  startIndex = 0,
+  endIndex?: number,
+): void {
+  // FIXME: in Bee
+  if (bytesEqual(key, new Uint8Array(32))) return
+
+  endIndex ||= data.length
+
+  for (let i = startIndex; i < endIndex; i += key.length) {
+    const maxChunkIndex = i + key.length
+    const encryptionChunkEndIndex = maxChunkIndex <= data.length ? maxChunkIndex : data.length
+    const encryptionChunk = data.slice(i, encryptionChunkEndIndex)
+    for (let j = 0; j < encryptionChunk.length; j++) {
+      encryptionChunk[j] = Number(encryptionChunk[j]) ^ Number(key[j % key.length])
+    }
+    data.set(encryptionChunk, i)
   }
 }

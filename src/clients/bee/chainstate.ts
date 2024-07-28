@@ -1,4 +1,4 @@
-import { EthernaSdkError, throwSdkError } from "@/classes/error"
+import { EthernaSdkError, throwSdkError } from "@/classes"
 
 import type { BeeClient } from "."
 import type { EthernaGatewayChainState } from "./types"

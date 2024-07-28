@@ -1,5 +1,5 @@
 export class Queue {
-  tasks: (() => Promise<any>)[] = []
+  tasks: (() => Promise<void>)[] = []
   activeTasks: number = 0
   maxConcurrentTasks: number
 
@@ -7,7 +7,7 @@ export class Queue {
     this.maxConcurrentTasks = maxConcurrentTasks
   }
 
-  enqueue(task: () => Promise<any>) {
+  enqueue(task: () => Promise<void>) {
     this.tasks.push(task)
     this.runTasks()
   }

@@ -1,3 +1,5 @@
+// Forked from: https://github.com/ethersphere/bee
+
 import { makeSpan } from "@fairdatasociety/bmt-js"
 import { etc } from "@noble/secp256k1"
 

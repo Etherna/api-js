@@ -1,10 +1,11 @@
-import { BATCH_ID_HEX_LENGTH, REFERENCE_HEX_LENGTH } from "@/consts"
-
-import { Bytes, HexString } from "./utils"
+import type { Bytes, HexString } from "./utils"
+import type { BATCH_ID_HEX_LENGTH, REFERENCE_HEX_LENGTH } from "@/consts"
 
 export type Index = number | Uint8Array | string
 
 export type BatchId = HexString<typeof BATCH_ID_HEX_LENGTH>
+
+export type BucketId = number
 
 export type PostageBatchBucketsData = {
   depth: number

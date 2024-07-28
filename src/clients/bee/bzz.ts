@@ -1,5 +1,7 @@
+// Forked from: https://github.com/ethersphere/bee
+
 import { extractFileUploadHeaders, readFileHeaders, wrapBytesWithHelpers } from "./utils"
-import { throwSdkError } from "@/classes/error"
+import { throwSdkError } from "@/classes"
 
 import type { BeeClient } from "."
 import type { FileDownloadOptions, FileUploadOptions, ReferenceResponse } from "./types"

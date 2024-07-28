@@ -1,6 +1,8 @@
+// Forked from: https://github.com/ethersphere/bee
+
 import { AxiosError } from "axios"
 
-import { EthernaSdkError, throwSdkError } from "@/classes/error"
+import { EthernaSdkError, throwSdkError } from "@/classes"
 
 import type { BeeClient } from "."
 import type { EthernaGatewayPin } from "./types"

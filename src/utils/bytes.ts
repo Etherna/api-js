@@ -7,17 +7,52 @@ import type { Bytes } from "@/types/utils"
  * @param offset
  * @param length
  */
-export function hasBytesAtOffset(
-  data: unknown,
-  offset: number,
-  length: number,
-): boolean {
+export function hasBytesAtOffset(data: unknown, offset: number, length: number): boolean {
   if (!(data instanceof Uint8Array)) {
     throw new TypeError("Data has to an Uint8Array!")
   }
 
   const offsetBytes = data.slice(offset, offset + length)
   return offsetBytes.length === length
+}
+
+/**
+ * Finds starting index `searchFor` in `element` Uin8Arrays
+ *
+ * If `searchFor` is not found in `element` it returns -1
+ *
+ * @param element
+ * @param searchFor
+ * @returns starting index of `searchFor` in `element`
+ */
+export function findIndexOfArray(element: Uint8Array, searchFor: Uint8Array): number {
+  for (let i = 0; i <= element.length - searchFor.length; i++) {
+    let j = 0
+    while (j < searchFor.length) {
+      if (element[i + j] !== searchFor[j++]) break
+    }
+
+    if (j === searchFor.length) return i
+  }
+
+  return -1
+}
+
+/**
+ * It returns the common bytes of the two given byte arrays until the first byte difference
+ *
+ * @param a
+ * @param b
+ * @returns
+ */
+export function commonBytes(a: Uint8Array, b: Uint8Array): Uint8Array {
+  let c = new Uint8Array(0)
+
+  for (let i = 0; i < a.length && i < b.length && a[i] === b[i]; i++) {
+    c = new Uint8Array([...c, a[i] as number])
+  }
+
+  return c
 }
 
 /**
@@ -84,9 +119,7 @@ export function overwriteBytes(a: Uint8Array, b: Uint8Array, i = 0): void {
 export function flattenBytesArray(bytesArray: Uint8Array[]): Uint8Array {
   if (bytesArray.length === 0) return new Uint8Array(0)
 
-  const bytesLength = bytesArray
-    .map((v) => v.length)
-    .reduce((sum, v) => (sum += v))
+  const bytesLength = bytesArray.map((v) => v.length).reduce((sum, v) => (sum += v))
   const flattenBytes = new Uint8Array(bytesLength)
   let nextWriteIndex = 0
   for (const b of bytesArray) {

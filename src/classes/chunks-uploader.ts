@@ -1,10 +1,10 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
-import { bytesReferenceToReference, getReferenceFromData, MAX_CHUNK_PAYLOAD_SIZE } from "../utils"
-import { splitArrayInChunks } from "../utils/array"
+import { MAX_CHUNK_PAYLOAD_SIZE } from "@/consts"
+import { bytesReferenceToReference, getReferenceFromData, splitArrayInChunks } from "@/utils"
 
-import type { BeeClient, RequestUploadOptions } from "../clients"
-import type { BytesReference } from "../handlers"
+import type { BeeClient, RequestUploadOptions } from "@/clients"
+import type { BytesReference } from "@/types/swarm"
 
 type ChunksUploadOptions = RequestUploadOptions & {
   currentLevel?: number

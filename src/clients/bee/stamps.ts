@@ -1,6 +1,6 @@
-import { EthernaSdkError, throwSdkError } from "@/classes/error"
+import { EthernaSdkError, throwSdkError } from "@/classes"
 import { ETHERNA_MIN_BATCH_DEPTH, ETHERNA_WELCOME_BATCH_DEPTH, STAMPS_DEPTH_MIN } from "@/consts"
-import { getBatchPercentUtilization, ttlToAmount } from "@/utils"
+import { calcDilutedTTL, getBatchPercentUtilization, ttlToAmount } from "@/utils"
 
 import type { BeeClient } from "."
 import type {
@@ -327,10 +327,10 @@ export class Stamps {
    * Dillute batch (increase size)
    *
    * @param batchId Id of the swarm batch
-   * @param depth New depth of the batch
+   * @param options Dilute options
    */
-  async dilute(batchId: BatchId, options?: DiluteBatchOptions): Promise<boolean> {
-    const { depth, waitUntilUpdate, ...opts } = options ?? {}
+  async dilute(batchId: BatchId, options: DiluteBatchOptions): Promise<boolean> {
+    const { depth, waitUntilUpdate, ...opts } = options
 
     try {
       switch (this.instance.type) {
@@ -364,6 +364,38 @@ export class Stamps {
     } catch (error) {
       throwSdkError(error)
     }
+  }
+
+  /**
+   * (unofficial api) - Dilute a batch + Auto topup to keep the same TTL
+   *
+   * @param batchId Id of batch to extend
+   * @param options Dilute options
+   */
+  async expand(batchId: BatchId, options: DiluteBatchOptions) {
+    const [batch, price] = await Promise.all([
+      this.download(batchId),
+      this.instance.chainstate.getCurrentPrice(),
+    ])
+
+    const newTTL = calcDilutedTTL(batch.batchTTL, batch.depth, options.depth)
+    const ttl = Math.abs(batch.batchTTL - newTTL)
+    const amount = ttlToAmount(ttl, price, this.instance.chain.blockTime).toString()
+
+    // topup batch (before dilute to avoid possible expiration)
+    await this.topup(batchId, {
+      by: {
+        type: "amount",
+        amount,
+      },
+      // we are forced to wait the topup before diluting
+      waitUntilUpdate: true,
+    })
+
+    // dilute batch
+    await this.dilute(batchId, options)
+
+    return true
   }
 
   // Utils methods

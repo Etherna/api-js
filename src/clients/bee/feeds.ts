@@ -1,17 +1,27 @@
+// Forked from: https://github.com/ethersphere/bee
+
 import { AxiosError } from "axios"
 
 import { extractUploadHeaders } from "./utils"
-import { EpochFeed, EpochFeedChunk, EpochIndex } from "@/classes"
-import { EthernaSdkError, throwSdkError } from "@/classes/error"
-import { MantarayNode } from "@/handlers"
+import {
+  EpochFeed,
+  EpochFeedChunk,
+  EpochIndex,
+  EthernaSdkError,
+  MantarayNode,
+  throwSdkError,
+} from "@/classes"
+import {
+  MantarayEntryMetadataFeedOwnerKey,
+  MantarayEntryMetadataFeedTopicKey,
+  MantarayEntryMetadataFeedTypeKey,
+  ZeroHashReference,
+} from "@/consts"
 import {
   bytesReferenceToReference,
   bytesToHex,
   dateToTimestamp,
   encodePath,
-  EntryMetadataFeedOwnerKey,
-  EntryMetadataFeedTopicKey,
-  EntryMetadataFeedTypeKey,
   getReferenceFromData,
   hexToBytes,
   keccak256Hash,
@@ -22,7 +32,6 @@ import {
   serializeBytes,
   toEthAccount,
   writeUint64BigEndian,
-  ZeroHashReference,
 } from "@/utils"
 
 import type { BeeClient } from "."
@@ -193,9 +202,9 @@ export class Feed {
   async makeRootManifest(feed: FeedInfo) {
     const node = new MantarayNode()
     node.addFork(encodePath("/"), ZeroHashReference, {
-      [EntryMetadataFeedOwnerKey]: feed.owner.toLowerCase(),
-      [EntryMetadataFeedTopicKey]: feed.topic,
-      [EntryMetadataFeedTypeKey]: feed.type.replace(/^./, (c) => c.toUpperCase()),
+      [MantarayEntryMetadataFeedOwnerKey]: feed.owner.toLowerCase(),
+      [MantarayEntryMetadataFeedTopicKey]: feed.topic,
+      [MantarayEntryMetadataFeedTypeKey]: feed.type.replace(/^./, (c) => c.toUpperCase()),
     })
     node.getForkAtPath(encodePath("/")).node["makeValue"]()
     node.getForkAtPath(encodePath("/")).node.entry = ZeroHashReference
@@ -238,9 +247,9 @@ export class Feed {
     }
 
     const fork = node.getForkAtPath(encodePath("/"))
-    const owner = fork.node.metadata?.[EntryMetadataFeedOwnerKey]
-    const topic = fork.node.metadata?.[EntryMetadataFeedTopicKey]
-    const type = fork.node.metadata?.[EntryMetadataFeedTypeKey]?.replace(/^./, (c) =>
+    const owner = fork.node.metadata?.[MantarayEntryMetadataFeedOwnerKey]
+    const topic = fork.node.metadata?.[MantarayEntryMetadataFeedTopicKey]
+    const type = fork.node.metadata?.[MantarayEntryMetadataFeedTypeKey]?.replace(/^./, (c) =>
       c.toLowerCase(),
     )
 

@@ -1,7 +1,7 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 import { immerable } from "immer"
 
-import { Queue } from "../../classes/Queue"
+import { Queue } from "../../classes/queue"
 import { MantarayFork, MantarayNode } from "../../handlers/mantaray"
 import { beeReference, beeSafeReference, ethSafeAddress } from "../../schemas/base"
 import { imageType } from "../../schemas/image"

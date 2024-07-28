@@ -1,7 +1,9 @@
+// Forked from: https://github.com/ethersphere/bee
+
 import { etc } from "@noble/secp256k1"
 
 import { extractUploadHeaders, makeContentAddressedChunk } from "./utils"
-import { EthernaSdkError, throwSdkError } from "@/classes/error"
+import { EthernaSdkError, throwSdkError } from "@/classes"
 import {
   IDENTIFIER_SIZE,
   SIGNATURE_SIZE,

@@ -1,5 +1,19 @@
+import type { BytesReference, Reference } from "./types/swarm"
+
 export const ETHERNA_MIN_BATCH_DEPTH = 20
 export const ETHERNA_WELCOME_BATCH_DEPTH = 20
+
+export const EmptyReference = "0".repeat(64) as Reference
+export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
+
+export const MantarayRootPath = "/"
+export const MantarayWebsiteIndexDocumentSuffixKey = "website-index-document"
+export const MantarayWebsiteErrorDocumentPathKey = "website-error-document"
+export const MantarayEntryMetadataContentTypeKey = "Content-Type"
+export const MantarayEntryMetadataFilenameKey = "Filename"
+export const MantarayEntryMetadataFeedOwnerKey = "swarm-feed-owner"
+export const MantarayEntryMetadataFeedTopicKey = "swarm-feed-topic"
+export const MantarayEntryMetadataFeedTypeKey = "swarm-feed-type"
 
 export const SPAN_SIZE = 8
 export const MAX_SPAN_LENGTH = 2 ** 32 - 1

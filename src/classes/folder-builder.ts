@@ -1,21 +1,24 @@
 import { AxiosError } from "axios"
 
-import { MantarayNode } from "../handlers"
-import { encodePath } from "../utils"
+import { MantarayNode } from "./mantaray-node"
+import { Queue } from "./queue"
+import {
+  MantarayEntryMetadataContentTypeKey,
+  MantarayEntryMetadataFilenameKey,
+  MantarayRootPath,
+  MantarayWebsiteErrorDocumentPathKey,
+  MantarayWebsiteIndexDocumentSuffixKey,
+  ZeroHashReference,
+} from "@/consts"
 import {
   bytesReferenceToReference,
-  EntryMetadataContentTypeKey,
-  EntryMetadataFilenameKey,
+  encodePath,
   getReferenceFromData,
   referenceToBytesReference,
-  RootPath,
-  WebsiteErrorDocumentPathKey,
-  WebsiteIndexDocumentSuffixKey,
-  ZeroHashReference,
-} from "../utils/mantaray"
-import { Queue } from "./Queue"
+} from "@/utils"
 
-import type { BatchId, BeeClient } from "../clients"
+import type { BeeClient } from "@/clients"
+import type { BatchId } from "@/types/swarm"
 
 export interface FolderBuilderConfig {
   beeClient: BeeClient
@@ -25,7 +28,7 @@ export interface FolderBuilderConfig {
   errorDocument?: string
 }
 
-export default abstract class FolderBuilder {
+export class FolderBuilder {
   protected node = new MantarayNode()
   protected queue: Queue
   protected bytesTotal = 0
@@ -42,8 +45,8 @@ export default abstract class FolderBuilder {
   addFile(data: Uint8Array, filename: string, path: string, contentType: string | null) {
     const entry = this.enqueueData(data)
     this.node.addFork(encodePath(path), entry, {
-      [EntryMetadataFilenameKey]: filename,
-      ...(contentType ? { [EntryMetadataContentTypeKey]: contentType } : {}),
+      [MantarayEntryMetadataFilenameKey]: filename,
+      ...(contentType ? { [MantarayEntryMetadataContentTypeKey]: contentType } : {}),
     })
   }
 
@@ -51,13 +54,13 @@ export default abstract class FolderBuilder {
     const metadata: Record<string, string> = {}
 
     if (this.config.indexDocument) {
-      metadata[WebsiteIndexDocumentSuffixKey] = this.config.indexDocument
+      metadata[MantarayWebsiteIndexDocumentSuffixKey] = this.config.indexDocument
     }
     if (this.config.errorDocument) {
-      metadata[WebsiteErrorDocumentPathKey] = this.config.errorDocument
+      metadata[MantarayWebsiteErrorDocumentPathKey] = this.config.errorDocument
     }
 
-    this.node.addFork(encodePath(RootPath), ZeroHashReference, metadata)
+    this.node.addFork(encodePath(MantarayRootPath), ZeroHashReference, metadata)
     const reference = await this.node.save(async (data) => {
       return this.enqueueData(data)
     })

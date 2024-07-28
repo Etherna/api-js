@@ -1,8 +1,9 @@
-import { SOC_PAYLOAD_OFFSET } from "../utils"
-import { EpochFeedChunk } from "./EpochFeedChunk"
-import { EpochIndex } from "./EpochIndex"
+import { EpochFeedChunk } from "./epoch-feed-chunk"
+import { EpochIndex } from "./epoch-index"
+import { SOC_PAYLOAD_OFFSET } from "@/consts"
 
-import type { BeeClient, Reference } from "../clients"
+import type { BeeClient } from "@/clients"
+import type { Reference } from "@/types/swarm"
 
 export class EpochFeed {
   constructor(public beeClient: BeeClient) {}
@@ -118,24 +119,28 @@ export class EpochFeed {
     topicOrIndex: Uint8Array | EpochIndex,
     index?: EpochIndex,
   ): Promise<EpochFeedChunk | null> {
-    if (topicOrIndex instanceof Uint8Array) {
+    if (topicOrIndex instanceof Uint8Array && index) {
       const topic = topicOrIndex
       return this.tryGetFeedChunk(
-        EpochFeedChunk.buildReferenceHash(accountOrReference, topic, index!),
-        index!,
+        EpochFeedChunk.buildReferenceHash(accountOrReference, topic, index),
+        index,
       )
     }
 
-    index = topicOrIndex
-    const reference = accountOrReference as Reference
+    if (topicOrIndex instanceof EpochIndex) {
+      index = topicOrIndex
+      const reference = accountOrReference as Reference
 
-    try {
-      const chunk = await this.beeClient.chunk.download(reference)
-      const payload = chunk.slice(SOC_PAYLOAD_OFFSET)
-      return new EpochFeedChunk(index, payload, reference)
-    } catch (err: any) {
-      return null
+      try {
+        const chunk = await this.beeClient.chunk.download(reference)
+        const payload = chunk.slice(SOC_PAYLOAD_OFFSET)
+        return new EpochFeedChunk(index, payload, reference)
+      } catch (err) {
+        return null
+      }
     }
+
+    return null
   }
 
   // Helpers.
