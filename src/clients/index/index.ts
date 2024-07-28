@@ -22,8 +22,8 @@ export class EthernaIndexClient extends BaseClient {
    * Init an index client
    * @param options Client options
    */
-  constructor(options: IndexClientOptions) {
-    super(options)
+  constructor(baseUrl: string, options?: IndexClientOptions) {
+    super(baseUrl, options)
 
     this.comments = new IndexComments(this)
     this.moderation = new IndexModeration(this)

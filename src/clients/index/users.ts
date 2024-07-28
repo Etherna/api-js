@@ -1,5 +1,8 @@
+import { throwSdkError } from "@/classes/error"
+
 import type { EthernaIndexClient } from "."
-import type { IndexCurrentUser, IndexUser, IndexVideo, PaginatedResult, RequestOptions } from ".."
+import type { IndexCurrentUser, IndexUser, IndexVideo, PaginatedResult } from "./types"
+import type { RequestOptions } from "@/types/clients"
 
 export class IndexUsers {
   constructor(private instance: EthernaIndexClient) {}
@@ -11,16 +14,16 @@ export class IndexUsers {
    * @param opts Request options
    */
   async fetchUsers(page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<PaginatedResult<IndexUser>>("/users/list2", {
-      ...this.instance.prepareAxiosConfig(opts),
-      params: { page, take },
-    })
+    try {
+      const resp = await this.instance.request.get<PaginatedResult<IndexUser>>("/users/list2", {
+        ...this.instance.prepareAxiosConfig(opts),
+        params: { page, take },
+      })
 
-    if (typeof resp.data !== "object" || !Array.isArray(resp.data.elements)) {
-      throw new Error("Cannot fetch user's videos")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -29,15 +32,15 @@ export class IndexUsers {
    * @param opts Request options
    */
   async fetchUser(address: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexUser>(`/users/${address}`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      const resp = await this.instance.request.get<IndexUser>(`/users/${address}`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch user")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -48,19 +51,19 @@ export class IndexUsers {
    * @param opts Request options
    */
   async fetchVideos(address: string, page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<PaginatedResult<IndexVideo>>(
-      `/users/${address}/videos3`,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-        params: { page, take },
-      },
-    )
+    try {
+      const resp = await this.instance.request.get<PaginatedResult<IndexVideo>>(
+        `/users/${address}/videos3`,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+          params: { page, take },
+        },
+      )
 
-    if (typeof resp.data !== "object" || !Array.isArray(resp.data.elements)) {
-      throw new Error("Cannot fetch user's videos")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -68,14 +71,14 @@ export class IndexUsers {
    * @param opts Request options
    */
   async fetchCurrentUser(opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexCurrentUser>(`/users/current`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      const resp = await this.instance.request.get<IndexCurrentUser>(`/users/current`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch user")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 }

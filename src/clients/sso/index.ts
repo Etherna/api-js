@@ -12,8 +12,8 @@ export class EthernaSSOClient extends BaseClient {
    * Init an index client
    * @param options Client options
    */
-  constructor(options: SSOClientOptions) {
-    super(options)
+  constructor(baseUrl: string, options?: SSOClientOptions) {
+    super(baseUrl, options)
 
     this.identity = new IdentityClient(this)
   }

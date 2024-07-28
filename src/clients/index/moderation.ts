@@ -1,5 +1,7 @@
+import { throwSdkError } from "@/classes/error"
+
 import type { EthernaIndexClient } from "."
-import type { RequestOptions } from ".."
+import type { RequestOptions } from "@/types/clients"
 
 export class IndexModeration {
   constructor(private instance: EthernaIndexClient) {}
@@ -10,11 +12,15 @@ export class IndexModeration {
    * @param opts Request options
    */
   async deleteComment(id: string, opts?: RequestOptions) {
-    await this.instance.request.delete(`/moderation/comments/${id}`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      await this.instance.request.delete(`/moderation/comments/${id}`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    return true
+      return true
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   /**
@@ -23,10 +29,14 @@ export class IndexModeration {
    * @param opts Request options
    */
   async deleteVideo(id: string, opts?: RequestOptions) {
-    await this.instance.request.delete(`/moderation/videos/${id}`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      await this.instance.request.delete(`/moderation/videos/${id}`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    return true
+      return true
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 }

@@ -1,5 +1,6 @@
-import type { BatchId, EthAddress, Reference } from ".."
 import type { ImageRaw, VideoQuality, VideoSourceRaw } from "../.."
+import type { EthAddress } from "@/types/eth"
+import type { BatchId, Reference } from "@/types/swarm"
 
 export type PaginatedResult<T> = {
   elements: T[]

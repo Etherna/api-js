@@ -1,4 +1,4 @@
-import type { EthAddress } from ".."
+import type { EthAddress } from "@/types/eth"
 
 export type SSOIdentity = {
   accountType: "web2" | "web3"

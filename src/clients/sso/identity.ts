@@ -1,5 +1,7 @@
+import { throwSdkError } from "@/classes/error"
+
 import type { EthernaSSOClient } from "."
-import type { SSOIdentity } from ".."
+import type { SSOIdentity } from "./types"
 
 export class IdentityClient {
   constructor(private instance: EthernaSSOClient) {}
@@ -8,14 +10,14 @@ export class IdentityClient {
    * Get current SSO user
    */
   async fetchCurrentIdentity() {
-    const resp = await this.instance.request.get<SSOIdentity>(`/identity`, {
-      ...this.instance.prepareAxiosConfig(),
-    })
+    try {
+      const resp = await this.instance.request.get<SSOIdentity>(`/identity`, {
+        ...this.instance.prepareAxiosConfig(),
+      })
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch identity")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 }

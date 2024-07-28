@@ -1,14 +1,16 @@
+import { throwSdkError } from "@/classes/error"
+
 import type { EthernaIndexClient } from "."
 import type {
   IndexVideo,
   IndexVideoComment,
   IndexVideoManifest,
+  IndexVideoPreview,
   IndexVideoValidation,
   PaginatedResult,
-  RequestOptions,
   VoteValue,
-} from ".."
-import type { IndexVideoPreview } from "./types"
+} from "./types"
+import type { RequestOptions } from "@/types/clients"
 
 export class IndexVideos {
   abortController?: AbortController
@@ -24,23 +26,23 @@ export class IndexVideos {
    * @returns Video id
    */
   async createVideo(hash: string, encryptionKey?: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.post<string>(
-      `/videos`,
-      {
-        manifestHash: hash,
-        encryptionKey,
-        encryptionType: encryptionKey ? "AES256" : "Plain",
-      },
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-      },
-    )
+    try {
+      const resp = await this.instance.request.post<string>(
+        `/videos`,
+        {
+          manifestHash: hash,
+          encryptionKey,
+          encryptionType: encryptionKey ? "AES256" : "Plain",
+        },
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+        },
+      )
 
-    if (typeof resp.data !== "string") {
-      throw new Error("Cannot create the video")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -51,15 +53,15 @@ export class IndexVideos {
    * @returns The video object
    */
   async fetchVideoFromId(id: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideo>(`/videos/${id}/find2`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      const resp = await this.instance.request.get<IndexVideo>(`/videos/${id}/find2`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch the video")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -70,15 +72,15 @@ export class IndexVideos {
    * @returns Video information
    */
   async fetchVideoFromHash(hash: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideo>(`/videos/manifest2/${hash}`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      const resp = await this.instance.request.get<IndexVideo>(`/videos/manifest2/${hash}`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch the video")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -90,19 +92,19 @@ export class IndexVideos {
    * @returns The list of videos
    */
   async fetchLatestVideos(page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<PaginatedResult<IndexVideoPreview>>(
-      `/videos/latest3`,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-        params: { page, take },
-      },
-    )
+    try {
+      const resp = await this.instance.request.get<PaginatedResult<IndexVideoPreview>>(
+        `/videos/latest3`,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+          params: { page, take },
+        },
+      )
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch videos")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -113,18 +115,18 @@ export class IndexVideos {
    * @returns List of validations
    */
   async fetchValidations(id: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideoValidation[]>(
-      `/videos/${id}/validation2`,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-      },
-    )
+    try {
+      const resp = await this.instance.request.get<IndexVideoValidation[]>(
+        `/videos/${id}/validation2`,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+        },
+      )
 
-    if (Array.isArray(resp.data)) {
-      throw new Error("Cannot fetch the video validations")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -135,18 +137,18 @@ export class IndexVideos {
    * @returns Validation status
    */
   async fetchHashValidation(hash: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideoValidation>(
-      `/videos/manifest/${hash}/validation`,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-      },
-    )
+    try {
+      const resp = await this.instance.request.get<IndexVideoValidation>(
+        `/videos/manifest/${hash}/validation`,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+        },
+      )
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot fetch the hash validation")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -157,19 +159,19 @@ export class IndexVideos {
    * @returns Validation status
    */
   async fetchBulkValidation(hashes: string[], opts?: RequestOptions) {
-    const resp = await this.instance.request.put<IndexVideoValidation[]>(
-      `/videos/manifest/bulkvalidation`,
-      hashes,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-      },
-    )
+    try {
+      const resp = await this.instance.request.put<IndexVideoValidation[]>(
+        `/videos/manifest/bulkvalidation`,
+        hashes,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+        },
+      )
 
-    if (!Array.isArray(resp.data)) {
-      throw new Error("Cannot fetch the videos validations")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -181,20 +183,20 @@ export class IndexVideos {
    * @returns Video id
    */
   async updateVideo(id: string, newHash: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.put<IndexVideoManifest>(
-      `/videos/${id}/update2`,
-      null,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-        params: { newHash },
-      },
-    )
+    try {
+      const resp = await this.instance.request.put<IndexVideoManifest>(
+        `/videos/${id}/update2`,
+        null,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+          params: { newHash },
+        },
+      )
 
-    if (typeof resp.data !== "object") {
-      throw new Error("Cannot update the video")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -205,11 +207,15 @@ export class IndexVideos {
    * @returns Success state
    */
   async deleteVideo(id: string, opts?: RequestOptions) {
-    await this.instance.request.delete(`/videos/${id}`, {
-      ...this.instance.prepareAxiosConfig(opts),
-    })
+    try {
+      await this.instance.request.delete(`/videos/${id}`, {
+        ...this.instance.prepareAxiosConfig(opts),
+      })
 
-    return true
+      return true
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   /**
@@ -222,16 +228,16 @@ export class IndexVideos {
    * @returns The list of comments
    */
   async fetchComments(id: string, page = 0, take = 25, opts?: RequestOptions) {
-    const resp = await this.instance.request.get<IndexVideoComment[]>(`/videos/${id}/comments`, {
-      ...this.instance.prepareAxiosConfig(opts),
-      params: { page, take },
-    })
+    try {
+      const resp = await this.instance.request.get<IndexVideoComment[]>(`/videos/${id}/comments`, {
+        ...this.instance.prepareAxiosConfig(opts),
+        params: { page, take },
+      })
 
-    if (!Array.isArray(resp.data)) {
-      throw new Error("Cannot fetch comments")
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
     }
-
-    return resp.data
   }
 
   /**
@@ -243,20 +249,24 @@ export class IndexVideos {
    * @returns The comment object
    */
   async postComment(id: string, message: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.post<IndexVideoComment>(
-      `/videos/${id}/comments`,
-      `"${message}"`,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-        headers: {
-          ...this.instance.prepareAxiosConfig(opts).headers,
-          accept: "text/plain",
-          "Content-Type": "application/json",
+    try {
+      const resp = await this.instance.request.post<IndexVideoComment>(
+        `/videos/${id}/comments`,
+        `"${message}"`,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+          headers: {
+            ...this.instance.prepareAxiosConfig(opts).headers,
+            accept: "text/plain",
+            "Content-Type": "application/json",
+          },
         },
-      },
-    )
+      )
 
-    return resp.data
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   /**
@@ -267,12 +277,20 @@ export class IndexVideos {
    * @param opts Request options
    */
   async vote(id: string, vote: VoteValue, opts?: RequestOptions) {
-    const resp = await this.instance.request.post<IndexVideoComment>(`/videos/${id}/votes`, null, {
-      ...this.instance.prepareAxiosConfig(opts),
-      params: { value: vote },
-    })
+    try {
+      const resp = await this.instance.request.post<IndexVideoComment>(
+        `/videos/${id}/votes`,
+        null,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+          params: { value: vote },
+        },
+      )
 
-    return resp.data
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   /**
@@ -284,15 +302,19 @@ export class IndexVideos {
    * @param opts Request options
    */
   async reportVideo(id: string, manifestReference: string, code: string, opts?: RequestOptions) {
-    const resp = await this.instance.request.post(
-      `/videos/${id}/manifest/${manifestReference}/reports`,
-      null,
-      {
-        ...this.instance.prepareAxiosConfig(opts),
-        params: { description: code },
-      },
-    )
+    try {
+      const resp = await this.instance.request.post(
+        `/videos/${id}/manifest/${manifestReference}/reports`,
+        null,
+        {
+          ...this.instance.prepareAxiosConfig(opts),
+          params: { description: code },
+        },
+      )
 
-    return resp.data
+      return resp.data
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 }
