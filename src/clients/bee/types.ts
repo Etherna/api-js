@@ -1,18 +1,16 @@
-import { EthAddress } from "@/types/eth"
-
 import type { RequestOptions } from "@/types/clients"
-import type { Reference } from "@/types/swarm"
+import type { BatchId, PostageBatch, Reference } from "@/types/swarm"
 import type { HexString } from "@/types/utils"
 
 export type FeedType = "sequence" | "epoch"
 
-export type FeedInfo<T extends FeedType> = {
+export interface FeedInfo {
   topic: string
   owner: string
-  type: T
+  type: FeedType
 }
 
-export type ContentAddressedChunk = {
+export interface ContentAddressedChunk {
   readonly data: Uint8Array
   /** span bytes (8) */
   span(): Uint8Array
@@ -21,7 +19,7 @@ export type ContentAddressedChunk = {
   address(): Uint8Array
 }
 
-export type SingleOwnerChunk = ContentAddressedChunk & {
+export interface SingleOwnerChunk extends ContentAddressedChunk {
   identifier(): Uint8Array
   signature(): Uint8Array
   owner(): Uint8Array
@@ -84,4 +82,45 @@ export interface AuthenticationOptions extends RequestOptions {
 
 export interface ReferenceResponse {
   reference: Reference
+}
+
+export type EthernaGatewayCurrentUser = {
+  etherAddress: string
+  etherPreviousAddresses: string[]
+  username: string
+}
+
+export type EthernaGatewayCredit = {
+  isUnlimited: boolean
+  balance: number
+}
+
+export type EthernaGatewayBatchPreview = {
+  batchId: BatchId
+  ownerNodeId: string
+}
+
+export type EthernaGatewayBatch = Omit<PostageBatch, "batchID"> & {
+  id: BatchId
+  amountPaid: number
+  normalisedBalance: number
+}
+
+export type EthernaGatewayChainState = {
+  block: number
+  currentPrice: number
+  sourceNodeId: string
+  timeStamp: string
+  totalAmount: number
+}
+
+export type EthernaGatewayPin = {
+  freePinningEndOfLife: string
+  isPinned: boolean
+  isPinningInProgress: boolean
+  isPinningRequired: boolean
+}
+
+export type EthernaGatewayWelcomeStatus = {
+  isFreePostageBatchConsumed: boolean
 }

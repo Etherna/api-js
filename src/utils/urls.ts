@@ -5,9 +5,9 @@
  * @param path Url path
  * @returns Full composed url
  */
-export function composeUrl(host: string, path: string): string {
+export function composeUrl(host: string, path?: string): string {
   const url = new URL(host)
-  url.pathname = path
+  url.pathname = path ?? ""
   return url.toString()
 }
 

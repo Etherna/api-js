@@ -28,8 +28,7 @@ export const getBatchSpace = (batch: PostageBatch) => {
  * @returns Batch total capcity in bytes
  */
 export const getBatchCapacity = (batchOrDepth: PostageBatch | number) => {
-  const depth =
-    typeof batchOrDepth === "number" ? batchOrDepth : batchOrDepth.depth
+  const depth = typeof batchOrDepth === "number" ? batchOrDepth : batchOrDepth.depth
   return 2 ** depth * 4096
 }
 
@@ -67,11 +66,7 @@ export const getBatchExpiration = (batch: PostageBatch): "unlimited" | Date => {
  * @param blockTime Chain blocktime
  * @returns Batch amount
  */
-export const ttlToAmount = (
-  ttl: number,
-  price: number,
-  blockTime: number,
-): bigint => {
+export const ttlToAmount = (ttl: number, price: number, blockTime: number): bigint => {
   return (BigInt(ttl) * BigInt(price)) / BigInt(blockTime)
 }
 
@@ -82,12 +77,8 @@ export const ttlToAmount = (
  * @param amount Batch amount
  * @returns Price in BZZ
  */
-export const calcBatchPrice = (
-  depth: number,
-  amount: bigint | string,
-): string => {
-  const hasInvalidInput =
-    BigInt(amount) <= BigInt(0) || isNaN(depth) || depth < 17 || depth > 255
+export const calcBatchPrice = (depth: number, amount: bigint | string): string => {
+  const hasInvalidInput = BigInt(amount) <= BigInt(0) || isNaN(depth) || depth < 17 || depth > 255
 
   if (hasInvalidInput) {
     return "-"

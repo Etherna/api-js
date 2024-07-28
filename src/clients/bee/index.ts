@@ -1,30 +1,41 @@
-import axios from "axios"
-
-import { isValidReference } from "../../utils"
+import { BaseClient } from "../base-client"
 import { Auth } from "./auth"
 import { Bytes } from "./bytes"
 import { Bzz } from "./bzz"
 import { ChainState } from "./chainstate"
 import { Chunk } from "./chunk"
 import { Feed } from "./feeds"
+import { Offers } from "./offers"
 import { Pins } from "./pins"
 import { Soc } from "./soc"
 import { Stamps } from "./stamps"
+import { System } from "./system"
 import { Tags } from "./tags"
-import { makePrivateKeySigner } from "./utils/signer"
+import { User } from "./user"
+import { makePrivateKeySigner } from "@/utils"
 
-import type { PostageBatch, Reference, Signer } from "./types"
-import type { AxiosInstance } from "axios"
+import type { BaseClientOptions } from "../base-client"
+import type { Signer } from "@/types/signer"
 
-export interface BeeClientOptions {
-  signer?: Signer | string
-  postageBatches?: PostageBatch[]
-  axios?: AxiosInstance
+export type BeeChain = { name: "custom" | "gnosis" | "sepolia" | "goerli"; blockTime: number }
+
+const ChainBlockTime: Record<BeeChain["name"], number> = {
+  custom: 2,
+  gnosis: 5,
+  sepolia: 2,
+  goerli: 15,
 }
 
-export class BeeClient {
+export interface BeeClientOptions extends BaseClientOptions {
+  type?: "bee" | "etherna"
+  signer?: Signer | string
+  chain?: BeeChain
+}
+
+export class BeeClient extends BaseClient {
   signer?: Signer
-  request: AxiosInstance
+  type: "bee" | "etherna"
+  chain: BeeChain
 
   auth: Auth
   bytes: Bytes
@@ -36,20 +47,24 @@ export class BeeClient {
   soc: Soc
   stamps: Stamps
   tags: Tags
-
-  postageBatches: PostageBatch[]
+  offers: Offers
+  user: User
+  system: System
 
   constructor(
     public url: string,
     opts?: BeeClientOptions,
   ) {
+    super(url, opts)
+
     this.signer =
       typeof opts?.signer === "string" ? makePrivateKeySigner(opts.signer) : opts?.signer
-    this.request =
-      opts?.axios ??
-      axios.create({
-        baseURL: url,
-      })
+    this.type = opts?.type ?? "bee"
+    this.chain = {
+      name: opts?.chain?.name ?? "gnosis",
+      blockTime: opts?.chain?.blockTime ?? ChainBlockTime[opts?.chain?.name ?? "gnosis"],
+    }
+
     this.auth = new Auth(this)
     this.bytes = new Bytes(this)
     this.bzz = new Bzz(this)
@@ -60,24 +75,12 @@ export class BeeClient {
     this.soc = new Soc(this)
     this.stamps = new Stamps(this)
     this.tags = new Tags(this)
-    this.postageBatches = opts?.postageBatches ?? []
+    this.offers = new Offers(this)
+    this.user = new User(this)
+    this.system = new System(this)
   }
 
   updateSigner(signer: Signer | string) {
     this.signer = typeof signer === "string" ? makePrivateKeySigner(signer) : signer
-  }
-
-  /**
-   * Check if an hash is a valid swarm hash
-   *
-   * @param hash Hash string
-   * @returns True if the hash is valid
-   */
-  static isValidHash(hash: string): hash is Reference {
-    return isValidReference(hash)
-  }
-
-  isValidHash(hash: string) {
-    return BeeClient.isValidHash(hash)
   }
 }

@@ -23,9 +23,6 @@ importers:
       blurhash:
         specifier: 2.0.5
         version: 2.0.5
-      cookiejs:
-        specifier: 2.1.3
-        version: 2.1.3
       crypto-ts:
         specifier: 1.0.2
         version: 1.0.2(@angular/common@17.3.4(@angular/core@17.3.4(rxjs@7.8.1)(zone.js@0.14.4))(rxjs@7.8.1))(@angular/core@17.3.4(rxjs@7.8.1)(zone.js@0.14.4))
@@ -757,9 +754,6 @@ packages:
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
-
-  cookiejs@2.1.3:
-    resolution: {integrity: sha512-pA/nRQVka2eTXm1/Dq8pNt1PN+e1PJNItah0vL15qwpet81/tUfrAp8e0iiVM8WEAzDcTGK5/1hDyR6BdBZMVg==}
 
   cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -2207,8 +2201,6 @@ snapshots:
   concat-map@0.0.1: {}
 
   convert-source-map@2.0.0: {}
-
-  cookiejs@2.1.3: {}
 
   cross-spawn@7.0.3:
     dependencies:

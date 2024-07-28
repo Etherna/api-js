@@ -1,6 +1,12 @@
+import { AxiosError } from "axios"
+
+import { EthernaSdkError, throwSdkError } from "@/classes/error"
+
 import type { BeeClient } from "."
-import type { RequestOptions } from "../types"
-import type { Reference } from "./types"
+import type { EthernaGatewayPin } from "./types"
+import type { RequestOptions } from "@/types/clients"
+import type { EthAddress } from "@/types/eth"
+import type { Reference } from "@/types/swarm"
 
 const pinsEndpoint = "/pins"
 
@@ -9,41 +15,129 @@ export class Pins {
 
   async isPinned(reference: string, options?: RequestOptions) {
     try {
-      const resp = await this.instance.request.get<string>(`${pinsEndpoint}/${reference}`, {
-        headers: options?.headers,
-        timeout: options?.timeout,
-        signal: options?.signal,
-      })
+      switch (this.instance.type) {
+        case "bee": {
+          const resp = await this.instance.request.get<string>(`${pinsEndpoint}/${reference}`, {
+            ...this.instance.prepareAxiosConfig(options),
+          })
 
-      return resp.data === reference
+          return resp.data === reference
+        }
+        case "etherna": {
+          const resp = await this.instance.apiRequest.get<EthernaGatewayPin>(
+            `/resources/${reference}/pin`,
+            {
+              ...this.instance.prepareAxiosConfig(options),
+            },
+          )
+
+          return resp.data.isPinned
+        }
+      }
     } catch (error) {
-      return false
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        return false
+      }
+
+      throwSdkError(error)
     }
   }
 
   async download(options?: RequestOptions) {
-    const resp = await this.instance.request.get<{ references: Reference[] }>(`${pinsEndpoint}`, {
-      headers: options?.headers,
-      timeout: options?.timeout,
-      signal: options?.signal,
-    })
-    return resp.data
+    try {
+      switch (this.instance.type) {
+        case "bee": {
+          const resp = await this.instance.request.get<{ references: Reference[] }>(
+            `${pinsEndpoint}`,
+            {
+              ...this.instance.prepareAxiosConfig(options),
+            },
+          )
+          return resp.data
+        }
+        case "etherna": {
+          const resp = await this.instance.request.get<string[]>(`/users/current/pinnedResources`, {
+            ...this.instance.prepareAxiosConfig(options),
+          })
+
+          return {
+            references: resp.data as Reference[],
+          }
+        }
+      }
+    } catch (error) {
+      throwSdkError(error)
+    }
+  }
+
+  /**
+   * Fetch the users pinning a resource
+   *
+   * @param reference Hash of the resource
+   * @param opts Request options
+   * @returns List of addresses
+   */
+  async downlaodPinUsers(reference: string, opts?: RequestOptions) {
+    try {
+      switch (this.instance.type) {
+        case "bee": {
+          throw new EthernaSdkError(
+            "UNSUPPORTED_OPERATION",
+            "Fetch pin users is only supported by the etherna gateway",
+          )
+        }
+        case "etherna": {
+          const resp = await this.instance.apiRequest.get<EthAddress[]>(
+            `/resources/${reference}/pin/users`,
+            {
+              ...this.instance.prepareAxiosConfig(opts),
+            },
+          )
+
+          return resp.data
+        }
+      }
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   async pin(reference: string, options?: RequestOptions) {
-    await this.instance.request.post(`${pinsEndpoint}/${reference}`, null, {
-      headers: options?.headers,
-      timeout: options?.timeout,
-      signal: options?.signal,
-    })
+    try {
+      switch (this.instance.type) {
+        case "bee": {
+          return await this.instance.request.post(`${pinsEndpoint}/${reference}`, null, {
+            ...this.instance.prepareAxiosConfig(options),
+          })
+        }
+        case "etherna": {
+          return await this.instance.apiRequest.post(`/resources/${reference}/pin`, undefined, {
+            ...this.instance.prepareAxiosConfig(options),
+          })
+        }
+      }
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   async unpin(reference: string, options?: RequestOptions) {
-    await this.instance.request.delete(`${pinsEndpoint}/${reference}`, {
-      headers: options?.headers,
-      timeout: options?.timeout,
-      signal: options?.signal,
-    })
+    try {
+      switch (this.instance.type) {
+        case "bee": {
+          return await this.instance.request.delete(`${pinsEndpoint}/${reference}`, {
+            ...this.instance.prepareAxiosConfig(options),
+          })
+        }
+        case "etherna": {
+          return await this.instance.apiRequest.delete(`/resources/${reference}/pin`, {
+            ...this.instance.prepareAxiosConfig(options),
+          })
+        }
+      }
+    } catch (error) {
+      throwSdkError(error)
+    }
   }
 
   /**
@@ -52,11 +146,20 @@ export class Pins {
    * @returns True if pinning is enabled
    */
   async pinEnabled() {
+    if (this.instance.type === "etherna") {
+      return true
+    }
+
     try {
       const controller = new AbortController()
       await this.instance.request.get(pinsEndpoint, {
-        signal: controller.signal,
-        onDownloadProgress: (p) => {
+        ...this.instance.prepareAxiosConfig({
+          signal: controller.signal,
+          headers: {
+            Range: "bytes=0-1",
+          },
+        }),
+        onDownloadProgress: () => {
           controller.abort()
         },
       })

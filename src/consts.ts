@@ -1,3 +1,6 @@
+export const ETHERNA_MIN_BATCH_DEPTH = 20
+export const ETHERNA_WELCOME_BATCH_DEPTH = 20
+
 export const SPAN_SIZE = 8
 export const MAX_SPAN_LENGTH = 2 ** 32 - 1
 export const SECTION_SIZE = 32
