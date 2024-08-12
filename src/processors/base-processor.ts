@@ -12,13 +12,15 @@ export interface BaseProcessorUploadOptions extends Omit<RequestUploadOptions, "
 
 export interface ProcessorOutput {
   path: string
-  contentAddress: Reference
+  entryAddress: Reference
+  metadata: { filename: string; contentType: string }
 }
 
 export class BaseProcessor {
   protected input: File | ArrayBuffer | Uint8Array
   protected uploadOptions?: BaseProcessorUploadOptions
   public uploader?: ChunksUploader
+  public processorOutputs: ProcessorOutput[] = []
   public isProcessed = false
   public isFullyUploaded = false
   public stampCalculator = new StampCalculator()
@@ -27,7 +29,7 @@ export class BaseProcessor {
     this.input = input
   }
 
-  public process(options?: unknown): Promise<ProcessorOutput[]> {
+  public process(_options?: unknown): Promise<ProcessorOutput[]> {
     return Promise.resolve([])
   }
 
@@ -36,6 +38,9 @@ export class BaseProcessor {
     this.uploader = new ChunksUploader({
       beeClient: options.beeClient,
       concurrentChunks: options.concurrentChunks,
+    })
+    this.uploader.on("done", () => {
+      this.isFullyUploaded = true
     })
 
     const batchId =
@@ -49,6 +54,10 @@ export class BaseProcessor {
     }
 
     this.uploadOptions.batchId = batchId
+
+    this.uploader.resume(options)
+
+    return await this.uploader.drain()
   }
 
   public async resume(): Promise<void> {
@@ -63,7 +72,5 @@ export class BaseProcessor {
     this.uploader.resume({
       batchId: this.uploadOptions.batchId,
     })
-
-    await this.uploader.drain()
   }
 }

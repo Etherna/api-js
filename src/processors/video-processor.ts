@@ -7,8 +7,8 @@ import { ImageProcessor } from "./image-processor"
 import { EthernaSdkError } from "@/classes"
 import { bytesReferenceToReference, fileToBuffer, getHlsBitrate } from "@/utils"
 
-import type { BaseProcessorUploadOptions, ProcessorOutput } from "./base-processor"
-import type { VideoSource } from "@/schemas/video"
+import type { ProcessorOutput } from "./base-processor"
+import type { VideoSource } from "@/schemas/video-shchema"
 
 export interface VideoProcessorOptions {
   resolutions?: number[]
@@ -158,7 +158,7 @@ export class VideoProcessor extends BaseProcessor {
       ],
     }
 
-    const output: ProcessorOutput[] = []
+    this.processorOutputs = []
 
     for (const file of [masterFile, ...resolutionsPlaylists, ...resolutionsSegments.flat()]) {
       const chunkedFile = makeChunkedFile(file.data)
@@ -173,13 +173,29 @@ export class VideoProcessor extends BaseProcessor {
         .forEach((chunk) => this.stampCalculator.add(bytesReferenceToReference(chunk.address())))
 
       // add to output
-      output.push({
+      this.processorOutputs.push({
         path: file.path,
-        contentAddress: bytesReferenceToReference(chunkedFile.address()),
+        entryAddress: bytesReferenceToReference(chunkedFile.address()),
+        metadata: {
+          filename: file.path.split("/").pop() as string,
+          contentType: (() => {
+            const ext = file.path.split(".").pop() as string
+            switch (ext) {
+              case "m3u8":
+                return "application/vnd.apple.mpegurl"
+              case "ts":
+                return "video/MP2T"
+              default:
+                return "application/octet-stream"
+            }
+          })(),
+        },
       })
     }
 
-    return output
+    this.isProcessed = true
+
+    return this.processorOutputs
   }
 
   public async createThumbnailProcessor(frameTimestamp: number) {
@@ -191,18 +207,6 @@ export class VideoProcessor extends BaseProcessor {
     const imageData = await this.generateThumbnail(frameTimestamp, aspectRatio)
 
     return new ImageProcessor(imageData)
-  }
-
-  public override async upload(options: BaseProcessorUploadOptions): Promise<void> {
-    await super.upload(options)
-
-    if (!this.uploader) {
-      throw new EthernaSdkError("SERVER_ERROR", "Uploader not initialized")
-    }
-
-    this.uploader.resume(options)
-
-    return await this.uploader.drain()
   }
 
   private async getVideoMeta() {

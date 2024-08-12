@@ -1,7 +1,6 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
 import { BaseProcessor } from "./base-processor"
-import { EthernaSdkError } from "@/classes"
 import { ImageTypeSchema } from "@/schemas/image"
 import {
   bytesReferenceToReference,
@@ -12,7 +11,7 @@ import {
   resizeImage,
 } from "@/utils"
 
-import type { BaseProcessorUploadOptions, ProcessorOutput } from "./base-processor"
+import type { ProcessorOutput } from "./base-processor"
 import type { Image } from "@/schemas/image"
 
 export interface ImageProcessorOptions {
@@ -50,12 +49,15 @@ export class ImageProcessor extends BaseProcessor {
 
     const parsePath = (width: number, type: string) =>
       options.pathFormat.replace(/\$size/g, width.toString()).replace(/\$type/g, type)
+    const parseFilename = (width: number, type: string) =>
+      `${typeof options.sizes === "string" ? options.sizes : "image"}-${width}w-${type}`
 
     const output = [
       {
         type: ImageTypeSchema.parse(imageMeta.type),
         width: imageMeta.width,
-        contentAddress: getReferenceFromData(originalImageData),
+        filename: parseFilename(imageMeta.width, imageMeta.type),
+        entryAddress: getReferenceFromData(originalImageData),
         path: parsePath(imageMeta.width, imageMeta.type),
       },
     ]
@@ -96,7 +98,8 @@ export class ImageProcessor extends BaseProcessor {
       output.push({
         type: ImageTypeSchema.parse(type),
         width: size,
-        contentAddress: getReferenceFromData(data),
+        filename: parseFilename(size, type),
+        entryAddress: getReferenceFromData(data),
         path: parsePath(size, type),
       })
     }
@@ -112,22 +115,17 @@ export class ImageProcessor extends BaseProcessor {
     } satisfies Image
 
     this.image = image
+    this.isProcessed = true
 
-    return output.map(({ path, contentAddress }) => ({
+    this.processorOutputs = output.map(({ path, entryAddress, type, filename }) => ({
       path,
-      contentAddress,
+      entryAddress,
+      metadata: {
+        filename,
+        contentType: `image/${type}`,
+      },
     }))
-  }
 
-  public override async upload(options: BaseProcessorUploadOptions): Promise<void> {
-    await super.upload(options)
-
-    if (!this.uploader) {
-      throw new EthernaSdkError("SERVER_ERROR", "Uploader not initialized")
-    }
-
-    this.uploader.resume(options)
-
-    return await this.uploader.drain()
+    return this.processorOutputs
   }
 }
