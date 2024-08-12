@@ -1,4 +1,4 @@
-import { EthernaSdkError, throwSdkError } from "@/classes"
+import { EthernaSdkError, StampCalculator, throwSdkError } from "@/classes"
 import { ETHERNA_MIN_BATCH_DEPTH, ETHERNA_WELCOME_BATCH_DEPTH, STAMPS_DEPTH_MIN } from "@/consts"
 import { calcDilutedTTL, getBatchPercentUtilization, ttlToAmount } from "@/utils"
 
@@ -8,6 +8,7 @@ import type {
   EthernaGatewayBatchPreview,
   EthernaGatewayWelcomeStatus,
 } from "./types"
+import type { BucketCollisions } from "@/classes"
 import type { RequestOptions } from "@/types/clients"
 import type { BatchId, PostageBatch, PostageBatchBucketsData } from "@/types/swarm"
 
@@ -33,6 +34,7 @@ interface DownloadPostageBatchOptions extends RequestOptions {
 interface FetchBestBatchIdOptions extends RequestOptions {
   labelQuery?: string
   minDepth?: number
+  collisions?: BucketCollisions
 }
 
 interface TopupBatchOptions extends RequestOptions {
@@ -247,12 +249,41 @@ export class Stamps {
     }
   }
 
-  async fetchBestBatchId(options?: FetchBestBatchIdOptions): Promise<BatchId | null> {
+  /**
+   * Find best usable batchId to use.
+   * Use the option:
+   * - `minDepth` to filter batches with a minimum depth
+   * - `labelQuery` to filter batches by label
+   * - `stampCalculator` to provide the bucket collision to upload (best to find the batch with most buckets available)
+   *
+   * @param options
+   * @returns The best batchId to use or null if no batch is found
+   */
+  async fetchBestBatchId(
+    options?: FetchBestBatchIdOptions,
+  ): Promise<(BatchId & { collisions?: BucketCollisions }) | null> {
     try {
       const batches = await this.downloadAll(options?.labelQuery, options)
       const minBatchDepth = options?.minDepth ?? STAMPS_DEPTH_MIN
 
       for (const batch of batches) {
+        if (options?.collisions) {
+          const batchId = "batchID" in batch ? batch.batchID : batch.batchId
+          const { isUsable, batchCollisions } = await this.fetchIsFillableBatch(
+            batchId,
+            options.collisions,
+          )
+
+          if (!isUsable) {
+            continue
+          }
+
+          const augmentedBatchId = batchId as BatchId & { collisions?: BucketCollisions }
+          Object.assign(augmentedBatchId, { collisions: batchCollisions })
+
+          return augmentedBatchId
+        }
+
         const postageBatch = "utilization" in batch ? batch : await this.download(batch.batchId)
 
         if (!postageBatch.usable) {
@@ -511,5 +542,19 @@ export class Stamps {
       rejecter = reject
       waitBatchValid()
     })
+  }
+
+  private fetchIsFillableBatch = async (batchId: BatchId, collisions: BucketCollisions) => {
+    const bucketsInfos = await this.downloadBuckets(batchId)
+
+    const stampCalculator = new StampCalculator()
+    stampCalculator.bucketCollisions = collisions
+    stampCalculator.seed(bucketsInfos.buckets)
+
+    return {
+      batchId,
+      isUsable: stampCalculator.minDepth <= bucketsInfos.depth,
+      batchCollisions: stampCalculator.bucketCollisions,
+    }
   }
 }

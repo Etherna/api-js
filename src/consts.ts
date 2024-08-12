@@ -1,8 +1,10 @@
+import type { EthAddress } from "./types/eth"
 import type { BytesReference, Reference } from "./types/swarm"
 
 export const ETHERNA_MIN_BATCH_DEPTH = 20
 export const ETHERNA_WELCOME_BATCH_DEPTH = 20
 
+export const EmptyAddress = ("0x" + "0".repeat(40)) as EthAddress
 export const EmptyReference = "0".repeat(64) as Reference
 export const ZeroHashReference = new Uint8Array(32).fill(0) as BytesReference
 
@@ -14,6 +16,9 @@ export const MantarayEntryMetadataFilenameKey = "Filename"
 export const MantarayEntryMetadataFeedOwnerKey = "swarm-feed-owner"
 export const MantarayEntryMetadataFeedTopicKey = "swarm-feed-topic"
 export const MantarayEntryMetadataFeedTypeKey = "swarm-feed-type"
+
+export const MANIFEST_PREVIEW_PATH = "preview"
+export const MANIFEST_DETAILS_PATH = "details"
 
 export const SPAN_SIZE = 8
 export const MAX_SPAN_LENGTH = 2 ** 32 - 1

@@ -1,5 +1,5 @@
 // Types
-export type { SchemaVersion } from "./schemas/base"
+export type { SchemaVersion } from "./schemas/utils"
 export type {
   Image,
   ImageRaw,
@@ -10,8 +10,8 @@ export type {
   ImageRawSource,
   ImageType,
   ImageSize,
-} from "./schemas/image"
-export type { MantarayFork, MantarayNode } from "./schemas/mantaray"
+} from "./schemas/image-schema"
+export type { MantarayFork, MantarayNode } from "./schemas/mantaray-schema"
 export type {
   Playlist,
   PlaylistId,
@@ -23,10 +23,10 @@ export type {
   PlaylistType,
   PlaylistVideo,
   PlaylistVideoRaw,
-} from "./schemas/playlist"
-export type { Profile, ProfileRaw } from "./schemas/profile"
+} from "./schemas/playlist-schema"
+export type { Profile, ProfileRaw } from "./schemas/profile-schema"
 export type { ProfileWithEns } from "./swarm/profile/reader"
-export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/playlists"
+export type { UserPlaylists, UserPlaylistsRaw } from "./schemas/playlists-schema"
 export type {
   Video,
   VideoRaw,
@@ -37,6 +37,6 @@ export type {
   VideoQuality,
   VideoPreviewRaw,
   VideoDetailsRaw,
-} from "./schemas/video"
+} from "./schemas/video-schema"
 
 export type { ProcessedImage, ResponseSourceData } from "./swarm/image/writer"

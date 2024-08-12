@@ -41,7 +41,7 @@ export interface Data extends Uint8Array {
 }
 
 export interface RequestUploadOptions extends RequestOptions {
-  batchId: string
+  batchId: BatchId
   pin?: boolean
   encrypt?: boolean
   tag?: number | string
