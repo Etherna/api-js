@@ -3,6 +3,7 @@ import { etc } from "@noble/secp256k1"
 import { fromHexString, makeHexString, toHexString } from "./hex"
 
 import type { BytesReference, Reference } from "@/types/swarm"
+import type { ChunkAddress } from "@fairdatasociety/bmt-js"
 
 /**
  * Check if the given string is a valid swarm reference
@@ -66,7 +67,7 @@ export function referenceToBytesReference(ref: Reference): BytesReference {
  * @param ref The bytes reference
  * @returns The reference
  */
-export function bytesReferenceToReference(ref: BytesReference): Reference {
+export function bytesReferenceToReference(ref: BytesReference | ChunkAddress): Reference {
   return toHexString(ref) as Reference
 }
 

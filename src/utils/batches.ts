@@ -38,7 +38,9 @@ export const getBatchCapacity = (batchOrDepth: PostageBatch | number) => {
  * @param batch Batch data
  * @returns Batch percent usage
  */
-export const getBatchPercentUtilization = (batch: PostageBatch) => {
+export const getBatchPercentUtilization = (
+  batch: Pick<PostageBatch, "utilization" | "depth" | "bucketDepth">,
+) => {
   const { utilization, depth, bucketDepth } = batch
   return utilization / 2 ** (depth - bucketDepth)
 }

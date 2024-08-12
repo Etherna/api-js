@@ -1,6 +1,6 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
-import { equalBytes } from "@fairdatasociety/bmt-js/dist/src/utils"
 
+import { bytesEqual } from "./bytes"
 import { keccak256Hash, toHexString } from "./hex"
 import { referenceToBytesReference } from "./reference"
 import { MantarayNode } from "@/classes"
@@ -78,7 +78,7 @@ export const equalNodes = (
     const prefix = aFork.prefix
     const prefixString = new TextDecoder().decode(prefix)
 
-    if (!equalBytes(prefix, bFork.prefix)) {
+    if (!bytesEqual(prefix, bFork.prefix)) {
       throw Error(
         `Nodes do not have same prefix under the same key "${key}" at prefix ${accumulatedPrefix}`,
       )
