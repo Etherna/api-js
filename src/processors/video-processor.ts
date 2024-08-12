@@ -1,0 +1,299 @@
+import { makeChunkedFile } from "@fairdatasociety/bmt-js"
+import { FFmpeg } from "@ffmpeg/ffmpeg"
+import { toBlobURL } from "@ffmpeg/util"
+
+import { BaseProcessor } from "./base-processor"
+import { ImageProcessor } from "./image-processor"
+import { EthernaSdkError } from "@/classes"
+import { bytesReferenceToReference, fileToBuffer, getHlsBitrate } from "@/utils"
+
+import type { BaseProcessorUploadOptions, ProcessorOutput } from "./base-processor"
+import type { VideoSource } from "@/schemas/video"
+
+export interface VideoProcessorOptions {
+  resolutions?: number[]
+  /**
+   * - Default: `https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm`
+   */
+  ffmpegBaseUrl?: string
+  signal?: AbortSignal
+}
+
+export interface VideoProcessedOutput {
+  duration: number
+  aspectRatio: number
+  sources: VideoSource[]
+}
+
+let ffmpeg = new FFmpeg()
+const BASE_URL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
+const DEFAULT_RESOLUTIONS = [360, 480, 720, 1080, 1440]
+const INPUT_FILENAME = "input"
+
+const handleFFmpegPromise = (exec: Promise<number>) => {
+  return exec
+    .then((code) => {
+      if (code === 1) {
+        throw new EthernaSdkError("TIMEOUT", "Video conversion timeout")
+      }
+      if (code > 0) {
+        throw new EthernaSdkError("ENCODING_ERROR", "Video conversion failed")
+      }
+    })
+    .catch((error) => {
+      throw new EthernaSdkError("ENCODING_ERROR", "Video conversion failed", error)
+    })
+}
+
+export class VideoProcessor extends BaseProcessor {
+  public video: VideoProcessedOutput | null = null
+
+  public override async process(options: VideoProcessorOptions): Promise<ProcessorOutput[]> {
+    await this.loadFFmpeg(options.ffmpegBaseUrl ?? BASE_URL)
+
+    await ffmpeg.writeFile(
+      INPUT_FILENAME,
+      new Uint8Array(this.input instanceof File ? await fileToBuffer(this.input) : this.input),
+      { signal: options.signal },
+    )
+
+    const { width, height, duration } = await this.getVideoMeta()
+    const aspectRatio = width / height
+    const resolutions = (options.resolutions ?? DEFAULT_RESOLUTIONS)
+      .filter((r) => r <= height)
+      .map((height) => {
+        let scaledWidth = Math.round(height * aspectRatio)
+        switch (scaledWidth % 4) {
+          case 1:
+            scaledWidth--
+            break
+          case 2:
+            scaledWidth += 2
+            break
+          case 3:
+            scaledWidth++
+            break
+        }
+        return { height, width: scaledWidth }
+      })
+
+    await ffmpeg.deleteDir("hls") // clear previous run
+    await ffmpeg.createDir("hls")
+
+    await handleFFmpegPromise(
+      ffmpeg.exec([
+        // input
+        "-y",
+        "-hide_banner",
+        "-i",
+        INPUT_FILENAME,
+        // hls encoding
+        ...resolutions.flatMap(() => ["-map", "0:v:0", "-map", "0:a:0"]),
+        ...resolutions.flatMap(({ width, height }, i) => [
+          `-s:v:${i} ${width}x${height}`,
+          `-b:v:${i} ${getHlsBitrate(width, height)}k`,
+        ]),
+        "-preset",
+        "fast",
+        "-c:a",
+        "aac",
+        "-c:v",
+        "libx264",
+        "-f",
+        "hls",
+        "-hls_time",
+        "6",
+        "-hls_list_size",
+        "0",
+        "-hls_playlist_type",
+        "vod",
+        "-hls_segment_filename",
+        '"hls/%v/%d.ts"',
+        "-var_stream_map",
+        `"${resolutions.map(({ height }, i) => `v:${i},a:${i},name:${height}p`).join(" ")}"`,
+        "-master_pl_name",
+        "master.m3u8",
+        "hls/%v/playlist.m3u8",
+      ]),
+    )
+
+    const masterFile = {
+      path: "hls/master.m3u8",
+      data: (await ffmpeg.readFile("hls/master.m3u8")) as Uint8Array,
+    }
+    const resolutionsPlaylists = await Promise.all(
+      resolutions.map(async (res) => ({
+        path: `hls/${res}/playlist.m3u8`,
+        data: (await ffmpeg.readFile(`hls/${res}/playlist.m3u8`)) as Uint8Array,
+      })),
+    )
+    const resolutionsSegments = await Promise.all(
+      resolutions.map(async (res) => {
+        const resDirContent = (await ffmpeg.listDir(`hls/${res}`)).filter(
+          (f) => !f.isDir && f.name.endsWith(".ts"),
+        )
+        return await Promise.all(
+          resDirContent.map(async (file) => {
+            const data = (await ffmpeg.readFile(`hls/${res}/${file.name}`)) as Uint8Array
+            return { path: `hls/${res}/${file.name}`, data }
+          }),
+        )
+      }),
+    )
+
+    this.video = {
+      aspectRatio,
+      duration,
+      sources: [
+        {
+          type: "hls",
+          path: "hls/master.m3u8",
+          size: 0,
+        },
+        ...resolutions.map((res, i) => ({
+          type: "hls" as const,
+          path: `hls/${res}/playlist.m3u8`,
+          size: resolutionsSegments[i]?.reduce((acc, { data }) => acc + data.byteLength, 0) ?? 0,
+        })),
+      ],
+    }
+
+    const output: ProcessorOutput[] = []
+
+    for (const file of [masterFile, ...resolutionsPlaylists, ...resolutionsSegments.flat()]) {
+      const chunkedFile = makeChunkedFile(file.data)
+
+      // append to uploader queue
+      this.uploader?.append(chunkedFile)
+
+      // add chunks collisions
+      chunkedFile
+        .bmt()
+        .flat()
+        .forEach((chunk) => this.stampCalculator.add(bytesReferenceToReference(chunk.address())))
+
+      // add to output
+      output.push({
+        path: file.path,
+        contentAddress: bytesReferenceToReference(chunkedFile.address()),
+      })
+    }
+
+    return output
+  }
+
+  public async createThumbnailProcessor(frameTimestamp: number) {
+    if (!this.video) {
+      throw new EthernaSdkError("SERVER_ERROR", "Video not processed")
+    }
+
+    const aspectRatio = this.video.aspectRatio
+    const imageData = await this.generateThumbnail(frameTimestamp, aspectRatio)
+
+    return new ImageProcessor(imageData)
+  }
+
+  public override async upload(options: BaseProcessorUploadOptions): Promise<void> {
+    await super.upload(options)
+
+    if (!this.uploader) {
+      throw new EthernaSdkError("SERVER_ERROR", "Uploader not initialized")
+    }
+
+    this.uploader.resume(options)
+
+    return await this.uploader.drain()
+  }
+
+  private async getVideoMeta() {
+    return new Promise<{ width: number; height: number; duration: number }>((resolve, reject) => {
+      let width: number
+      let height: number
+      let duration: number
+
+      ffmpeg.on("log", (event) => {
+        const message = event.message
+        // check resolution
+        const parsedSize = message.match(/\d{3,}x\d{3,}/)?.[0]
+        if (parsedSize) {
+          const [w, h] = parsedSize.split("x").map(Number) as [number, number]
+          height = h
+          width = w
+        }
+        // check duration
+        const parsedDuration = message.match(/Duration: (\d{2}:\d{2}:\d{2})/)?.[1]
+        if (parsedDuration) {
+          const [h, m, s] = parsedDuration.split(":").map(Number) as [number, number, number]
+          duration = h * 3600 + m * 60 + s
+        }
+        // check failed conversion
+        if (message.includes("Conversion failed!")) {
+          reject(new EthernaSdkError("ENCODING_ERROR", "Video conversion failed"))
+        }
+      })
+
+      handleFFmpegPromise(
+        ffmpeg.exec([`-i`, `${INPUT_FILENAME}`, `-hide_banner`, `-f`, `null`]),
+      ).then(() => {
+        if (width && height && duration) {
+          resolve({ width, height, duration })
+        } else {
+          reject(new EthernaSdkError("ENCODING_ERROR", "Video conversion failed"))
+        }
+      })
+    })
+  }
+
+  private async generateThumbnail(frameTimestamp: number, aspectRatio: number) {
+    const thumbFrame = (() => {
+      const hours = String(Math.floor(frameTimestamp / 3600))
+      const minutes = String(Math.floor((frameTimestamp % 3600) / 60))
+      const seconds = String(frameTimestamp % 60)
+      return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`
+    })()
+
+    await handleFFmpegPromise(
+      ffmpeg.exec([
+        "-y",
+        "-hide_banner",
+        "-i",
+        INPUT_FILENAME,
+        "-ss",
+        thumbFrame,
+        "-vframes",
+        "1",
+        "-vf",
+        `scale=${Math.round(720 * aspectRatio)}:720`,
+        "-q:v",
+        "5",
+        "thumb.jpg",
+      ]),
+    )
+
+    const thumbData = (await ffmpeg.readFile("thumb.jpg")) as Uint8Array
+
+    return thumbData
+  }
+
+  private async loadFFmpeg(baseUrl: string) {
+    if (ffmpeg.loaded) {
+      ffmpeg.terminate()
+      ffmpeg = new FFmpeg()
+    }
+
+    const isCors =
+      typeof window !== "undefined" && window.location.origin !== new URL(baseUrl).origin
+
+    await ffmpeg.load({
+      coreURL: isCors
+        ? await toBlobURL(`${baseUrl}/ffmpeg-core.js`, "text/javascript")
+        : `${baseUrl}/ffmpeg-core.js`,
+      wasmURL: isCors
+        ? await toBlobURL(`${baseUrl}/ffmpeg-core.wasm`, "application/wasm")
+        : `${baseUrl}/ffmpeg-core.wasm`,
+      workerURL: isCors
+        ? await toBlobURL(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript")
+        : `${baseUrl}/ffmpeg-core.worker.js`,
+    })
+  }
+}
