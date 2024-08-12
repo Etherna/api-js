@@ -1,12 +1,14 @@
 import { z } from "zod"
 
 import { dateToTimestamp, timestampToDate } from "../utils"
+import { EmptyReference } from "@/consts"
 
-import type { BatchId, EnsAddress, EthAddress, Reference } from "../clients"
+import type { EnsAddress, EthAddress } from "@/types/eth"
+import type { Reference } from "@/types/swarm"
 
-export const schemaVersion = z.literal(`${z.string()}.${z.string()}`)
+export const SchemaVersionSchema = z.literal(`${z.string()}.${z.string()}`)
 
-export const birthday = z
+export const BirthdaySchema = z
   .string()
   .regex(/^[0-9]{2}-[0-9]{2}(-[0-9]{4})?$/)
   .refine(
@@ -23,47 +25,47 @@ export const birthday = z
     },
   )
 
-export const slicedString = (max: number, min?: number) =>
+export const SlicedStringSchema = (max: number, min?: number) =>
   z
     .string()
     .min(min ?? 0)
     .transform((v) => v.slice(0, max))
 
-export const ethAddress = z
+export const EthAddressSchema = z
   .string()
   .regex(/^0x[a-fA-F0-9]{40}$/, {
     message: "must be a valid ethereum address",
   })
   .transform((v) => v as EthAddress)
 
-export const ensAddress = z
+export const EnsAddressSchema = z
   .string()
   .regex(/^[a-z0-9_\-\.]+\.eth$/i, {
     message: "must be a valid ENS name",
   })
   .transform((v) => v as EnsAddress)
 
-export const ethSafeAddress = z.string().transform((v) => {
-  if (ethAddress.safeParse(v).success) return v.toLowerCase()
+export const EthSafeAddressSchema = z.string().transform((v) => {
+  if (EthAddressSchema.safeParse(v).success) return v.toLowerCase()
   return "0x" + "0".repeat(40)
 })
 
-export const beeReference = z
+export const BeeReferenceSchema = z
   .string()
   .regex(/^[a-fA-F0-9]{64}$/, {
     message: "must be a valid bee reference",
   })
   .transform((v) => v as Reference)
 
-export const beeSafeReference = z
+export const BeeSafeReferenceSchema = z
   .string()
   .nullable()
   .transform((v) => {
-    if (beeReference.safeParse(v).success) return v!.toLowerCase()
-    return "0".repeat(64)
+    const result = BeeReferenceSchema.safeParse(v)
+    return result.success ? result.data : EmptyReference
   })
 
-export const nonEmptyRecord = <Keys extends z.ZodTypeAny, Values extends z.ZodTypeAny>(
+export const NonEmptyRecordSchema = <Keys extends z.ZodTypeAny, Values extends z.ZodTypeAny>(
   key: Keys,
   value: Values,
 ): z.ZodEffects<z.ZodRecord<Keys, Values>> =>
@@ -71,7 +73,7 @@ export const nonEmptyRecord = <Keys extends z.ZodTypeAny, Values extends z.ZodTy
     message: "must not be empty",
   })
 
-export const timestamp = z
+export const TimestampSchema = z
   .number()
   .min(0)
   .transform((val) => {
@@ -84,4 +86,4 @@ export const timestamp = z
   )
 
 // Types
-export type SchemaVersion = z.infer<typeof schemaVersion>
+export type SchemaVersion = z.infer<typeof SchemaVersionSchema>
