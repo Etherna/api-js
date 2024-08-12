@@ -1,10 +1,9 @@
 // Forked from: https://github.com/ethersphere/mantaray-js
 
-import { equalBytes } from "@fairdatasociety/bmt-js/dist/src/utils"
-
 import { MantarayFork } from "./mantaray-fork"
 import { MantarayIndexBytes } from "./mantaray-index-bytes"
 import {
+  bytesEqual,
   checkBytesReference,
   commonBytes,
   decodePath,
@@ -93,7 +92,7 @@ export class MantarayNode {
 
     this._entry = entry
 
-    if (!equalBytes(entry, new Uint8Array(entry.length))) this.makeValue()
+    if (!bytesEqual(entry, new Uint8Array(entry.length))) this.makeValue()
 
     this.makeDirty()
   }
@@ -583,9 +582,9 @@ export class MantarayNode {
       MantarayFork.nodeHeaderSizes.obfuscationKey + MantarayFork.nodeHeaderSizes.versionHash,
     )
 
-    if (equalBytes(versionHash, serializeVersion("0.1"))) {
+    if (bytesEqual(versionHash, serializeVersion("0.1"))) {
       throw new Error("Version 0.1 is not supported")
-    } else if (equalBytes(versionHash, serializeVersion("0.2"))) {
+    } else if (bytesEqual(versionHash, serializeVersion("0.2"))) {
       const refBytesSize = data[nodeHeaderSize - 1] ?? 0
       let entry = data.slice(nodeHeaderSize, nodeHeaderSize + refBytesSize)
 
@@ -601,7 +600,7 @@ export class MantarayNode {
       // the root nodeType information is lost on Unmarshal. This causes issues when we want to
       // perform a path 'Walk' on the root. If there is at least 1 fork, the root node type
       // is an edge, so we will deduce this information from index byte array
-      if (!equalBytes(indexBytes, new Uint8Array(32))) {
+      if (!bytesEqual(indexBytes, new Uint8Array(32))) {
         this.makeEdge()
       }
 

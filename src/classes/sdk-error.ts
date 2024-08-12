@@ -1,4 +1,5 @@
 import { AxiosError } from "axios"
+import { ZodError } from "zod"
 
 export const ErrorCodes = [
   "NOT_FOUND",
@@ -8,55 +9,77 @@ export const ErrorCodes = [
   "PERMISSION_DENIED",
   "MISSING_FUNDS",
   "MISSING_BATCH_ID",
+  "BUCKET_FILLED",
   "ABORTED_BY_USER",
   "INVALID_ARGUMENT",
   "UNSUPPORTED_OPERATION",
   "TIMEOUT",
+  "VALIDATION_ERROR",
+  "ENCODING_ERROR",
 ] as const
 
 export type ErrorCode = (typeof ErrorCodes)[number]
 
 export class EthernaSdkError extends Error {
   code: ErrorCode
+  error?: Error
   axiosError?: AxiosError
+  zodError?: ZodError
 
-  constructor(code: ErrorCode, message: string, axiosError?: AxiosError) {
+  constructor(code: ErrorCode, message: string, error?: Error | AxiosError | ZodError) {
     super(message)
-    this.code = code
-    this.axiosError = axiosError
     this.name = "EthernaSdkError"
+    this.code = code
+
+    if (error instanceof AxiosError) {
+      this.axiosError = error
+    } else if (error instanceof ZodError) {
+      this.zodError = error
+    } else if (error instanceof Error) {
+      this.error = error
+    }
   }
 }
 
-export function throwSdkError(err: unknown): never {
+export function getSdkError(err: unknown): EthernaSdkError {
   if (err instanceof EthernaSdkError) {
-    throw err
+    return err
   }
 
   if (err instanceof AxiosError) {
-    switch (err.status) {
+    const code = err.response?.status ?? 500
+    switch (code) {
       case 400:
-        throw new EthernaSdkError("BAD_REQUEST", err.message, err)
+        return new EthernaSdkError("BAD_REQUEST", err.message, err)
       case 401:
-        throw new EthernaSdkError("UNAUTHORIZED", err.message, err)
+        return new EthernaSdkError("UNAUTHORIZED", err.message, err)
       case 402:
-        throw new EthernaSdkError("MISSING_FUNDS", err.message, err)
+        return new EthernaSdkError("MISSING_FUNDS", err.message, err)
       case 403:
-        throw new EthernaSdkError("PERMISSION_DENIED", err.message, err)
+        return new EthernaSdkError("PERMISSION_DENIED", err.message, err)
       case 404:
-        throw new EthernaSdkError("NOT_FOUND", err.message, err)
+        return new EthernaSdkError("NOT_FOUND", err.message, err)
       default:
-        throw new EthernaSdkError(
-          (err.status ?? 500) >= 500 ? "SERVER_ERROR" : "BAD_REQUEST",
-          err.message,
-          err,
-        )
+        return new EthernaSdkError(code ? "SERVER_ERROR" : "BAD_REQUEST", err.message, err)
     }
   }
 
-  if (err instanceof Error) {
-    throw new EthernaSdkError("SERVER_ERROR", err.message)
+  if (err instanceof ZodError) {
+    let message = err.issues[0]?.message ?? "Validation error"
+    if (err.issues.length > 1) {
+      message += ` (+${err.issues.length - 1} others)`
+    }
+
+    return new EthernaSdkError("VALIDATION_ERROR", message, err)
   }
 
-  throw new EthernaSdkError("SERVER_ERROR", String(err))
+  if (err instanceof Error) {
+    return new EthernaSdkError("SERVER_ERROR", err.message)
+  }
+
+  return new EthernaSdkError("SERVER_ERROR", String(err))
+}
+
+export function throwSdkError(err: unknown): never {
+  throw getSdkError(err)
 }

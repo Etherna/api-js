@@ -1,4 +1,4 @@
-export * from "./bucket-calculator"
+export * from "./stamp-calculator"
 export * from "./chunks-uploader"
 export * from "./epoch-index"
 export * from "./epoch-feed"
