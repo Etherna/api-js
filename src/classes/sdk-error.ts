@@ -16,6 +16,8 @@ export const ErrorCodes = [
   "TIMEOUT",
   "VALIDATION_ERROR",
   "ENCODING_ERROR",
+  "ENCRYPTION_ERROR",
+  "DECRYPTION_ERROR",
 ] as const
 
 export type ErrorCode = (typeof ErrorCodes)[number]

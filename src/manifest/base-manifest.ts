@@ -150,20 +150,20 @@ export class BaseMantarayManifest extends BaseManifest {
     this._node = new MantarayNode()
   }
 
+  public get serialized(): unknown {
+    return Object.freeze({
+      reference: this.reference,
+      preview: this._preview,
+      details: this._details,
+    })
+  }
+
   public get node() {
     return this._node
   }
 
   public get rootManifest() {
     return this._rootManifest
-  }
-
-  public get preview() {
-    return this._preview
-  }
-
-  public get details() {
-    return this._details
   }
 
   public get hasLoadedPreview() {
@@ -195,11 +195,11 @@ export class BaseMantarayManifest extends BaseManifest {
     } satisfies ProxyHandler<Record<string, unknown>>
   }
 
-  protected setPreviewProxy(preview: typeof this.preview) {
+  protected setPreviewProxy(preview: typeof this._preview) {
     this._preview = new Proxy(preview, this.proxyHandler())
   }
 
-  protected setDetailsProxy(details: typeof this.details) {
+  protected setDetailsProxy(details: typeof this._details) {
     this._details = new Proxy(details, this.proxyHandler())
   }
 
@@ -233,17 +233,17 @@ export class BaseMantarayManifest extends BaseManifest {
     this.node.addFork(encodePath(MantarayRootPath), ZeroHashReference, {
       [MantarayWebsiteIndexDocumentSuffixKey]: MANIFEST_PREVIEW_PATH,
     })
-    this.node.addFork(encodePath(MANIFEST_PREVIEW_PATH), jsonToReference(this.preview), {
+    this.node.addFork(encodePath(MANIFEST_PREVIEW_PATH), jsonToReference(this._preview), {
       [MantarayEntryMetadataContentTypeKey]: "application/json",
       [MantarayEntryMetadataFilenameKey]: `${MANIFEST_PREVIEW_PATH}.json`,
     })
-    this.node.addFork(encodePath(MANIFEST_DETAILS_PATH), jsonToReference(this.details), {
+    this.node.addFork(encodePath(MANIFEST_DETAILS_PATH), jsonToReference(this._details), {
       [MantarayEntryMetadataContentTypeKey]: "application/json",
       [MantarayEntryMetadataFilenameKey]: `${MANIFEST_DETAILS_PATH}.json`,
     })
   }
 
-  public enqueueData(data: Uint8Array, options?: BaseManifestUploadOptions) {
+  protected enqueueData(data: Uint8Array, options?: BaseManifestUploadOptions) {
     const chunkedFile = makeChunkedFile(data)
 
     // add collisions to the stamp calculator
@@ -275,7 +275,7 @@ export class BaseMantarayManifest extends BaseManifest {
     return chunkedFile.address() as BytesReference
   }
 
-  public enqueueProcessor(processor: BaseProcessor, options?: BaseManifestUploadOptions) {
+  protected enqueueProcessor(processor: BaseProcessor, options?: BaseManifestUploadOptions) {
     // merge collisions
     this.manifestBucketCalculator.merge(processor.stampCalculator)
 

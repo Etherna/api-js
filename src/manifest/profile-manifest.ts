@@ -8,6 +8,7 @@ import {
   fetchEnsFromAddress,
   isEnsAddress,
   isEthAddress,
+  structuredClone,
 } from "@/utils"
 
 import type {
@@ -30,23 +31,26 @@ export interface Profile {
 
 export const PROFILE_TOPIC = "EthernaUserProfile"
 
-type Init = EthAddress | EnsAddress | { preview: ProfilePreview; details: ProfileDetails }
+export type ProfileManifestInit =
+  | EthAddress
+  | EnsAddress
+  | { preview: ProfilePreview; details: ProfileDetails }
 
 export class ProfileManifest extends BaseMantarayManifest {
   private _address: EthAddress = EmptyAddress
   private _ensName: EnsAddress | null = null
 
-  override _preview: ProfilePreview = {
+  protected override _preview: ProfilePreview = {
     address: EmptyAddress,
     avatar: null,
     name: "",
   }
-  override _details: ProfileDetails = {
+  protected override _details: ProfileDetails = {
     cover: null,
     playlists: [],
   }
 
-  constructor(init: Init, options: BaseManifestOptions) {
+  constructor(init: ProfileManifestInit, options: BaseManifestOptions) {
     super(init, options)
 
     if (typeof init === "object") {
@@ -64,6 +68,16 @@ export class ProfileManifest extends BaseMantarayManifest {
     }
   }
 
+  public override get serialized(): Profile {
+    return Object.freeze({
+      reference: this.reference,
+      address: this.address,
+      ensName: this.ensName,
+      preview: this._preview,
+      details: this._details,
+    })
+  }
+
   public get address() {
     return this._address
   }
@@ -72,12 +86,51 @@ export class ProfileManifest extends BaseMantarayManifest {
     return this._ensName
   }
 
-  public override get preview() {
-    return this._preview
+  public get name() {
+    return this._preview.name
+  }
+  public set name(value: string) {
+    this._preview.name = value
   }
 
-  public override get details() {
-    return this._details
+  public get avatar() {
+    return structuredClone(this._preview.avatar)
+  }
+
+  public get cover() {
+    return structuredClone(this._details.cover)
+  }
+
+  public get description() {
+    return this._details.description
+  }
+  public set description(value: string | null | undefined) {
+    this._details.description = value
+  }
+
+  public get website() {
+    return this._details.website
+  }
+  public set website(value: string | undefined) {
+    this._details.website = value
+  }
+
+  public get birthday() {
+    return this._details.birthday
+  }
+  public set birthday(value: string | undefined) {
+    this._details.birthday = value
+  }
+
+  public get location() {
+    return this._details.location
+  }
+  public set location(value: string | undefined) {
+    this._details.location = value
+  }
+
+  public get playlists() {
+    return structuredClone(this._details.playlists)
   }
 
   public override async download(options: BaseMantarayManifestDownloadOptions): Promise<Profile> {
@@ -121,7 +174,7 @@ export class ProfileManifest extends BaseMantarayManifest {
               onDownloadProgress: options.onDownloadProgress,
             })
             .then((resp) => ProfilePreviewSchema.parse(resp.data.json()))
-        : Promise.resolve(this.preview)
+        : Promise.resolve(this._preview)
       const detailsPromise = shouldDownloadDetails
         ? this.beeClient.bzz
             .downloadPath(reference, MANIFEST_DETAILS_PATH, {
@@ -134,7 +187,7 @@ export class ProfileManifest extends BaseMantarayManifest {
               onDownloadProgress: options.onDownloadProgress,
             })
             .then((resp) => ProfileDetailsSchema.parse(resp.data.json()))
-        : Promise.resolve(this.details)
+        : Promise.resolve(this._details)
 
       this._reference = reference
       this._preview = await previewPromise
@@ -144,13 +197,7 @@ export class ProfileManifest extends BaseMantarayManifest {
       this._hasLoadedDetails = shouldDownloadDetails
       this._isDirty = false
 
-      return {
-        reference: this.reference,
-        address: this.address,
-        ensName: this.ensName,
-        preview: this.preview,
-        details: this.details,
-      }
+      return this.serialized
     } catch (error) {
       throwSdkError(error)
     }
@@ -167,16 +214,16 @@ export class ProfileManifest extends BaseMantarayManifest {
       const batchId = this.batchId as BatchId
 
       // ensure data is not malformed
-      this._preview = ProfilePreviewSchema.parse(this.preview)
-      this._details = ProfileDetailsSchema.parse(this.details)
+      this._preview = ProfilePreviewSchema.parse(this._preview)
+      this._details = ProfileDetailsSchema.parse(this._details)
 
       // update data
       this.updateNodeDefaultEntries()
-      this.enqueueData(new TextEncoder().encode(JSON.stringify(this.preview)), {
+      this.enqueueData(new TextEncoder().encode(JSON.stringify(this._preview)), {
         ...options,
         batchId,
       })
-      this.enqueueData(new TextEncoder().encode(JSON.stringify(this.details)), {
+      this.enqueueData(new TextEncoder().encode(JSON.stringify(this._details)), {
         ...options,
         batchId,
       })
@@ -207,13 +254,10 @@ export class ProfileManifest extends BaseMantarayManifest {
         },
       })
 
-      return {
-        reference: this.reference,
-        address: this.address,
-        ensName: this.ensName,
-        preview: this.preview,
-        details: this.details,
-      }
+      this._hasLoadedPreview = true
+      this._hasLoadedDetails = true
+
+      return this.serialized
     } catch (error) {
       throwSdkError(error)
     }
@@ -221,30 +265,30 @@ export class ProfileManifest extends BaseMantarayManifest {
 
   public async addAvatar(imageProcessor: ImageProcessor) {
     this.addImageFromProcessor(imageProcessor)
-    this.preview.avatar = imageProcessor.image
+    this._preview.avatar = imageProcessor.image
   }
 
   public async addCover(imageProcessor: ImageProcessor) {
     this.addImageFromProcessor(imageProcessor)
-    this.details.cover = imageProcessor.image
+    this._details.cover = imageProcessor.image
   }
 
   public removeAvatar() {
-    for (const source of this.preview.avatar?.sources ?? []) {
+    for (const source of this._preview.avatar?.sources ?? []) {
       if (source.path) {
         this.removeFile(source.path)
       }
     }
-    this.preview.avatar = null
+    this._preview.avatar = null
   }
 
   public removeCover() {
-    for (const source of this.details.cover?.sources ?? []) {
+    for (const source of this._details.cover?.sources ?? []) {
       if (source.path) {
         this.removeFile(source.path)
       }
     }
-    this.details.cover = null
+    this._details.cover = null
   }
 
   private addImageFromProcessor(imageProcessor: ImageProcessor) {
