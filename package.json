@@ -36,10 +36,14 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "axios": ">=1.7"
+    "axios": ">=1.7",
+    "@ffmpeg/ffmpeg": ">=0.12",
+    "@ffmpeg/util": ">=0.12"
   },
   "dependencies": {
     "@fairdatasociety/bmt-js": "2.1.0",
+    "@ffmpeg/ffmpeg": "0.12.10",
+    "@ffmpeg/util": "0.12.1",
     "@noble/hashes": "1.4.0",
     "@noble/secp256k1": "2.1.0",
     "axios": "1.7.2",

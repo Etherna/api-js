@@ -12,6 +12,7 @@ module.exports = {
     "prettier/prettier": ["warn"],
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
+    "@typescript-eslint/unified-signatures": "off",
     "@typescript-eslint/consistent-type-imports": "warn",
     "@typescript-eslint/prefer-nullish-coalescing": [
       "error",
