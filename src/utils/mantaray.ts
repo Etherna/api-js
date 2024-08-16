@@ -3,7 +3,7 @@ import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 import { bytesEqual } from "./bytes"
 import { keccak256Hash, toHexString } from "./hex"
 import { referenceToBytesReference } from "./reference"
-import { MantarayNode } from "@/classes"
+import { EthernaSdkError, MantarayNode } from "@/classes"
 import {
   MantarayEntryMetadataContentTypeKey,
   MantarayRootPath,
@@ -252,13 +252,13 @@ export async function getBzzNodeInfo(
     const indexEntry = metadata?.[MantarayWebsiteIndexDocumentSuffixKey]
 
     if (!fork?.node.entry) {
-      throw new Error("No root fork found")
+      throw new EthernaSdkError("NOT_FOUND", "No root fork found")
     }
 
     const isZero = isZeroBytesReference(fork.node.entry)
 
     if (isZero && !indexEntry) {
-      throw new Error("No root entry found")
+      throw new EthernaSdkError("NOT_FOUND", "No root entry found")
     }
 
     return {

@@ -1,7 +1,7 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
 import { BaseProcessor } from "./base-processor"
-import { ImageTypeSchema } from "@/schemas/image"
+import { ImageTypeSchema } from "@/schemas/image-schema"
 import {
   bytesReferenceToReference,
   fileToBuffer,
@@ -12,7 +12,7 @@ import {
 } from "@/utils"
 
 import type { ProcessorOutput } from "./base-processor"
-import type { Image } from "@/schemas/image"
+import type { Image } from "@/schemas/image-schema"
 
 export interface ImageProcessorOptions {
   sizes: number[] | "avatar" | "cover" | "thumbnail"

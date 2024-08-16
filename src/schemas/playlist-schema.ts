@@ -17,29 +17,16 @@ export const PlaylistThumbSchema = z.object({
   path: z.string(),
 })
 
-export const PlaylistVideoSchema = z
-  .object({
-    /** Video reference */
-    r: BeeReferenceSchema,
-    /** Video Title */
-    t: z.string().min(1),
-    /** Timestamp of when the videos has been added to playlist */
-    a: TimestampSchema,
-    /** Timestamp of when the video should be visible */
-    p: TimestampSchema.optional(),
-  })
-  .or(
-    z.object({
-      /** Video reference */
-      reference: BeeReferenceSchema,
-      /** Video Title */
-      title: z.string().min(1),
-      /** Timestamp of when the videos has been added to playlist */
-      addedAt: z.date(),
-      /** Timestamp of when the video should be visible */
-      publishedAt: z.date().optional(),
-    }),
-  )
+export const PlaylistVideoSchema = z.object({
+  /** Video reference */
+  r: BeeReferenceSchema,
+  /** Video Title */
+  t: z.string().min(1),
+  /** Timestamp of when the videos has been added to playlist */
+  a: TimestampSchema,
+  /** Timestamp of when the video should be visible */
+  p: TimestampSchema.optional(),
+})
 
 export const PlaylistPreviewSchema = z.object({
   /** Playlist id (used for feed update) */

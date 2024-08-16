@@ -31,10 +31,7 @@ export interface Profile {
 
 export const PROFILE_TOPIC = "EthernaUserProfile"
 
-export type ProfileManifestInit =
-  | EthAddress
-  | EnsAddress
-  | { preview: ProfilePreview; details: ProfileDetails }
+export type ProfileManifestInit = EthAddress | EnsAddress | Profile
 
 export class ProfileManifest extends BaseMantarayManifest {
   private _address: EthAddress = EmptyAddress
@@ -54,18 +51,21 @@ export class ProfileManifest extends BaseMantarayManifest {
     super(init, options)
 
     if (typeof init === "object") {
-      this.setPreviewProxy(init.preview)
-      this.setDetailsProxy(init.details)
+      this._preview = init.preview
+      this._details = init.details
+      this._address = init.address
+      this._ensName = init.ensName
+      this._reference = init.reference
     } else {
-      this.setPreviewProxy(this._preview)
-      this.setDetailsProxy(this._details)
-
       if (isEthAddress(init)) {
         this._address = init
       } else if (isEnsAddress(init)) {
         this._ensName = init
       }
     }
+
+    this.setPreviewProxy(this._preview)
+    this.setDetailsProxy(this._details)
   }
 
   public override get serialized(): Profile {
@@ -193,8 +193,8 @@ export class ProfileManifest extends BaseMantarayManifest {
       this._preview = await previewPromise
       this._details = await detailsPromise
       this._ensName = await ensPromise
-      this._hasLoadedPreview = shouldDownloadPreview
-      this._hasLoadedDetails = shouldDownloadDetails
+      this._hasLoadedPreview = shouldDownloadPreview || this._hasLoadedPreview
+      this._hasLoadedDetails = shouldDownloadDetails || this._hasLoadedDetails
       this._isDirty = false
 
       return this.serialized
@@ -264,12 +264,12 @@ export class ProfileManifest extends BaseMantarayManifest {
   }
 
   public async addAvatar(imageProcessor: ImageProcessor) {
-    this.addImageFromProcessor(imageProcessor)
+    this.importImageProcessor(imageProcessor)
     this._preview.avatar = imageProcessor.image
   }
 
   public async addCover(imageProcessor: ImageProcessor) {
-    this.addImageFromProcessor(imageProcessor)
+    this.importImageProcessor(imageProcessor)
     this._details.cover = imageProcessor.image
   }
 
@@ -289,18 +289,5 @@ export class ProfileManifest extends BaseMantarayManifest {
       }
     }
     this._details.cover = null
-  }
-
-  private addImageFromProcessor(imageProcessor: ImageProcessor) {
-    if (!imageProcessor.image) {
-      throw new Error("Image not processed. Run 'process' method first")
-    }
-
-    this.enqueueProcessor(imageProcessor)
-    this.removeAvatar()
-
-    imageProcessor.processorOutputs.forEach((output) => {
-      this.addFile(output.entryAddress, output.path, output.metadata)
-    })
   }
 }

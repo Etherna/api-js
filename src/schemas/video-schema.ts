@@ -89,7 +89,7 @@ export const VideoDetailsSchema = z.object({
   /** Description of the video */
   description: SlicedStringSchema(5000),
   /** Video aspect ratio (width / height) */
-  aspectRatio: z.number().min(0).nullish(),
+  aspectRatio: z.number().min(0),
   /** List of available qualities of the video */
   sources: z.array(VideoSourceSchema).min(1),
   /** batch id used */

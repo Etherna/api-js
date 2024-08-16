@@ -2,16 +2,18 @@ interface VideoMeta {
   duration: number
   width: number
   height: number
-  bitrate: number
 }
 
 /**
  * Get the video metadata
  *
+ * @param url The video url
  * @param data The video bytes
  * @returns The video metadata
  */
-export function getVideoMeta(data: Uint8Array): Promise<VideoMeta> {
+export function getVideoMeta(url: string): Promise<VideoMeta>
+export function getVideoMeta(data: Uint8Array): Promise<VideoMeta>
+export function getVideoMeta(input: string | Uint8Array): Promise<VideoMeta> {
   return new Promise<VideoMeta>((resolve, reject) => {
     const video = document.createElement("video")
     video.preload = "metadata"
@@ -27,10 +29,12 @@ export function getVideoMeta(data: Uint8Array): Promise<VideoMeta> {
         duration: video.duration,
         width: video.videoWidth,
         height: video.videoHeight,
-        bitrate: getBitrate(data.length, video.duration),
       })
     }
-    video.src = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
+    video.src =
+      input instanceof Uint8Array
+        ? URL.createObjectURL(new Blob([input], { type: "video/mp4" }))
+        : input
   })
 }
 

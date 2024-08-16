@@ -32,9 +32,8 @@ import type { BatchId, Reference } from "@/types/swarm"
 export type PlaylistIdentification =
   | { rootManifest: Reference }
   | { id: string; owner: EthAddress | EnsAddress }
-export type PlaylistManifestInit =
-  | PlaylistIdentification
-  | { preview: PlaylistPreview; details: PlaylistDetails }
+
+export type PlaylistManifestInit = { identification: PlaylistIdentification } | Playlist
 
 export interface Playlist {
   reference: Reference
@@ -53,8 +52,8 @@ export class PlaylistManifest extends BaseMantarayManifest {
     name: "",
     owner: EmptyAddress,
     thumb: null,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: dateToTimestamp(new Date()),
+    updatedAt: dateToTimestamp(new Date()),
   }
   protected override _details: PlaylistDetails = {
     videos: [],
@@ -65,26 +64,33 @@ export class PlaylistManifest extends BaseMantarayManifest {
   constructor(init: PlaylistManifestInit, options: BaseManifestOptions) {
     super(init, options)
 
-    if ("rootManifest" in init) {
-      this._rootManifest = init.rootManifest
-    } else if ("id" in init && "owner" in init) {
-      this.setPreviewProxy({
-        id: init.id,
-        owner: isEthAddress(init.owner) ? init.owner : EmptyAddress,
-        name: "",
-        thumb: null,
-        type: "public",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      } satisfies PlaylistPreview)
+    if ("identification" in init) {
+      if ("rootManifest" in init.identification) {
+        this._rootManifest = init.identification.rootManifest
+      } else if ("id" in init.identification && "owner" in init.identification) {
+        this._preview = {
+          id: init.identification.id,
+          owner: isEthAddress(init.identification.owner) ? init.identification.owner : EmptyAddress,
+          name: "",
+          thumb: null,
+          type: "public",
+          createdAt: dateToTimestamp(new Date()),
+          updatedAt: dateToTimestamp(new Date()),
+        }
 
-      if (isEnsAddress(init.owner)) {
-        this._ensName = init.owner
+        if (isEnsAddress(init.identification.owner)) {
+          this._ensName = init.identification.owner
+        }
       }
     } else {
-      this.setPreviewProxy(init.preview)
-      this.setDetailsProxy(init.details)
+      this._preview = init.preview
+      this._details = init.details
+      this._reference = init.reference
+      this._rootManifest = init.rootManifest
     }
+
+    this.setPreviewProxy(this._preview)
+    this.setDetailsProxy(this._details)
   }
 
   public get id() {
@@ -232,8 +238,8 @@ export class PlaylistManifest extends BaseMantarayManifest {
 
       this._preview = PlaylistPreviewSchema.parse(JSON.parse(previewData))
       this._details = PlaylistDetailsSchema.parse(JSON.parse(detailsData))
-      this._hasLoadedPreview = shouldDownloadPreview
-      this._hasLoadedDetails = shouldDownloadDetails
+      this._hasLoadedPreview = shouldDownloadPreview || this._hasLoadedPreview
+      this._hasLoadedDetails = shouldDownloadDetails || this._hasLoadedDetails
       this._isDirty = false
 
       return this.serialized

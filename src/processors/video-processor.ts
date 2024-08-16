@@ -8,7 +8,7 @@ import { EthernaSdkError } from "@/classes"
 import { bytesReferenceToReference, fileToBuffer, getHlsBitrate } from "@/utils"
 
 import type { ProcessorOutput } from "./base-processor"
-import type { VideoSource } from "@/schemas/video-shchema"
+import type { VideoSource } from "@/schemas/video-schema"
 
 export interface VideoProcessorOptions {
   resolutions?: number[]

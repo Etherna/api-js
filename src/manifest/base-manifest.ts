@@ -23,6 +23,8 @@ import {
 import type { BucketCollisions } from "@/classes"
 import type { BeeClient, RequestDownloadOptions, RequestUploadOptions } from "@/clients"
 import type { BaseProcessor } from "@/processors"
+import type { ImageProcessor } from "@/processors/image-processor"
+import type { VideoProcessor } from "@/processors/video-processor"
 import type { BatchId, BytesReference, Reference } from "@/types/swarm"
 
 export interface BaseManifestOptions {
@@ -178,6 +180,20 @@ export class BaseMantarayManifest extends BaseManifest {
     return Promise.resolve()
   }
 
+  public async loadNode(): Promise<void> {
+    if (isZeroBytesReference(this.reference)) {
+      throw new EthernaSdkError(
+        "MISSING_REFERENCE",
+        "Manifest reference is empty. Run 'download()' first.",
+      )
+    }
+
+    await this.node.load(
+      (reference) => this.beeClient.bytes.download(bytesReferenceToReference(reference)),
+      referenceToBytesReference(this.reference),
+    )
+  }
+
   protected proxyHandler() {
     return {
       get: (target: Record<string, unknown>, p: string | symbol, receiver: unknown) => {
@@ -216,17 +232,6 @@ export class BaseMantarayManifest extends BaseManifest {
 
   protected removeFile(path: string) {
     this.node.removePath(encodePath(path))
-  }
-
-  protected async loadNode() {
-    if (isZeroBytesReference(this.reference)) {
-      return
-    }
-
-    await this.node.load(
-      (reference) => this.beeClient.bytes.download(bytesReferenceToReference(reference)),
-      referenceToBytesReference(this.reference),
-    )
   }
 
   protected updateNodeDefaultEntries() {
@@ -273,6 +278,30 @@ export class BaseMantarayManifest extends BaseManifest {
       await chunksUploader.drain()
     })
     return chunkedFile.address() as BytesReference
+  }
+
+  protected importImageProcessor(imageProcessor: ImageProcessor) {
+    if (!imageProcessor.image) {
+      throw new Error("Image not processed. Run 'process' method first")
+    }
+
+    this.enqueueProcessor(imageProcessor)
+
+    imageProcessor.processorOutputs.forEach((output) => {
+      this.addFile(output.entryAddress, output.path, output.metadata)
+    })
+  }
+
+  protected importVideoProcessor(videoProcessor: VideoProcessor) {
+    if (!videoProcessor.video) {
+      throw new Error("Video not processed. Run 'process' method first")
+    }
+
+    this.enqueueProcessor(videoProcessor)
+
+    videoProcessor.processorOutputs.forEach((output) => {
+      this.addFile(output.entryAddress, output.path, output.metadata)
+    })
   }
 
   protected enqueueProcessor(processor: BaseProcessor, options?: BaseManifestUploadOptions) {

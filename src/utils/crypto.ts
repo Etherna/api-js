@@ -1,6 +1,7 @@
 import { AES, enc } from "crypto-ts"
 
 import { bytesEqual } from "./bytes"
+import { EthernaSdkError } from "@/classes"
 
 /**
  * Encrypts the given data using the provided password.
@@ -14,7 +15,7 @@ export function encryptData(data: string, password: string): string {
     const encryptedData = AES.encrypt(data, password)
     return encryptedData.toString()
   } catch (error) {
-    throw new Error(`Encryption error: ${(error as Error).message}`)
+    throw new EthernaSdkError("ENCRYPTION_ERROR", `Encryption error: ${(error as Error).message}`)
   }
 }
 
@@ -30,7 +31,10 @@ export function decryptData(data: string, password: string): string {
     const decryptedData = AES.decrypt(data, password).toString(enc.Utf8)
     return decryptedData
   } catch (error) {
-    throw new Error("Cannot unlock playlist. Make sure the password is correct.")
+    throw new EthernaSdkError(
+      "DECRYPTION_ERROR",
+      "Cannot unlock playlist. Make sure the password is correct.",
+    )
   }
 }
 
