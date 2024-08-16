@@ -40,6 +40,9 @@ export type ProfileManifestInit = Reference | { owner: EthAddress } | Video
 
 const CURRENT_MANIFEST_VERSION = "2.0" as const
 
+/**
+ * This class is used to fetch any video data or update a video of the current user
+ */
 export class VideoManifest extends BaseMantarayManifest {
   protected override _preview: VideoPreview = {
     v: CURRENT_MANIFEST_VERSION,
@@ -57,16 +60,47 @@ export class VideoManifest extends BaseMantarayManifest {
     batchId: EmptyReference,
   }
 
-  constructor(init: ProfileManifestInit, options: BaseManifestOptions) {
-    super(init, options)
+  /**
+   * Fetch a video data
+   * @param init Video reference
+   * @param options Manifest options
+   */
+  constructor(init: Reference, options: BaseManifestOptions)
+  /**
+   * Update a user video from existing data
+   * @param init Video existing data
+   * @param options Manifest options
+   */
+  constructor(init: Video, options: BaseManifestOptions)
+  /**
+   * Create a new video for the current user
+   * @param options Manifest options
+   */
+  constructor(options: BaseManifestOptions)
+  constructor(input: Reference | Video | BaseManifestOptions, options?: BaseManifestOptions) {
+    const init = typeof input === "object" && "beeClient" in input ? undefined : input
+    const opts = options ?? (input as BaseManifestOptions)
+
+    super(init, opts)
 
     if (typeof init === "string") {
       this._reference = init
-    } else if ("owner" in init) {
-      this._preview.ownerAddress = init.owner
-    } else if ("preview" in init && "details" in init) {
-      this._preview = init.preview
-      this._details = init.details
+    } else {
+      if (!opts.beeClient.signer) {
+        throw new EthernaSdkError("MISSING_SIGNER", "Signer is required to upload")
+      }
+
+      if (init) {
+        if (opts.beeClient.signer.address !== init.preview.ownerAddress) {
+          throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's profile")
+        }
+
+        this._reference = init.reference
+        this._preview = init.preview
+        this._details = init.details
+      } else {
+        this._preview.ownerAddress = opts.beeClient.signer.address
+      }
     }
 
     this.setPreviewProxy(this._preview)
@@ -192,6 +226,10 @@ export class VideoManifest extends BaseMantarayManifest {
   }
 
   public override async upload(options?: BaseManifestUploadOptions): Promise<Video> {
+    if (this.ownerAddress !== this.beeClient.signer?.address) {
+      throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's profile")
+    }
+
     if (this.v !== CURRENT_MANIFEST_VERSION) {
       throw new EthernaSdkError(
         "UNSUPPORTED_OPERATION",

@@ -10,6 +10,7 @@ import {
   isEmptyReference,
   isEnsAddress,
   isEthAddress,
+  isValidReference,
   timestampToDate,
 } from "@/utils"
 
@@ -29,11 +30,7 @@ import type {
 import type { EnsAddress, EthAddress } from "@/types/eth"
 import type { BatchId, Reference } from "@/types/swarm"
 
-export type PlaylistIdentification =
-  | { rootManifest: Reference }
-  | { id: string; owner: EthAddress | EnsAddress }
-
-export type PlaylistManifestInit = { identification: PlaylistIdentification } | Playlist
+export type PlaylistIdentification = Reference | { id: string; owner: EthAddress | EnsAddress }
 
 export interface Playlist {
   reference: Reference
@@ -44,6 +41,9 @@ export interface Playlist {
 
 export const createPlaylistTopicName = (id: string) => `EthernaPlaylist:${id}`
 
+/**
+ * This class is used to fetch/update a playlist
+ */
 export class PlaylistManifest extends BaseMantarayManifest {
   private _ensName: EnsAddress | null = null
   protected override _preview: PlaylistPreview = {
@@ -61,32 +61,65 @@ export class PlaylistManifest extends BaseMantarayManifest {
   private _encryptedDetails?: string
   private _isEncrypted = false
 
-  constructor(init: PlaylistManifestInit, options: BaseManifestOptions) {
-    super(init, options)
+  /**
+   * Load a playlist from identification (rootManifest or id + owner)
+   * @param identification Playlist identification (rootManifest or id + owner)
+   * @param options Manifest options
+   */
+  constructor(identification: PlaylistIdentification, options: BaseManifestOptions)
+  /**
+   * Load a playlist from existing data for updating
+   * @param playlist Playlist existing data
+   * @param options Manifest options
+   */
+  constructor(playlist: Playlist, options: BaseManifestOptions)
+  /**
+   * Create new playlist
+   * @param options Manifest options
+   */
+  constructor(options: BaseManifestOptions)
+  constructor(
+    input: PlaylistIdentification | Playlist | BaseManifestOptions,
+    options?: BaseManifestOptions,
+  ) {
+    const init = "beeClient" in input ? undefined : input
+    const opts = options ?? (input as BaseManifestOptions)
 
-    if ("identification" in init) {
-      if ("rootManifest" in init.identification) {
-        this._rootManifest = init.identification.rootManifest
-      } else if ("id" in init.identification && "owner" in init.identification) {
-        this._preview = {
-          id: init.identification.id,
-          owner: isEthAddress(init.identification.owner) ? init.identification.owner : EmptyAddress,
-          name: "",
-          thumb: null,
-          type: "public",
-          createdAt: dateToTimestamp(new Date()),
-          updatedAt: dateToTimestamp(new Date()),
-        }
+    super(init, opts)
 
-        if (isEnsAddress(init.identification.owner)) {
-          this._ensName = init.identification.owner
-        }
+    if (typeof init === "string" && isValidReference(init)) {
+      this._rootManifest = init
+    } else if (init && "id" in init && "owner" in init) {
+      this._preview = {
+        id: init.id,
+        owner: isEthAddress(init.owner) ? init.owner : EmptyAddress,
+        name: "",
+        thumb: null,
+        type: "public",
+        createdAt: dateToTimestamp(new Date()),
+        updatedAt: dateToTimestamp(new Date()),
+      }
+
+      if (isEnsAddress(init.owner)) {
+        this._ensName = init.owner
       }
     } else {
-      this._preview = init.preview
-      this._details = init.details
-      this._reference = init.reference
-      this._rootManifest = init.rootManifest
+      if (!opts.beeClient.signer) {
+        throw new EthernaSdkError("MISSING_SIGNER", "Signer is required to upload")
+      }
+
+      if (init) {
+        if (opts.beeClient.signer.address !== init.preview.owner) {
+          throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's profile")
+        }
+
+        this._preview = init.preview
+        this._details = init.details
+        this._reference = init.reference
+        this._rootManifest = init.rootManifest
+      } else {
+        this._preview.owner = opts.beeClient.signer.address
+      }
     }
 
     this.setPreviewProxy(this._preview)
@@ -249,6 +282,10 @@ export class PlaylistManifest extends BaseMantarayManifest {
   }
 
   public override async upload(options?: BaseManifestUploadOptions): Promise<Playlist> {
+    if (this.owner !== this.beeClient.signer?.address) {
+      throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's playlist")
+    }
+
     try {
       await Promise.all([
         this.prepareForUpload(options?.batchId, options?.batchLabelQuery),

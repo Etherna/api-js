@@ -31,8 +31,9 @@ export interface Profile {
 
 export const PROFILE_TOPIC = "EthernaUserProfile"
 
-export type ProfileManifestInit = EthAddress | EnsAddress | Profile
-
+/**
+ * This class is used to fetch any user profile data or update the current user profile
+ */
 export class ProfileManifest extends BaseMantarayManifest {
   private _address: EthAddress = EmptyAddress
   private _ensName: EnsAddress | null = null
@@ -47,20 +48,55 @@ export class ProfileManifest extends BaseMantarayManifest {
     playlists: [],
   }
 
-  constructor(init: ProfileManifestInit, options: BaseManifestOptions) {
-    super(init, options)
+  /**
+   * Download a profile of any user / update profile of the current user
+   * @param identification Profile address or ENS name
+   * @param options Manifest options
+   */
+  constructor(identification: EthAddress | EnsAddress, options: BaseManifestOptions)
+  /**
+   * Update the current user profile from existing data
+   * @param profile Profile data
+   * @param options Manifest options
+   */
+  constructor(profile: Profile, options: BaseManifestOptions)
+  /**
+   * Fetch/update the current user profile
+   * @param options Manifest options
+   */
+  constructor(options: BaseManifestOptions)
+  constructor(
+    input: EthAddress | EnsAddress | Profile | BaseManifestOptions,
+    options?: BaseManifestOptions,
+  ) {
+    const init = typeof input === "object" && "beeClient" in input ? undefined : input
+    const opts = options ?? (input as BaseManifestOptions)
 
-    if (typeof init === "object") {
-      this._preview = init.preview
-      this._details = init.details
-      this._address = init.address
-      this._ensName = init.ensName
-      this._reference = init.reference
-    } else {
+    super(init, opts)
+
+    if (typeof init === "string") {
       if (isEthAddress(init)) {
         this._address = init
       } else if (isEnsAddress(init)) {
         this._ensName = init
+      }
+    } else {
+      if (!opts.beeClient.signer) {
+        throw new EthernaSdkError("MISSING_SIGNER", "Signer is required to upload")
+      }
+
+      if (init) {
+        if (opts.beeClient.signer.address !== init.address) {
+          throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's profile")
+        }
+
+        this._preview = init.preview
+        this._details = init.details
+        this._address = init.address
+        this._ensName = init.ensName
+        this._reference = init.reference
+      } else {
+        this._address = opts.beeClient.signer.address
       }
     }
 
@@ -204,6 +240,10 @@ export class ProfileManifest extends BaseMantarayManifest {
   }
 
   public override async upload(options?: BaseManifestUploadOptions): Promise<Profile> {
+    if (this.address !== this.beeClient.signer?.address) {
+      throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's profile")
+    }
+
     try {
       await Promise.all([
         this.prepareForUpload(options?.batchId, options?.batchLabelQuery),
