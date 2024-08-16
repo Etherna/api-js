@@ -52,8 +52,18 @@ export class Stamps {
   constructor(private instance: BeeClient) {}
 
   async create(
+    depth: number,
+    amount: bigint | string,
+    options?: CreatePostageBatchOptions,
+  ): Promise<PostageBatch>
+  async create(
+    depth: number,
+    ttl: number,
+    options?: CreatePostageBatchOptions,
+  ): Promise<PostageBatch>
+  async create(
     depth = STAMPS_DEPTH_MIN,
-    amount: bigint | string = "10000000",
+    amountOrTtl: bigint | string | number,
     options?: CreatePostageBatchOptions,
   ): Promise<PostageBatch> {
     const { label, useWelcomeIfPossible, onStatusChange, ...opts } = options ?? {}
@@ -67,6 +77,15 @@ export class Stamps {
 
     try {
       let batchId: BatchId
+
+      const amount =
+        typeof amountOrTtl === "number"
+          ? ttlToAmount(
+              amountOrTtl,
+              await this.instance.chainstate.getCurrentPrice(),
+              this.instance.chain.blockTime,
+            )
+          : amountOrTtl
 
       switch (this.instance.type) {
         case "bee": {
