@@ -1,4 +1,4 @@
-import type { ImageRaw, VideoQuality, VideoSourceRaw } from "../.."
+import type { Image, VideoQuality, VideoSource } from "@/schemas"
 import type { EthAddress } from "@/types/eth"
 import type { BatchId, Reference } from "@/types/swarm"
 
@@ -42,7 +42,7 @@ export type IndexVideoPreview = {
   hash: Reference
   duration: number
   ownerAddress: EthAddress
-  thumbnail: ImageRaw | null
+  thumbnail: Image | null
   createdAt: number
   updatedAt: number
 }
@@ -54,7 +54,7 @@ export type IndexVideoManifest = Omit<IndexVideoPreview, "id"> & {
   description: string | null
   originalQuality: VideoQuality | null
   personalData: string | null
-  sources: VideoSourceRaw[]
+  sources: VideoSource[]
 }
 
 export type IndexVideoCreation = {

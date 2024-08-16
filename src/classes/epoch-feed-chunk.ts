@@ -133,7 +133,8 @@ export class EpochFeedChunk {
   }
 
   public static buildIdentifier(topic: Uint8Array, index: EpochIndex): Uint8Array {
-    if (topic.length !== this.TopicBytesLength) throw new EthernaSdkError("Invalid topic length")
+    if (topic.length !== this.TopicBytesLength)
+      throw new EthernaSdkError("INVALID_ARGUMENT", "Invalid topic length")
 
     const newArray = new Uint8Array(this.TopicBytesLength + this.IndexBytesLength)
     newArray.set(topic, 0)

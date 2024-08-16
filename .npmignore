@@ -4,11 +4,12 @@ node_modules
 src
 test
 
-.eslintrc
+.eslintrc*
 .gitignore
-.prettier
 .npmignore
+.prettier*
 
 pnpm-lock.yaml
 tsconfig.json
 vite.config.ts
+vitest.config.ts

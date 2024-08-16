@@ -40,7 +40,9 @@ export class FolderBuilder {
   public onProgress?: (percent: number) => void
 
   constructor(protected config: FolderBuilderConfig) {
-    this.queue = new Queue(config.concurrentTasks ?? 10)
+    this.queue = new Queue({
+      maxConcurrentTasks: config.concurrentTasks ?? 10,
+    })
   }
 
   addFile(data: Uint8Array, filename: string, path: string, contentType: string | null) {
