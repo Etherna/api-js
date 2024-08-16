@@ -84,7 +84,7 @@ export class Pins {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "Fetch pin users is only supported by the etherna gateway",
           )
         }

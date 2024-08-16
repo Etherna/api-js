@@ -1,6 +1,7 @@
 import { etc } from "@noble/secp256k1"
 
 import { fromHexString, makeHexString, toHexString } from "./hex"
+import { EthernaSdkError } from "@/classes"
 
 import type { BytesReference, Reference } from "@/types/swarm"
 import type { ChunkAddress } from "@fairdatasociety/bmt-js"
@@ -43,11 +44,14 @@ export function isInvalidReference(ref: string): boolean {
  */
 export function checkBytesReference(ref: BytesReference): void | never {
   if (!(ref instanceof Uint8Array)) {
-    throw new Error("Given referennce is not an Uint8Array instance.")
+    throw new EthernaSdkError("INVALID_ARGUMENT", "Given referennce is not an Uint8Array instance.")
   }
 
   if (ref.length !== 32 && ref.length !== 64) {
-    throw new Error(`Wrong reference length. Entry only can be 32 or 64 length in bytes`)
+    throw new EthernaSdkError(
+      "INVALID_ARGUMENT",
+      `Wrong reference length. Entry only can be 32 or 64 length in bytes`,
+    )
   }
 }
 
@@ -94,7 +98,7 @@ export function getReferenceFromUrl(bzzUrl: string): Reference {
   const reference = bzzUrl.match(/\/bzz\/([A-Fa-f0-9]{64})/)?.[1]
 
   if (!reference) {
-    throw new Error(`Invalid bzz URL: ${bzzUrl}`)
+    throw new EthernaSdkError("INVALID_ARGUMENT", `Invalid bzz URL: ${bzzUrl}`)
   }
 
   return reference as Reference

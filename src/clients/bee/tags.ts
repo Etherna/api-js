@@ -20,7 +20,7 @@ export class Tags {
         }
         case "etherna": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by the etherna gateway",
           )
         }
@@ -41,7 +41,7 @@ export class Tags {
         }
         case "etherna": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by the etherna gateway",
           )
         }
@@ -68,7 +68,7 @@ export class Tags {
         }
         case "etherna": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by the etherna gateway",
           )
         }
@@ -88,7 +88,7 @@ export class Tags {
         }
         case "etherna": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by the etherna gateway",
           )
         }

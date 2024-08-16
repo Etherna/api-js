@@ -83,7 +83,6 @@ export class ChunksUploader {
   }
 
   append(chunkedFile: ChunkedFile<4096, 8>): Reference
-  // eslint-disable-next-line @typescript-eslint/unified-signatures
   append(data: Uint8Array): Reference
   append(input: ChunkedFile<4096, 8> | Uint8Array): Reference {
     const chunkedFile = "payload" in input ? input : makeChunkedFile(input)

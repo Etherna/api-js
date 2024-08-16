@@ -18,7 +18,7 @@ export class System {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -28,7 +28,7 @@ export class System {
           })
 
           if (typeof resp.data !== "number") {
-            throw new Error("Cannot fetch byte price")
+            throw new EthernaSdkError("VALIDATION_ERROR", "Cannot fetch byte price")
           }
 
           return resp.data
@@ -50,7 +50,7 @@ export class System {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }

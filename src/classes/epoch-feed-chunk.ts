@@ -1,3 +1,4 @@
+import { EthernaSdkError } from "./sdk-error"
 import { bytesEqual, fromHexString, keccak256Hash, toHexString } from "@/utils"
 
 import type { EpochIndex } from "./epoch-index"
@@ -21,7 +22,7 @@ declare global {
 
 Uint8Array.prototype.toUnixTimestamp = function () {
   if (this.length !== EpochFeedChunk.TimeStampByteSize) {
-    throw new Error("Invalid date time byte array length")
+    throw new EthernaSdkError("INVALID_ARGUMENT", "Invalid date time byte array length")
   }
 
   const fixedDateTimeByteArray = new Uint8Array(this.length)
@@ -81,13 +82,19 @@ export class EpochFeedChunk {
     public reference: Reference,
   ) {
     if (payload.length < EpochFeedChunk.MinPayloadByteSize) {
-      throw new Error(`Payload can't be shorter than ${EpochFeedChunk.TimeStampByteSize} bytes`)
+      throw new EthernaSdkError(
+        "INVALID_ARGUMENT",
+        `Payload can't be shorter than ${EpochFeedChunk.TimeStampByteSize} bytes`,
+      )
     }
     if (payload.length > EpochFeedChunk.MaxPayloadBytesSize) {
-      throw new Error(`Payload can't be longer than ${EpochFeedChunk.MaxPayloadBytesSize} bytes`)
+      throw new EthernaSdkError(
+        "INVALID_ARGUMENT",
+        `Payload can't be longer than ${EpochFeedChunk.MaxPayloadBytesSize} bytes`,
+      )
     }
     if (!EpochFeedChunk.ReferenceHashRegex.test(reference)) {
-      throw new Error("Not a valid swarm hash")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "Not a valid swarm hash")
     }
 
     const timestampBytes = payload.slice(0, EpochFeedChunk.TimeStampByteSize)
@@ -112,7 +119,8 @@ export class EpochFeedChunk {
   // Static helpers.
   public static buildChunkPayload(contentPayload: Uint8Array, at?: Date): Uint8Array {
     if (contentPayload.length > this.MaxContentPayloadBytesSize) {
-      throw new Error(
+      throw new EthernaSdkError(
+        "INVALID_ARGUMENT",
         `Content payload can't be longer than ${this.MaxContentPayloadBytesSize} bytes`,
       )
     }
@@ -125,7 +133,7 @@ export class EpochFeedChunk {
   }
 
   public static buildIdentifier(topic: Uint8Array, index: EpochIndex): Uint8Array {
-    if (topic.length !== this.TopicBytesLength) throw new Error("Invalid topic length")
+    if (topic.length !== this.TopicBytesLength) throw new EthernaSdkError("Invalid topic length")
 
     const newArray = new Uint8Array(this.TopicBytesLength + this.IndexBytesLength)
     newArray.set(topic, 0)
@@ -147,16 +155,16 @@ export class EpochFeedChunk {
     if (!index) {
       // check if address is an eth address
       if (!/^0x[0-9a-f]{40}$/i.test(account)) {
-        throw new Error("Value is not a valid ethereum account")
+        throw new EthernaSdkError("INVALID_ARGUMENT", "Value is not a valid ethereum account")
       }
 
       const accountBytes = fromHexString(account.replace(/^0x/, ""))
 
       if (accountBytes.length != this.AccountBytesLength) {
-        throw new Error("Invalid account length")
+        throw new EthernaSdkError("INVALID_ARGUMENT", "Invalid account length")
       }
       if (topicOrIdentifier.length != this.IdentifierBytesLength) {
-        throw new Error("Invalid identifier length")
+        throw new EthernaSdkError("INVALID_ARGUMENT", "Invalid identifier length")
       }
 
       const newArray = new Uint8Array(this.IdentifierBytesLength + this.AccountBytesLength)

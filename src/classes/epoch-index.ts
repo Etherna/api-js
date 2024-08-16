@@ -1,3 +1,4 @@
+import { EthernaSdkError } from "./sdk-error"
 import { keccak256Hash, toBigEndianFromBigInt64 } from "@/utils"
 
 export class EpochIndex {
@@ -14,10 +15,10 @@ export class EpochIndex {
 
   constructor(start: bigint, level: number | bigint) {
     if (start >= 1n << (EpochIndex.maxLevel + 1n)) {
-      throw new Error("'start' is too big")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'start' is too big")
     }
     if (BigInt(level) > EpochIndex.maxLevel) {
-      throw new Error("'level' is too big")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'level' is too big")
     }
 
     this.level = Number(level)
@@ -51,7 +52,7 @@ export class EpochIndex {
   public static fromString(epochString: string): EpochIndex {
     const [start, level] = epochString.split("/")
 
-    if (!start || !level) throw new Error("Invalid epoch string")
+    if (!start || !level) throw new EthernaSdkError("INVALID_ARGUMENT", "Invalid epoch string")
 
     return new EpochIndex(BigInt(start), Number(level))
   }
@@ -64,9 +65,12 @@ export class EpochIndex {
 
   public getChildAt(at: Date): EpochIndex {
     const timestamp = at.toUnixTimestamp().normalized()
-    if (this.level === 0) throw new Error("'level' must be greater than 0")
-    if (timestamp < this.start) throw new Error("'at' is before start")
-    if (timestamp >= this.start + this.length) throw new Error("'at' is out of level")
+    if (this.level === 0)
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'level' must be greater than 0")
+    if (timestamp < this.start)
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'at' is before start")
+    if (timestamp >= this.start + this.length)
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'at' is out of level")
 
     let childStart = this.start
     const childLength = this.length >> 1n
@@ -78,7 +82,8 @@ export class EpochIndex {
 
   public getNext(at: Date) {
     const timestamp = at.toUnixTimestamp().normalized()
-    if (timestamp < this.start) throw new Error("'at' must be greater  or equal than 'start'")
+    if (timestamp < this.start)
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'at' must be greater  or equal than 'start'")
 
     return this.start + this.length > timestamp
       ? this.getChildAt(at)
@@ -86,7 +91,8 @@ export class EpochIndex {
   }
 
   public getParent(): EpochIndex {
-    if (BigInt(this.level) === EpochIndex.maxLevel) throw new Error("'level' is too big")
+    if (BigInt(this.level) === EpochIndex.maxLevel)
+      throw new EthernaSdkError("INVALID_ARGUMENT", "'level' is too big")
 
     const parentLevel = this.level + 1
     const parentStart = (this.start >> BigInt(parentLevel)) << BigInt(parentLevel)
@@ -109,7 +115,8 @@ export class EpochIndex {
     let level = 0
     while (t0 >> BigInt(level) != t1 >> BigInt(level)) {
       level++
-      if (BigInt(level) > EpochIndex.maxLevel) throw new Error("Epochs are too far apart")
+      if (BigInt(level) > EpochIndex.maxLevel)
+        throw new EthernaSdkError("INVALID_ARGUMENT", "Epochs are too far apart")
     }
     const start = (t1 >> BigInt(level)) << BigInt(level)
     return new EpochIndex(start, level)

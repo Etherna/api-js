@@ -238,10 +238,7 @@ export class Stamps {
           return postageResp.data
         }
         case "etherna": {
-          throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
-            "This method is not implemented for Etherna",
-          )
+          throw new EthernaSdkError("NOT_IMPLEMENTED", "This method is not implemented for Etherna")
         }
       }
     } catch (error) {

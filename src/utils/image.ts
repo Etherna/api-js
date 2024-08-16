@@ -1,4 +1,5 @@
 import { bufferToDataURL } from "./buffer"
+import { EthernaSdkError } from "@/classes"
 
 import type { ImageType } from "../schemas/image-schema"
 
@@ -47,7 +48,7 @@ export async function resizeImage(
     return canvas.msToBlob()
   }
 
-  throw new Error("Cannot create blob from canvas")
+  throw new EthernaSdkError("SERVER_ERROR", "Cannot create blob from canvas")
 }
 
 /**

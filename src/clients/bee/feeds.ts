@@ -79,7 +79,10 @@ export class Feed {
             )
 
             if (!chunk) {
-              throw new Error(`No epoch feed found: '${feed.topic}', '0x${feed.owner}'`)
+              throw new EthernaSdkError(
+                "NOT_FOUND",
+                `No epoch feed found: '${feed.topic}', '0x${feed.owner}'`,
+              )
             }
 
             const reference = bytesToHex(chunk.getContentPayload()) as Reference
@@ -112,11 +115,11 @@ export class Feed {
 
   makeWriter(feed: FeedInfo) {
     if (!this.instance.signer) {
-      throw new Error("No signer provided")
+      throw new EthernaSdkError("MISSING_SIGNER", "No signer provided")
     }
 
     if (makeHexString(this.instance.signer.address).toLowerCase() !== feed.owner.toLowerCase()) {
-      throw new Error("Signer address does not match feed owner")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "Signer address does not match feed owner")
     }
 
     const upload = async (reference: string, options: FeedUploadOptions) => {

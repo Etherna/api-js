@@ -16,7 +16,7 @@ export class User {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -46,7 +46,7 @@ export class User {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }

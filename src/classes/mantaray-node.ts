@@ -2,6 +2,7 @@
 
 import { MantarayFork } from "./mantaray-fork"
 import { MantarayIndexBytes } from "./mantaray-index-bytes"
+import { EthernaSdkError } from "./sdk-error"
 import {
   bytesEqual,
   checkBytesReference,
@@ -99,11 +100,11 @@ export class MantarayNode {
 
   public get type(): number {
     if (this._type === undefined) {
-      throw new Error("Property 'type' does not exist in the object")
+      throw new EthernaSdkError("NOT_FOUND", "Property 'type' does not exist in the object")
     }
 
     if (this._type > 255) {
-      throw new Error('Property "type" in Node is greater than 255')
+      throw new EthernaSdkError("INVALID_ARGUMENT", 'Property "type" in Node is greater than 255')
     }
 
     return this._type
@@ -111,7 +112,10 @@ export class MantarayNode {
 
   public set type(type: number) {
     if (type > 255) {
-      throw new Error(`Node type representation cannot be greater than 255`)
+      throw new EthernaSdkError(
+        "INVALID_ARGUMENT",
+        `Node type representation cannot be greater than 255`,
+      )
     }
 
     this._type = type
@@ -123,11 +127,17 @@ export class MantarayNode {
 
   public set obfuscationKey(obfuscationKey: Bytes<32>) {
     if (!(obfuscationKey instanceof Uint8Array)) {
-      throw new Error("Given obfuscationKey is not an Uint8Array instance.")
+      throw new EthernaSdkError(
+        "INVALID_ARGUMENT",
+        "Given obfuscationKey is not an Uint8Array instance.",
+      )
     }
 
     if (obfuscationKey.length !== 32) {
-      throw new Error(`Wrong obfuscationKey length. Entry only can be 32 length in bytes`)
+      throw new EthernaSdkError(
+        "INVALID_ARGUMENT",
+        `Wrong obfuscationKey length. Entry only can be 32 length in bytes`,
+      )
     }
 
     this._obfuscationKey = obfuscationKey
@@ -178,7 +188,7 @@ export class MantarayNode {
 
   public isValueType(): boolean {
     if (!this._type) {
-      throw new Error("Property 'type' does not exist in the object")
+      throw new EthernaSdkError("NOT_FOUND", "Property 'type' does not exist in the object")
     }
     const typeMask = this._type & NodeType.value
 
@@ -187,7 +197,7 @@ export class MantarayNode {
 
   public isEdgeType(): boolean {
     if (!this._type) {
-      throw new Error("Property 'type' does not exist in the object")
+      throw new EthernaSdkError("NOT_FOUND", "Property 'type' does not exist in the object")
     }
     const typeMask = this._type & NodeType.edge
 
@@ -196,7 +206,7 @@ export class MantarayNode {
 
   public isWithPathSeparatorType(): boolean {
     if (!this._type) {
-      throw new Error("Property 'type' does not exist in the object")
+      throw new EthernaSdkError("NOT_FOUND", "Property 'type' does not exist in the object")
     }
     const typeMask = this._type & NodeType.withPathSeparator
 
@@ -205,7 +215,7 @@ export class MantarayNode {
 
   public IsWithMetadataType(): boolean {
     if (!this._type) {
-      throw new Error("Property 'type' does not exist in the object")
+      throw new EthernaSdkError("NOT_FOUND", "Property 'type' does not exist in the object")
     }
     const typeMask = this._type & NodeType.withMetadata
 
@@ -234,7 +244,7 @@ export class MantarayNode {
 
   private makeNotWithPathSeparator() {
     if (!this._type) {
-      throw new Error("Property 'type' does not exist in the object")
+      throw new EthernaSdkError("NOT_FOUND", "Property 'type' does not exist in the object")
     }
     this._type = (NodeType.mask ^ NodeType.withPathSeparator) & this._type
   }
@@ -367,7 +377,7 @@ export class MantarayNode {
    */
   public getForkAtPath(path: Uint8Array): MantarayFork {
     if (path.length === 0) {
-      throw new Error(`Path is empty`)
+      throw new EthernaSdkError("INVALID_ARGUMENT", `Path is empty`)
     }
 
     if (!this.forks) {
@@ -409,7 +419,7 @@ export class MantarayNode {
     const pathFirstByte = path[0]
 
     if (pathFirstByte == null) {
-      throw new Error(`Path is empty`)
+      throw new EthernaSdkError("INVALID_ARGUMENT", `Path is empty`)
     }
 
     if (!this.forks) return false
@@ -451,7 +461,7 @@ export class MantarayNode {
     }
 
     if (!this.forks) {
-      throw new Error(`Fork mapping is not defined in the manifest`)
+      throw new EthernaSdkError("INVALID_ARGUMENT", `Fork mapping is not defined in the manifest`)
     }
 
     const fork = this.forks[pathFirstByte]
@@ -512,7 +522,7 @@ export class MantarayNode {
 
     if (!this.forks) {
       if (!this._entry) {
-        throw new Error("Field 'entry' is not defined in the object")
+        throw new EthernaSdkError("NOT_FOUND", "Field 'entry' is not defined in the object")
       }
       this.forks = {} //if there were no forks initialized it is not indended to be
     }
@@ -583,7 +593,7 @@ export class MantarayNode {
     )
 
     if (bytesEqual(versionHash, serializeVersion("0.1"))) {
-      throw new Error("Version 0.1 is not supported")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "Version 0.1 is not supported")
     } else if (bytesEqual(versionHash, serializeVersion("0.2"))) {
       const refBytesSize = data[nodeHeaderSize - 1] ?? 0
       let entry = data.slice(nodeHeaderSize, nodeHeaderSize + refBytesSize)

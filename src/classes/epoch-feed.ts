@@ -1,5 +1,6 @@
 import { EpochFeedChunk } from "./epoch-feed-chunk"
 import { EpochIndex } from "./epoch-index"
+import { EthernaSdkError } from "./sdk-error"
 import { SOC_PAYLOAD_OFFSET } from "@/consts"
 
 import type { BeeClient } from "@/clients"
@@ -44,7 +45,7 @@ export class EpochFeed {
     const timestamp = at.toUnixTimestamp().normalized()
 
     if (timestamp < EpochIndex.minUnixTimeStamp || timestamp > EpochIndex.maxUnixTimeStamp) {
-      throw new Error("Date is out of allowed range")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "Date is out of allowed range")
     }
 
     /*

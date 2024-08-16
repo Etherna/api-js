@@ -1,6 +1,7 @@
 import { keccak256 } from "js-sha3"
 
 import { keccak256Hash } from "./hex"
+import { EthernaSdkError } from "@/classes"
 import { HASH_SIZE, MAX_CHUNK_PAYLOAD_SIZE, SEGMENT_PAIR_SIZE } from "@/consts"
 
 /**
@@ -35,7 +36,7 @@ export function bmtHash(chunkContent: Uint8Array): Uint8Array {
  */
 export function bmtRootHash(payload: Uint8Array): Uint8Array {
   if (payload.length > MAX_CHUNK_PAYLOAD_SIZE) {
-    throw new Error("payload: invalid data length")
+    throw new EthernaSdkError("INVALID_ARGUMENT", "payload: invalid data length")
   }
 
   // create an input buffer padded with zeros
@@ -48,9 +49,7 @@ export function bmtRootHash(payload: Uint8Array): Uint8Array {
 
     // in each round we hash the segment pairs together
     for (let offset = 0; offset < input.length; offset += SEGMENT_PAIR_SIZE) {
-      const hashNumbers = keccak256.array(
-        input.slice(offset, offset + SEGMENT_PAIR_SIZE),
-      )
+      const hashNumbers = keccak256.array(input.slice(offset, offset + SEGMENT_PAIR_SIZE))
       output.set(hashNumbers, offset / 2)
     }
 

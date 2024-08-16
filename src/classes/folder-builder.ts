@@ -2,6 +2,7 @@ import { AxiosError } from "axios"
 
 import { MantarayNode } from "./mantaray-node"
 import { Queue } from "./queue"
+import { EthernaSdkError } from "./sdk-error"
 import {
   MantarayEntryMetadataContentTypeKey,
   MantarayEntryMetadataFilenameKey,
@@ -67,7 +68,7 @@ export class FolderBuilder {
     await this.queue.drain()
 
     if (this.errored) {
-      throw new Error("Upload failed")
+      throw new EthernaSdkError("SERVER_ERROR", "Upload failed")
     }
 
     return bytesReferenceToReference(reference)

@@ -282,7 +282,7 @@ export class BaseMantarayManifest extends BaseManifest {
 
   protected importImageProcessor(imageProcessor: ImageProcessor) {
     if (!imageProcessor.image) {
-      throw new Error("Image not processed. Run 'process' method first")
+      throw new EthernaSdkError("BAD_REQUEST", "Image not processed. Run 'process' method first")
     }
 
     this.enqueueProcessor(imageProcessor)
@@ -294,7 +294,7 @@ export class BaseMantarayManifest extends BaseManifest {
 
   protected importVideoProcessor(videoProcessor: VideoProcessor) {
     if (!videoProcessor.video) {
-      throw new Error("Video not processed. Run 'process' method first")
+      throw new EthernaSdkError("BAD_REQUEST", "Video not processed. Run 'process' method first")
     }
 
     this.enqueueProcessor(videoProcessor)

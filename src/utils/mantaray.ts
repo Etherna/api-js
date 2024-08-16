@@ -206,7 +206,10 @@ export function serializeReferenceLength(entry: BytesReference): Bytes<1> {
   const referenceLength = entry.length
 
   if (referenceLength !== 32 && referenceLength !== 64) {
-    throw new Error(`Wrong referenceLength. It can be only 32 or 64. Got: ${referenceLength}`)
+    throw new EthernaSdkError(
+      "INVALID_ARGUMENT",
+      `Wrong referenceLength. It can be only 32 or 64. Got: ${referenceLength}`,
+    )
   }
   const bytes = new Uint8Array(1)
   bytes[0] = referenceLength

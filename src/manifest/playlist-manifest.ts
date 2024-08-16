@@ -435,7 +435,7 @@ export class PlaylistManifest extends BaseMantarayManifest {
 
   private async getPlaylistFeed(): Promise<FeedInfo> {
     if ((!this.id || this.owner === EmptyAddress) && isEmptyReference(this.rootManifest)) {
-      throw new Error("id + owner or rootManifest must be provided")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "id + owner or rootManifest must be provided")
     }
 
     const topicName = createPlaylistTopicName(this.id)

@@ -20,7 +20,7 @@ export class Offers {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -50,7 +50,7 @@ export class Offers {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -82,7 +82,7 @@ export class Offers {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -114,7 +114,7 @@ export class Offers {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -147,7 +147,7 @@ export class Offers {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }
@@ -176,7 +176,7 @@ export class Offers {
       switch (this.instance.type) {
         case "bee": {
           throw new EthernaSdkError(
-            "UNSUPPORTED_OPERATION",
+            "NOT_IMPLEMENTED",
             "This operation is not supported by Bee client",
           )
         }

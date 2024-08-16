@@ -3,6 +3,7 @@
 import { makeSpan } from "@fairdatasociety/bmt-js"
 import { etc } from "@noble/secp256k1"
 
+import { EthernaSdkError } from "@/classes"
 import { CAC_PAYLOAD_OFFSET } from "@/consts"
 import { bmtHash } from "@/utils/bmt"
 import { serializeBytes } from "@/utils/bytes"
@@ -47,7 +48,7 @@ export function readFileHeaders(
 
 export function extractUploadHeaders(options: RequestUploadOptions): Record<string, string> {
   if (!options.batchId) {
-    throw new Error("Postage BatchID has to be specified!")
+    throw new EthernaSdkError("MISSING_BATCH_ID", "Postage BatchID has to be specified!")
   }
 
   const headers: Record<string, string> = {

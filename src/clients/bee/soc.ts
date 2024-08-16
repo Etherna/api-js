@@ -98,7 +98,7 @@ export class Soc {
     identifier: Uint8Array,
   ): Promise<SingleOwnerChunk> {
     if (!this.instance.signer) {
-      throw new EthernaSdkError("INVALID_ARGUMENT", "No signer provided")
+      throw new EthernaSdkError("MISSING_SIGNER", "No signer provided")
     }
 
     const chunkAddress = chunk.address()
@@ -130,7 +130,7 @@ export class Soc {
     const socAddress = keccak256Hash(identifier, ownerAddress)
 
     if (!bytesEqual(address, socAddress)) {
-      throw new Error("SOC Data does not match given address!")
+      throw new EthernaSdkError("INVALID_ARGUMENT", "SOC Data does not match given address!")
     }
 
     const signature = () => data.slice(SOC_SIGNATURE_OFFSET, SOC_SIGNATURE_OFFSET + SIGNATURE_SIZE)
