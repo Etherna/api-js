@@ -1,5 +1,4 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
-import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { toBlobURL } from "@ffmpeg/util"
 
 import { BaseProcessor } from "./base-processor"
@@ -9,6 +8,7 @@ import { bytesReferenceToReference, fileToBuffer, getHlsBitrate } from "@/utils"
 
 import type { ProcessorOutput } from "./base-processor"
 import type { VideoSource } from "@/schemas/video-schema"
+import type { FFmpeg } from "@ffmpeg/ffmpeg"
 
 export interface VideoProcessorOptions {
   resolutions?: number[]
@@ -25,7 +25,7 @@ export interface VideoProcessedOutput {
   sources: VideoSource[]
 }
 
-let ffmpeg = new FFmpeg()
+let ffmpeg: FFmpeg
 const BASE_URL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
 const DEFAULT_RESOLUTIONS = [360, 480, 720, 1080, 1440]
 const INPUT_FILENAME = "input"
@@ -280,10 +280,13 @@ export class VideoProcessor extends BaseProcessor {
   }
 
   private async loadFFmpeg(baseUrl: string) {
-    if (ffmpeg.loaded) {
+    const { FFmpeg } = await import("@ffmpeg/ffmpeg")
+
+    if (ffmpeg?.loaded) {
       ffmpeg.terminate()
-      ffmpeg = new FFmpeg()
     }
+
+    ffmpeg = new FFmpeg()
 
     const isCors =
       typeof window !== "undefined" && window.location.origin !== new URL(baseUrl).origin
@@ -299,5 +302,7 @@ export class VideoProcessor extends BaseProcessor {
         ? await toBlobURL(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript")
         : `${baseUrl}/ffmpeg-core.worker.js`,
     })
+
+    return ffmpeg
   }
 }
