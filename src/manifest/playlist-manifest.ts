@@ -118,6 +118,7 @@ export class PlaylistManifest extends BaseMantarayManifest {
         this._reference = init.reference
         this._rootManifest = init.rootManifest
       } else {
+        this._preview.id = crypto.randomUUID()
         this._preview.owner = opts.beeClient.signer.address
       }
     }
