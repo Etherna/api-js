@@ -60,7 +60,7 @@ const batchId = await beeClient.stamps.create(17, 60 * 60 * 24 * 365) // use str
 
 // create an avatar
 const avatarImageProcessor = new ImageProcessor(imageFileOrBytes)
-await avatarImageProcessor.process({ sizes: "avatar", pathFormat: "avatar/$size-$type" })
+await avatarImageProcessor.process({ sizes: "avatar" })
 // optional: upload and wait to finish
 await avatarImageProcessor.upload({ beeClient, batchId })
 
@@ -109,7 +109,7 @@ const batchId = await beeClient.stamps.create(17, 60 * 60 * 24 * 365) // use str
 
 // create a thumbnail
 const thumbnailImageProcessor = new ImageProcessor(imageFileOrBytes)
-await thumbnailImageProcessor.process({ sizes: "thumbnail", pathFormat: "thumb/$size-$type" })
+await thumbnailImageProcessor.process({ sizes: "thumbnail" })
 
 // encode a video
 const videoProcessor = new VideoProcessor(videoFileOrBytes)

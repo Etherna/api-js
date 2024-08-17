@@ -24,12 +24,16 @@ export interface ImageProcessorOptions {
    *
    * Example: `avatar/$size-$type`
    */
-  pathFormat: string
+  pathFormat?: string
 }
 
-const AVATAR_SIZES = [128, 256, 512]
-const COVER_SIZES = [480, 768, 1024, 1280, 1800]
-const THUMBNAIL_SIZES = [480, 960, 1280]
+export const AVATAR_SIZES = [128, 256, 512]
+export const COVER_SIZES = [480, 768, 1024, 1280, 1800]
+export const THUMBNAIL_SIZES = [480, 960, 1280]
+
+export const AVATAR_PATH_FORMAT = "avatar/$size-$type"
+export const COVER_PATH_FORMAT = "cover/$size-$type"
+export const THUMBNAIL_PATH_FORMAT = "thumb/$size-$type"
 
 export class ImageProcessor extends BaseProcessor {
   public image: Image | null = null
@@ -47,8 +51,23 @@ export class ImageProcessor extends BaseProcessor {
     const blurhash = await imageToBlurhash(originalImageData, imageMeta.width, imageMeta.height)
     const aspectRatio = imageMeta.width / imageMeta.height
 
+    const pathFormat =
+      options.pathFormat ??
+      (() => {
+        switch (options.sizes) {
+          case "avatar":
+            return AVATAR_PATH_FORMAT
+          case "cover":
+            return COVER_PATH_FORMAT
+          case "thumbnail":
+            return THUMBNAIL_PATH_FORMAT
+          default:
+            return "image/$size-$type"
+        }
+      })()
+
     const parsePath = (width: number, type: string) =>
-      options.pathFormat.replace(/\$size/g, width.toString()).replace(/\$type/g, type)
+      pathFormat.replace(/\$size/g, width.toString()).replace(/\$type/g, type)
     const parseFilename = (width: number, type: string) =>
       `${typeof options.sizes === "string" ? options.sizes : "image"}-${width}w-${type}`
 
