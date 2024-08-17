@@ -6,6 +6,7 @@ import {
   bytesReferenceToReference,
   dateToTimestamp,
   decryptData,
+  encryptData,
   fetchAddressFromEns,
   isEmptyReference,
   isEnsAddress,
@@ -29,6 +30,10 @@ import type {
 } from "@/schemas/playlist-schema"
 import type { EnsAddress, EthAddress } from "@/types/eth"
 import type { BatchId, Reference } from "@/types/swarm"
+
+export interface PlaylistManifestUploadOptions extends BaseManifestUploadOptions {
+  password?: string
+}
 
 export type PlaylistIdentification = Reference | { id: string; owner: EthAddress | EnsAddress }
 
@@ -139,6 +144,13 @@ export class PlaylistManifest extends BaseMantarayManifest {
     return this._preview.type
   }
   public set type(value: PlaylistType) {
+    if (value === "private") {
+      throw new EthernaSdkError(
+        "NOT_IMPLEMENTED",
+        "Private playlists are not implemented yet. Use 'protected' with password instead.",
+      )
+    }
+
     this._preview.type = value
 
     if (this.isEncryptableType) {
@@ -271,7 +283,12 @@ export class PlaylistManifest extends BaseMantarayManifest {
         : await Promise.resolve(JSON.stringify(this._details))
 
       this._preview = PlaylistPreviewSchema.parse(JSON.parse(previewData))
-      this._details = PlaylistDetailsSchema.parse(JSON.parse(detailsData))
+      this._details =
+        this.type === "public"
+          ? PlaylistDetailsSchema.parse(JSON.parse(detailsData))
+          : this._details
+      this._encryptedDetails = this.isEncryptableType ? detailsData : undefined
+      this._isEncrypted = this.isEncryptableType
       this._hasLoadedPreview = shouldDownloadPreview || this._hasLoadedPreview
       this._hasLoadedDetails = shouldDownloadDetails || this._hasLoadedDetails
       this._isDirty = false
@@ -282,9 +299,13 @@ export class PlaylistManifest extends BaseMantarayManifest {
     }
   }
 
-  public override async upload(options?: BaseManifestUploadOptions): Promise<Playlist> {
+  public override async upload(options?: PlaylistManifestUploadOptions): Promise<Playlist> {
     if (this.owner !== this.beeClient.signer?.address) {
       throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's playlist")
+    }
+
+    if (this.isEncryptableType && !options?.password) {
+      throw new EthernaSdkError("BAD_REQUEST", "Password is required for protected playlists")
     }
 
     try {
@@ -306,7 +327,11 @@ export class PlaylistManifest extends BaseMantarayManifest {
         ...options,
         batchId,
       })
-      this.enqueueData(new TextEncoder().encode(JSON.stringify(this._details)), {
+      const encryptionPassword = this.type === "protected" ? options?.password ?? "" : undefined
+      const serializedDetails = encryptionPassword
+        ? encryptData(JSON.stringify(this._details), encryptionPassword)
+        : JSON.stringify(this._details)
+      this.enqueueData(new TextEncoder().encode(serializedDetails), {
         ...options,
         batchId,
       })

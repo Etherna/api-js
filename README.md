@@ -171,6 +171,24 @@ playlistManifest.addVideo(videoWithPreviewInfos)
 await playlistManifest.upload({ batchId })
 ```
 
+### Create a password protected playlist
+
+_Password protected playlists encrypt playlists details but not the preview._
+_To hide the playlist name you can set `previewName` as un-encrypted name and `name` as encrypted name._
+
+```ts
+// ...
+
+playlistManifest.type = "protected"
+playlistManifest.previewName = "Visible playlist name"
+playlistManifest.name = "Encrypted playlist name"
+
+// save the playlist
+await playlistManifest.upload({ batchId, password: "my-secret })
+
+// ...
+```
+
 ### Fetch your personal playlists
 
 ```ts
