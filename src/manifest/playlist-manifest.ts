@@ -44,6 +44,9 @@ export interface Playlist {
   details: PlaylistDetails
 }
 
+export const CHANNEL_PLAYLIST_ID = "Channel"
+export const SAVED_PLAYLIST_ID = "Saved"
+
 export const createPlaylistTopicName = (id: string) => `EthernaPlaylist:${id}`
 
 /**
@@ -434,10 +437,8 @@ export class PlaylistManifest extends BaseMantarayManifest {
     }
   }
 
-  public removeVideos(videoRefsToRemove: Reference[]) {
-    this._details.videos = this._details.videos.filter(
-      (video) => !videoRefsToRemove.includes(video.r),
-    )
+  public removeVideo(videoReference: Reference) {
+    this._details.videos = this._details.videos.filter((video) => video.r !== videoReference)
   }
 
   private updateThumb(video: Video) {

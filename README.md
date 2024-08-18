@@ -19,7 +19,7 @@ pnpm add @etherna/sdk-js
 ```ts
 import { BeeClient } from "@etherna/sdk-js"
 
-const beeClient = new BeeClient("http://localhost:1633", {
+const beeClient = new BeeClient("https://gateway.etherna.io", {
   type: "etherna", // or "bee" for native instances
   signer: "<64-length-private-key>",
   chain: { name: "custom", blockTime: 5 }, // defaults to "gnosis",
@@ -53,6 +53,9 @@ import { ProfileManifest, ImageProcessor } from "@etherna/sdk-js"
 
 // make sure beeClient has a valid signer
 const profileManifest = new ProfileManifest({ beeClient })
+
+// load bee mantaray node
+await profileManifest.loadNode()
 
 // get or create a new batchId
 const batchId = await beeClient.stamps.fetchBestBatchId({ labelQuery: "default" })
@@ -102,6 +105,9 @@ import { VideoManifest, ImageProcessor, VideoProcessor } from "@etherna/sdk-js"
 
 // make sure beeClient has a valid signer
 const videoManifest = new VideoManifest({ beeClient })
+
+// load bee mantaray node (only if you want to update an existing video)
+await videoManifest.loadNode()
 
 // get or create a new batchId
 const batchId = await beeClient.stamps.fetchBestBatchId({ labelQuery: "default" })
@@ -155,6 +161,9 @@ import { PlaylistManifest } from "@etherna/sdk-js"
 
 // make sure beeClient has a valid signer
 const playlistManifest = new PlaylistManifest({ beeClient })
+
+// load bee mantaray node (only if you want to update an existing playlist)
+await playlistManifest.loadNode()
 
 // get or create a new batchId
 const batchId = await beeClient.stamps.fetchBestBatchId({ labelQuery: "default" })
@@ -221,13 +230,70 @@ await userPlaylistsManifest.upload({ batchId })
 ### Publish a video
 
 ```ts
-// TBD
+import {
+  CHANNEL_PLAYLIST_ID,
+  EthernaIndexClient,
+  PlaylistManifest,
+  ProfileManifest,
+  VideoPublisher,
+} from "@etherna/sdk-js"
+
+// load channel playlists
+const profile = await new ProfileManifest({ beeClient }).download({ mode: "details" })
+const playlists = await Promise.all([
+  PlaylistManifest.channelPlaylist(
+    { id: CHANNEL_PLAYLIST_ID, owner: beeClient.signer!.address },
+    {
+      beeClient,
+    },
+  ).download({ mode: "full" }),
+  ...profile.playlists.map((playlistRootManifest) =>
+    new PlaylistManifest(playlistRootManifest, {
+      beeClient,
+    }).download({ mode: "full" }),
+  ),
+])
+
+// init all index clients you need
+const ethernaIndexClient = new EthernaIndexClient("https://index.etherna.io", {
+  apiPath: "/api/v0.3",
+  accessToken: "<access-token>",
+})
+
+// create a video publisher
+const videoPublisher = new VideoPublisher({
+  video, // new video serialized information (`videoManifest.serialized`)
+  videoInitialReference, // required when editing a video
+  beeClient,
+  batchId,
+  sources: [
+    {
+      type: "index",
+      indexClient: ethernaIndexClient,
+      indexVideoId: "<index-video-id>", // required when editing a video
+    },
+    ...playlists.map((playlist) => ({
+      type: "playlist",
+      playlist,
+    })),
+  ],
+})
+
+// sync video publishing (publish/unpublish)
+const { publishResult, unpublishResult } = await videoPublisher.sync([
+  // select only the sources you want to publish to
+  videoPublisher.sources[0],
+  videoPublisher.sources[2],
+])
+
+const { error, success } = publishResult[0]
+// ...
 ```
 
 ## Encoding requirements
 
 1. Make sure ffmpeg is installed on your machine: https://www.ffmpeg.org/download.html
-2. Install the ffmpeg.wasm peer dependecy: `npm install @ffmpeg/ffmpeg @ffmpeg/util`
+2. Install the ffmpeg.wasm peer dependecies: `npm install @ffmpeg/ffmpeg @ffmpeg/util`
 3. Make sure your server enables `SharedArrayBuffer` by setting the proper headers:
 
 - Cross-Origin-Opener-Policy: same-origin
