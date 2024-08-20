@@ -1,17 +1,25 @@
 import { BaseMantarayManifest } from "./base-manifest"
 import { EthernaSdkError, throwSdkError } from "@/classes"
-import { EmptyAddress, MANIFEST_DETAILS_PATH } from "@/consts"
+import {
+  EmptyAddress,
+  MANIFEST_DETAILS_PATH,
+  MantarayEntryMetadataContentTypeKey,
+  MantarayEntryMetadataFilenameKey,
+} from "@/consts"
 import { PlaylistDetailsSchema, PlaylistPreviewSchema } from "@/schemas/playlist-schema"
 import {
   bytesReferenceToReference,
   dateToTimestamp,
   decryptData,
+  encodePath,
   encryptData,
   fetchAddressFromEns,
   isEmptyReference,
   isEnsAddress,
   isEthAddress,
   isValidReference,
+  structuredClone,
+  textToReference,
   timestampToDate,
 } from "@/utils"
 
@@ -256,11 +264,15 @@ export class PlaylistManifest extends BaseMantarayManifest {
         throw new EthernaSdkError("INVALID_ARGUMENT", "Address or ENS name is required")
       }
 
-      if (isEmptyReference(this._reference)) {
+      if (isEmptyReference(this._reference) || isEmptyReference(this._rootManifest)) {
         const feed = await this.getPlaylistFeed()
         const reader = this.beeClient.feed.makeReader(feed)
-        this._reference = (await reader.download({ ...options })).reference
-        this._rootManifest = (await this.beeClient.feed.makeRootManifest(feed)).reference
+        this._reference = isEmptyReference(this._reference)
+          ? (await reader.download({ ...options })).reference
+          : this._reference
+        this._rootManifest = isEmptyReference(this._rootManifest)
+          ? (await this.beeClient.feed.makeRootManifest(feed)).reference
+          : this._rootManifest
       }
 
       const shouldDownloadPreview = options.mode === "preview" || options.mode === "full"
@@ -312,10 +324,7 @@ export class PlaylistManifest extends BaseMantarayManifest {
     }
 
     try {
-      await Promise.all([
-        this.prepareForUpload(options?.batchId, options?.batchLabelQuery),
-        this.loadNode(),
-      ])
+      await this.prepareForUpload(options?.batchId, options?.batchLabelQuery)
 
       // after 'prepareForUpload' batchId must be defined
       const batchId = this.batchId as BatchId
@@ -323,6 +332,9 @@ export class PlaylistManifest extends BaseMantarayManifest {
       // ensure data is not malformed
       this._preview = PlaylistPreviewSchema.parse(this._preview)
       this._details = PlaylistDetailsSchema.parse(this._details)
+      this._encryptedDetails = this.isEncryptableType
+        ? encryptData(JSON.stringify(this._details), options?.password ?? "")
+        : undefined
 
       // update data
       this.updateNodeDefaultEntries()
@@ -330,9 +342,8 @@ export class PlaylistManifest extends BaseMantarayManifest {
         ...options,
         batchId,
       })
-      const encryptionPassword = this.type === "protected" ? options?.password ?? "" : undefined
-      const serializedDetails = encryptionPassword
-        ? encryptData(JSON.stringify(this._details), encryptionPassword)
+      const serializedDetails = this.isEncryptableType
+        ? this._encryptedDetails
         : JSON.stringify(this._details)
       this.enqueueData(new TextEncoder().encode(serializedDetails), {
         ...options,
@@ -372,6 +383,10 @@ export class PlaylistManifest extends BaseMantarayManifest {
         this.beeClient.feed.createRootManifest(feed, { batchId }),
       ])
 
+      if (isEmptyReference(this._rootManifest)) {
+        this._rootManifest = (await this.beeClient.feed.makeRootManifest(feed)).reference
+      }
+
       this._hasLoadedPreview = true
       this._hasLoadedDetails = true
 
@@ -404,12 +419,14 @@ export class PlaylistManifest extends BaseMantarayManifest {
   }
 
   public addVideo(video: Video, publishAt?: Date) {
-    this._details.videos.unshift({
-      r: video.reference,
-      t: video.preview.title,
-      a: dateToTimestamp(new Date()),
-      p: publishAt ? dateToTimestamp(publishAt) : undefined,
-    })
+    this._details.videos.unshift(
+      structuredClone({
+        r: video.reference,
+        t: video.preview.title,
+        a: dateToTimestamp(new Date()),
+        p: publishAt ? dateToTimestamp(publishAt) : undefined,
+      }),
+    )
 
     if (video.preview.thumbnail) {
       this.updateThumb(video)
@@ -439,6 +456,21 @@ export class PlaylistManifest extends BaseMantarayManifest {
 
   public removeVideo(videoReference: Reference) {
     this._details.videos = this._details.videos.filter((video) => video.r !== videoReference)
+  }
+
+  protected override updateNodeDefaultEntries(): void {
+    super.updateNodeDefaultEntries()
+
+    if (this.isEncryptableType) {
+      this.node.addFork(
+        encodePath(MANIFEST_DETAILS_PATH),
+        textToReference(this._encryptedDetails ?? ""),
+        {
+          [MantarayEntryMetadataContentTypeKey]: "application/octet-stream",
+          [MantarayEntryMetadataFilenameKey]: `${MANIFEST_DETAILS_PATH}.json`,
+        },
+      )
+    }
   }
 
   private updateThumb(video: Video) {

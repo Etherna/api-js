@@ -15,6 +15,7 @@ import {
   getBzzNodeInfo,
   getVideoMeta,
   isValidReference,
+  structuredClone,
   timestampToDate,
 } from "@/utils"
 
@@ -55,7 +56,7 @@ export class VideoManifest extends BaseMantarayManifest {
   }
   protected override _details: VideoDetails = {
     description: "",
-    aspectRatio: 16 / 9,
+    aspectRatio: 0,
     sources: [],
     batchId: EmptyReference,
   }
@@ -157,6 +158,10 @@ export class VideoManifest extends BaseMantarayManifest {
     return this._details.aspectRatio
   }
 
+  public get sources() {
+    return structuredClone(this._details.sources)
+  }
+
   public override async download(options: BaseMantarayManifestDownloadOptions): Promise<Video> {
     try {
       if (this._reference === EmptyReference) {
@@ -238,10 +243,7 @@ export class VideoManifest extends BaseMantarayManifest {
     }
 
     try {
-      await Promise.all([
-        this.prepareForUpload(options?.batchId, options?.batchLabelQuery),
-        this.loadNode(),
-      ])
+      await this.prepareForUpload(options?.batchId, options?.batchLabelQuery)
 
       // after 'prepareForUpload' batchId must be defined
       const batchId = this.batchId as BatchId

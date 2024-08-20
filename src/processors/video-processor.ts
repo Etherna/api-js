@@ -46,7 +46,11 @@ const handleFFmpegPromise = (exec: Promise<number>) => {
 }
 
 export class VideoProcessor extends BaseProcessor {
-  public video: VideoProcessedOutput | null = null
+  private _video: VideoProcessedOutput | null = null
+
+  public get video() {
+    return this._video
+  }
 
   public override async process(options: VideoProcessorOptions): Promise<ProcessorOutput[]> {
     await this.loadFFmpeg(options.ffmpegBaseUrl ?? BASE_URL)
@@ -141,7 +145,7 @@ export class VideoProcessor extends BaseProcessor {
       }),
     )
 
-    this.video = {
+    this._video = {
       aspectRatio,
       duration,
       sources: [
@@ -158,7 +162,7 @@ export class VideoProcessor extends BaseProcessor {
       ],
     }
 
-    this.processorOutputs = []
+    this._processorOutputs = []
 
     for (const file of [masterFile, ...resolutionsPlaylists, ...resolutionsSegments.flat()]) {
       const chunkedFile = makeChunkedFile(file.data)
@@ -193,17 +197,17 @@ export class VideoProcessor extends BaseProcessor {
       })
     }
 
-    this.isProcessed = true
+    this._isProcessed = true
 
     return this.processorOutputs
   }
 
   public async createThumbnailProcessor(frameTimestamp: number) {
-    if (!this.video) {
+    if (!this._video) {
       throw new EthernaSdkError("SERVER_ERROR", "Video not processed")
     }
 
-    const aspectRatio = this.video.aspectRatio
+    const aspectRatio = this._video.aspectRatio
     const imageData = await this.generateThumbnail(frameTimestamp, aspectRatio)
 
     return new ImageProcessor(imageData)

@@ -1,6 +1,13 @@
 import { makeChunkedFile } from "@fairdatasociety/bmt-js"
 
-import { ChunksUploader, EthernaSdkError, MantarayNode, Queue, StampCalculator } from "@/classes"
+import {
+  ChunksUploader,
+  EthernaSdkError,
+  getSdkError,
+  MantarayNode,
+  Queue,
+  StampCalculator,
+} from "@/classes"
 import {
   EmptyReference,
   MANIFEST_DETAILS_PATH,
@@ -189,7 +196,14 @@ export class BaseMantarayManifest extends BaseManifest {
     }
 
     await this.node.load(
-      (reference) => this.beeClient.bytes.download(bytesReferenceToReference(reference)),
+      (reference) =>
+        this.beeClient.bytes.download(bytesReferenceToReference(reference)).catch((err) => {
+          if (getSdkError(err).code === "NOT_FOUND") {
+            // sometimes first time download fails
+            return this.beeClient.bytes.download(bytesReferenceToReference(reference))
+          }
+          throw err
+        }),
       referenceToBytesReference(this.reference),
     )
   }

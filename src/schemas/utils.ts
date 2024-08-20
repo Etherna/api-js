@@ -10,14 +10,26 @@ export const SchemaVersionSchema = z.literal(`${z.string()}.${z.string()}`)
 
 export const BirthdaySchema = z
   .string()
-  .regex(/^[0-9]{2}-[0-9]{2}(-[0-9]{4})?$/)
+  .regex(/^[0-9]{2}-[0-9]{2}(-[0-9]{4})?$/, "must be a valid birthday: '<day>-<month>[-<year>]'")
   .refine(
     (val) => {
       const [day, month, year] = val.split("-")
       return (
-        z.number().min(1).max(31).parse(day) &&
-        z.number().min(1).max(12).parse(month) &&
-        z.number().min(1900).optional().parse(year)
+        z.coerce
+          .number()
+          .min(1)
+          .max(31)
+          .parse(day, { path: ["birthday", "day"] }) &&
+        z.coerce
+          .number()
+          .min(1)
+          .max(12)
+          .parse(month, { path: ["birthday", "month"] }) &&
+        z.coerce
+          .number()
+          .min(1900)
+          .optional()
+          .parse(year, { path: ["birthday", "year"] })
       )
     },
     {

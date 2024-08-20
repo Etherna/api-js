@@ -36,7 +36,11 @@ export const COVER_PATH_FORMAT = "cover/$size-$type"
 export const THUMBNAIL_PATH_FORMAT = "thumb/$size-$type"
 
 export class ImageProcessor extends BaseProcessor {
-  public image: Image | null = null
+  private _image: Image | null = null
+
+  public get image() {
+    return this._image
+  }
 
   public override async process(options: ImageProcessorOptions): Promise<ProcessorOutput[]> {
     const originalImageData = new Uint8Array(
@@ -133,10 +137,10 @@ export class ImageProcessor extends BaseProcessor {
       })),
     } satisfies Image
 
-    this.image = image
-    this.isProcessed = true
+    this._image = image
+    this._isProcessed = true
 
-    this.processorOutputs = output.map(({ path, entryAddress, type, filename }) => ({
+    this._processorOutputs = output.map(({ path, entryAddress, type, filename }) => ({
       path,
       entryAddress,
       metadata: {

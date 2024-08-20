@@ -77,7 +77,7 @@ export class UserPlaylistsManifest extends BaseManifest {
         signal: options?.signal,
         timeout: options?.timeout,
       })
-      const rawPlaylists = data.data.text()
+      const rawPlaylists = data.data.json()
       this._playlists = UserPlaylistsSchema.parse(rawPlaylists)
 
       return this._playlists

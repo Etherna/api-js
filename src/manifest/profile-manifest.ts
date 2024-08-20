@@ -245,10 +245,7 @@ export class ProfileManifest extends BaseMantarayManifest {
     }
 
     try {
-      await Promise.all([
-        this.prepareForUpload(options?.batchId, options?.batchLabelQuery),
-        this.loadNode(),
-      ])
+      await this.prepareForUpload(options?.batchId, options?.batchLabelQuery)
 
       // after 'prepareForUpload' batchId must be defined
       const batchId = this.batchId as BatchId
@@ -303,14 +300,25 @@ export class ProfileManifest extends BaseMantarayManifest {
     }
   }
 
-  public async addAvatar(imageProcessor: ImageProcessor) {
-    this.importImageProcessor(imageProcessor)
-    this._preview.avatar = imageProcessor.image
+  public addPlaylist(playlistRootManifest: Reference) {
+    this._details.playlists.push(playlistRootManifest)
   }
 
-  public async addCover(imageProcessor: ImageProcessor) {
+  public removePlaylist(playlistRootManifest: Reference) {
+    const index = this._details.playlists.indexOf(playlistRootManifest)
+    if (index >= 0) {
+      this._details.playlists.splice(index, 1)
+    }
+  }
+
+  public addAvatar(imageProcessor: ImageProcessor) {
     this.importImageProcessor(imageProcessor)
-    this._details.cover = imageProcessor.image
+    this._preview.avatar = imageProcessor._image
+  }
+
+  public addCover(imageProcessor: ImageProcessor) {
+    this.importImageProcessor(imageProcessor)
+    this._details.cover = imageProcessor._image
   }
 
   public removeAvatar() {

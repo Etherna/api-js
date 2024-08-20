@@ -331,22 +331,18 @@ export class MantarayNode {
 
     const commonPath = commonBytes(fork.prefix, path)
     const restPath = fork.prefix.slice(commonPath.length)
-    const respPathFirstByte = path[commonPath.length]
-
-    if (respPathFirstByte == null) {
-      throw Error(`Rest path is empty`)
-    }
+    const restPathFirstByte = restPath[0]
 
     let newNode = fork.node
 
-    if (restPath.length > 0) {
+    if (restPathFirstByte) {
       // move current common prefix node
       newNode = new MantarayNode()
       newNode.obfuscationKey = this._obfuscationKey ?? (new Uint8Array(32) as Bytes<32>)
 
       fork.node.updateWithPathSeparator(restPath)
       newNode.forks = {}
-      newNode.forks[respPathFirstByte] = new MantarayFork(restPath, fork.node)
+      newNode.forks[restPathFirstByte] = new MantarayFork(restPath, fork.node)
       newNode.makeEdge()
 
       // if common path is full path new node is value type

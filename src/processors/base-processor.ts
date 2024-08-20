@@ -19,14 +19,34 @@ export interface ProcessorOutput {
 export class BaseProcessor {
   protected input: File | ArrayBuffer | Uint8Array
   protected uploadOptions?: BaseProcessorUploadOptions
-  public uploader?: ChunksUploader
-  public processorOutputs: ProcessorOutput[] = []
-  public isProcessed = false
-  public isFullyUploaded = false
-  public stampCalculator = new StampCalculator()
+  protected _uploader?: ChunksUploader
+  protected _processorOutputs: ProcessorOutput[] = []
+  protected _isProcessed = false
+  protected _isFullyUploaded = false
+  protected _stampCalculator = new StampCalculator()
 
   constructor(input: File | ArrayBuffer | Uint8Array) {
     this.input = input
+  }
+
+  public get uploader() {
+    return this._uploader
+  }
+
+  public get processorOutputs() {
+    return this._processorOutputs
+  }
+
+  public get isProcessed() {
+    return this._isProcessed
+  }
+
+  public get isFullyUploaded() {
+    return this._isFullyUploaded
+  }
+
+  public get stampCalculator() {
+    return this._stampCalculator
   }
 
   public process(_options?: unknown): Promise<ProcessorOutput[]> {
@@ -35,12 +55,12 @@ export class BaseProcessor {
 
   public async upload(options: BaseProcessorUploadOptions): Promise<void> {
     this.uploadOptions = options
-    this.uploader = new ChunksUploader({
+    this._uploader = new ChunksUploader({
       beeClient: options.beeClient,
       concurrentChunks: options.concurrentChunks,
     })
-    this.uploader.on("done", () => {
-      this.isFullyUploaded = true
+    this._uploader.on("done", () => {
+      this._isFullyUploaded = true
     })
 
     const batchId =
@@ -55,9 +75,9 @@ export class BaseProcessor {
 
     this.uploadOptions.batchId = batchId
 
-    this.uploader.resume(options)
+    this._uploader.resume(options)
 
-    return await this.uploader.drain()
+    return await this._uploader.drain()
   }
 
   public async resume(): Promise<void> {
