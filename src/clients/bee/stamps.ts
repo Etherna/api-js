@@ -1,4 +1,4 @@
-import { EthernaSdkError, StampCalculator, throwSdkError } from "@/classes"
+import { EthernaSdkError, getSdkError, StampCalculator, throwSdkError } from "@/classes"
 import { ETHERNA_MIN_BATCH_DEPTH, ETHERNA_WELCOME_BATCH_DEPTH, STAMPS_DEPTH_MIN } from "@/consts"
 import { calcDilutedTTL, getBatchPercentUtilization, ttlToAmount } from "@/utils"
 
@@ -40,12 +40,12 @@ interface FetchBestBatchIdOptions extends RequestOptions {
 interface TopupBatchOptions extends RequestOptions {
   by: { type: "amount"; amount: bigint | string } | { type: "time"; seconds: number }
   initialAmount?: bigint | string
-  waitUntilUpdate?: boolean
+  waitUntilUpdated?: boolean
 }
 
 interface DiluteBatchOptions extends RequestOptions {
   depth: number
-  waitUntilUpdate?: boolean
+  waitUntilUpdated?: boolean
 }
 
 export class Stamps {
@@ -124,7 +124,7 @@ export class Stamps {
 
           let resolver: (batchId: BatchId) => void
           let rejecter: (err: EthernaSdkError) => void
-          let timeout: number
+          let timeout: NodeJS.Timeout
 
           const waitBatchCreation = () => {
             clearTimeout(timeout)
@@ -135,7 +135,7 @@ export class Stamps {
               )
             }
 
-            timeout = window.setTimeout(() => {
+            timeout = setTimeout(() => {
               this.instance.system.fetchPostageBatchRef(referenceId).then((batchId) => {
                 if (batchId) {
                   resolver(batchId)
@@ -224,7 +224,7 @@ export class Stamps {
           )
         }
         case "etherna": {
-          const resp = await this.instance.request.get<EthernaGatewayBatchPreview[]>(
+          const resp = await this.instance.apiRequest.get<EthernaGatewayBatchPreview[]>(
             `/users/current/batches`,
             {
               ...this.instance.prepareAxiosConfig(options),
@@ -328,7 +328,7 @@ export class Stamps {
    * @param byAmount Amount to add to the batch
    */
   async topup(batchId: BatchId, options: TopupBatchOptions): Promise<boolean> {
-    const { by, waitUntilUpdate, ...opts } = options
+    const { by, waitUntilUpdated, ...opts } = options
     const price = await this.instance.chainstate.getCurrentPrice(opts)
     const amount =
       by.type === "amount"
@@ -360,7 +360,7 @@ export class Stamps {
         }
       }
 
-      if (waitUntilUpdate) {
+      if (waitUntilUpdated) {
         await this.waitBatchValid(batchId, (batch) => batch.amount > initialAmount, opts)
       }
 
@@ -377,7 +377,7 @@ export class Stamps {
    * @param options Dilute options
    */
   async dilute(batchId: BatchId, options: DiluteBatchOptions): Promise<boolean> {
-    const { depth, waitUntilUpdate, ...opts } = options
+    const { depth, waitUntilUpdated, ...opts } = options
 
     try {
       switch (this.instance.type) {
@@ -403,7 +403,7 @@ export class Stamps {
         }
       }
 
-      if (waitUntilUpdate) {
+      if (waitUntilUpdated) {
         await this.waitBatchValid(batchId, (batch) => batch.depth === depth, opts)
       }
 
@@ -425,19 +425,27 @@ export class Stamps {
       this.instance.chainstate.getCurrentPrice(),
     ])
 
+    console.log("A", batch.batchTTL, batch.depth, options.depth, price)
+
     const newTTL = calcDilutedTTL(batch.batchTTL, batch.depth, options.depth)
     const ttl = Math.abs(batch.batchTTL - newTTL)
     const amount = ttlToAmount(ttl, price, this.instance.chain.blockTime).toString()
 
+    console.log("B", newTTL, ttl, amount)
+
     // topup batch (before dilute to avoid possible expiration)
-    await this.topup(batchId, {
-      by: {
-        type: "amount",
-        amount,
-      },
-      // we are forced to wait the topup before diluting
-      waitUntilUpdate: true,
-    })
+    if (BigInt(amount) > BigInt(0)) {
+      await this.topup(batchId, {
+        by: {
+          type: "amount",
+          amount,
+        },
+        // we are forced to wait the topup before diluting
+        waitUntilUpdated: true,
+      })
+    }
+
+    console.log("C")
 
     // dilute batch
     await this.dilute(batchId, options)
@@ -471,7 +479,7 @@ export class Stamps {
       const maxDuration = 1000 * 60 * 10 // 10 minute
       let resolver: (batch: PostageBatch) => void
       let rejecter: (err: EthernaSdkError) => void
-      let timeout: number
+      let timeout: NodeJS.Timeout
 
       const waitBatch = async () => {
         clearTimeout(timeout)
@@ -488,7 +496,7 @@ export class Stamps {
           )
         }
 
-        timeout = window.setTimeout(() => {
+        timeout = setTimeout(() => {
           this.downloadAll().then((batches) => {
             const firstBatch = batches[0]
             if (firstBatch) {
@@ -530,7 +538,7 @@ export class Stamps {
   ): Promise<PostageBatch> {
     let resolver: (batch: PostageBatch) => void
     let rejecter: (err: EthernaSdkError) => void
-    let timeout: number
+    let timeout: NodeJS.Timeout
 
     const waitBatchValid = async () => {
       clearTimeout(timeout)
@@ -541,14 +549,23 @@ export class Stamps {
         )
       }
 
-      timeout = window.setTimeout(() => {
-        this.download(batchId, options).then((batch) => {
-          if (isValidCallback(batch)) {
-            resolver(batch)
-          } else {
-            waitBatchValid()
-          }
-        })
+      timeout = setTimeout(() => {
+        this.download(batchId, options)
+          .then((batch) => {
+            if (isValidCallback(batch)) {
+              resolver(batch)
+            } else {
+              waitBatchValid()
+            }
+          })
+          .catch((err) => {
+            const error = getSdkError(err)
+            const data = error.axiosError?.response?.data as { message?: string } | undefined
+            const msg = data?.message as string | undefined
+            if (msg && msg !== "batch not usable") {
+              rejecter(error)
+            }
+          })
         waitBatchValid()
       }, 5000)
     }

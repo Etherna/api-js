@@ -79,7 +79,7 @@ export class Pins {
    * @param opts Request options
    * @returns List of addresses
    */
-  async downlaodPinUsers(reference: string, opts?: RequestOptions) {
+  async downloadPinUsers(reference: string, opts?: RequestOptions) {
     try {
       switch (this.instance.type) {
         case "bee": {

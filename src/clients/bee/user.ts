@@ -41,7 +41,7 @@ export class User {
    *
    * @returns User's credit amount
    */
-  async downlaodCredit(opts?: RequestOptions) {
+  async downloadCredit(opts?: RequestOptions) {
     try {
       switch (this.instance.type) {
         case "bee": {

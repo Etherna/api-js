@@ -35,6 +35,7 @@ export class EthernaSdkError extends Error {
     super(message)
     this.name = "EthernaSdkError"
     this.code = code
+    this.stack = error?.stack ?? this.stack
 
     if (error instanceof AxiosError) {
       this.axiosError = error
@@ -79,7 +80,7 @@ export function getSdkError(err: unknown): EthernaSdkError {
   }
 
   if (err instanceof Error) {
-    return new EthernaSdkError("SERVER_ERROR", err.message)
+    return new EthernaSdkError("SERVER_ERROR", err.message, err)
   }
 
   return new EthernaSdkError("SERVER_ERROR", String(err))

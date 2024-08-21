@@ -9,12 +9,16 @@ const tagsEndpoint = "/tags"
 export class Tags {
   constructor(private instance: BeeClient) {}
 
-  async downloadAll(options?: RequestOptions) {
+  async downloadAll(offset = 0, limit = 100, options?: RequestOptions) {
     try {
       switch (this.instance.type) {
         case "bee": {
           const resp = await this.instance.request.get<{ tags: Tag[] }>(tagsEndpoint, {
             ...this.instance.prepareAxiosConfig(options),
+            params: {
+              offset,
+              limit,
+            },
           })
           return resp.data
         }
