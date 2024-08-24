@@ -1,9 +1,9 @@
 import { throwSdkError } from "@/classes"
 
 import type { EthernaSSOClient } from "."
-import type { SSOIdentity } from "./types"
+import type { SSOIdentity as Identity } from "./types"
 
-export class IdentityClient {
+export class SSOIdentity {
   constructor(private instance: EthernaSSOClient) {}
 
   /**
@@ -11,7 +11,7 @@ export class IdentityClient {
    */
   async fetchCurrentIdentity() {
     try {
-      const resp = await this.instance.request.get<SSOIdentity>(`/identity`, {
+      const resp = await this.instance.request.get<Identity>(`/identity`, {
         ...this.instance.prepareAxiosConfig(),
       })
 

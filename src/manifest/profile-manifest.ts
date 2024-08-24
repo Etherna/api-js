@@ -313,12 +313,12 @@ export class ProfileManifest extends BaseMantarayManifest {
 
   public addAvatar(imageProcessor: ImageProcessor) {
     this.importImageProcessor(imageProcessor)
-    this._preview.avatar = imageProcessor._image
+    this._preview.avatar = imageProcessor.image
   }
 
   public addCover(imageProcessor: ImageProcessor) {
     this.importImageProcessor(imageProcessor)
-    this._details.cover = imageProcessor._image
+    this._details.cover = imageProcessor.image
   }
 
   public removeAvatar() {

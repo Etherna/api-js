@@ -1,12 +1,14 @@
 import { BaseClient } from "../base-client"
-import { IdentityClient } from "./identity"
+import { SSOAuth } from "./auth"
+import { SSOIdentity } from "./identity"
 
 import type { BaseClientOptions } from "../base-client"
 
 export interface SSOClientOptions extends BaseClientOptions {}
 
 export class EthernaSSOClient extends BaseClient {
-  identity: IdentityClient
+  auth: SSOAuth
+  identity: SSOIdentity
 
   /**
    * Init an index client
@@ -15,6 +17,7 @@ export class EthernaSSOClient extends BaseClient {
   constructor(baseUrl: string, options?: SSOClientOptions) {
     super(baseUrl, options)
 
-    this.identity = new IdentityClient(this)
+    this.auth = new SSOAuth(this)
+    this.identity = new SSOIdentity(this)
   }
 }
