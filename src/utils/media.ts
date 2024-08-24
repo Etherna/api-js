@@ -49,6 +49,13 @@ export function getBitrate(size: number, duration: number): number {
   return Math.round((size * 8) / duration)
 }
 
+export enum BitrateCompressionRate {
+  none = 1,
+  low = 2,
+  normal = 4,
+  high = 8,
+}
+
 /**
  * Get the HLS video bitrate from resolution
  *
@@ -56,7 +63,11 @@ export function getBitrate(size: number, duration: number): number {
  * @param height Video resolution height
  * @returns The video bitrate
  */
-export function getHlsBitrate(width: number, height: number): number {
+export function getHlsBitrate(
+  width: number,
+  height: number,
+  compressionRate: BitrateCompressionRate = 4,
+): number {
   const area = width * height
   const bitrateMap = Object.fromEntries(
     [
@@ -92,5 +103,7 @@ export function getHlsBitrate(width: number, height: number): number {
   const ceilingValue = bitrateMap[ceilingKey] as number
   const floorValue = bitrateMap[floorKey] as number
 
-  return ((ceilingValue - floorValue) * (area - floorKey)) / (ceilingKey - floorKey) + floorValue
+  const bitrate =
+    ((ceilingValue - floorValue) * (area - floorKey)) / (ceilingKey - floorKey) + floorValue
+  return Math.round(bitrate / compressionRate)
 }
