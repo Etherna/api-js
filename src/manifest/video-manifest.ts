@@ -232,14 +232,17 @@ export class VideoManifest extends BaseMantarayManifest {
 
   public override async upload(options?: BaseManifestUploadOptions): Promise<Video> {
     if (this.ownerAddress !== this.beeClient.signer?.address) {
-      throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's profile")
+      throw new EthernaSdkError("PERMISSION_DENIED", "You can't update other user's videos")
     }
 
-    if (this.v !== CURRENT_MANIFEST_VERSION) {
+    if (+this.v < +CURRENT_MANIFEST_VERSION) {
       throw new EthernaSdkError(
         "UNSUPPORTED_OPERATION",
         "Outdate manifest version. Run '.migrate()' first",
       )
+    }
+    if (this.v !== CURRENT_MANIFEST_VERSION) {
+      throw new EthernaSdkError("UNSUPPORTED_OPERATION", "Unsupported manifest version.")
     }
 
     try {
@@ -250,8 +253,8 @@ export class VideoManifest extends BaseMantarayManifest {
       this._details.batchId = batchId
 
       // ensure data is not malformed
-      this._preview = VideoPreviewSchema.parse(this._preview)
-      this._details = VideoDetailsSchema.parse(this._details)
+      // this._preview = VideoPreviewSchema.parse(this._preview)
+      // this._details = VideoDetailsSchema.parse(this._details)
 
       // update data
       this.updateNodeDefaultEntries()
