@@ -19,7 +19,7 @@ export class VideoSerializer {
     const imageSerializer = new ImageSerializer()
 
     const videoRaw = VideoPreviewRawSchema.parse({
-      v: "2.0",
+      v: "2.1",
       title: videoPreview.title,
       duration: videoPreview.duration,
       ownerAddress: videoPreview.ownerAddress,
@@ -46,6 +46,7 @@ export class VideoSerializer {
         quality: source.type === "mp4" ? source.quality : undefined,
         bitrate: source.type === "mp4" ? source.bitrate : undefined,
       })),
+      captions: videoDetails.captions,
       batchId: beeReference.parse(videoDetails.batchId),
     })
 
