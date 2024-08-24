@@ -110,7 +110,7 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
     const videoDetailsRaw = VideoReader.emptyVideoDetails()
 
     if (video.lastValidManifest && !VideoReader.isValidatingManifest(video.lastValidManifest)) {
-      const v = video.lastValidManifest.batchId ? "2.0" : "1.0"
+      const v = video.lastValidManifest.batchId ? "2.1" : "1.0"
       videoPreviewRaw.v = v
       videoPreviewRaw.title = video.lastValidManifest.title
       videoPreviewRaw.duration = video.lastValidManifest.duration

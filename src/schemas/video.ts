@@ -73,7 +73,7 @@ export const VideoSourceRawSchema = z
 
 export const VideoPreviewRawSchema = z.object({
   /** Schema version */
-  v: z.enum(["1.0", "1.1", "1.2", "2.0"]).optional(),
+  v: z.enum(["1.0", "1.1", "1.2", "2.0", "2.1"]).optional(),
   /** Title of the video */
   title: slicedString(150),
   /** Video creation timestamp */
@@ -88,6 +88,12 @@ export const VideoPreviewRawSchema = z.object({
   thumbnail: ImageRawSchema.nullable(),
 })
 
+export const VideoCaptionSchema = z.object({
+  label: z.string().min(1),
+  lang: z.string().min(2),
+  path: z.string().min(3),
+})
+
 export const VideoDetailsRawSchema = z.object({
   /** Description of the video */
   description: slicedString(5000),
@@ -95,6 +101,8 @@ export const VideoDetailsRawSchema = z.object({
   aspectRatio: z.number().min(0).nullish(),
   /** List of available qualities of the video */
   sources: z.array(VideoSourceRawSchema).min(1),
+  /** List of available video captions */
+  captions: z.array(VideoCaptionSchema).optional(),
   /** batch id used */
   batchId: beeReference.nullable().optional(),
   /** Optional extra data */
@@ -161,7 +169,7 @@ export const VideoPreviewSchema = z.object({
   /** Thumbnail image data */
   thumbnail: ImageSchema.nullable(),
   /** Schema version */
-  v: z.enum(["1.0", "1.1", "1.2", "2.0"]),
+  v: z.enum(["1.0", "1.1", "1.2", "2.0", "2.1"]),
 })
 
 export const VideoDetailsSchema = z.object({
@@ -171,6 +179,8 @@ export const VideoDetailsSchema = z.object({
   sources: z.array(VideoSourceSchema).min(1),
   /** Video aspect ratio (width / height) */
   aspectRatio: z.number().min(0).nullable(),
+  /** List of available video captions */
+  captions: z.array(VideoCaptionSchema),
   /** Optional extra data */
   personalData: z.string().max(200).optional(),
   /** batch id used (null if v < `1.1`) */

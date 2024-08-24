@@ -58,6 +58,7 @@ export class VideoDeserializer {
           ),
         }),
       ),
+      captions: videoRaw.captions ?? [],
       batchId: videoRaw.batchId || null,
     }
 
