@@ -1,3 +1,4 @@
+import { anyReference } from "test/utils/test-consts"
 import { beforeAll, describe, expect, it } from "vitest"
 
 import { mockedThumbnailProcessor, mockedVideoProcessor } from "../utils/processor-mocks"
@@ -22,6 +23,8 @@ describe("video manifest read", () => {
     video.description = "This is my video"
     video.addVideo(mockedVideoProcessor)
     video.addThumbnail(mockedThumbnailProcessor)
+    video.addCaption(anyReference, "en-US", "English")
+    video.addCaption(anyReference, "it", "Italian")
 
     videoReference = (await video.upload({ batchId })).reference
   })
@@ -48,12 +51,12 @@ describe("video manifest read", () => {
         {
           type: "jpeg",
           width: 480,
-          path: "thumb/480-jpeg",
+          path: "thumb/480.jpeg",
         },
         {
           type: "jpeg",
           width: 960,
-          path: "thumb/960-jpeg",
+          path: "thumb/960.jpeg",
         },
       ],
     })
@@ -61,12 +64,12 @@ describe("video manifest read", () => {
     expect(video.sources[0]).toEqual({
       type: "hls",
       size: 0,
-      path: "hls/master.m3u8",
+      path: "sources/hls/master.m3u8",
     })
     expect(video.sources[1]).toEqual({
       type: "hls",
       size: 100_000,
-      path: "hls/480p/playlist.m3u8",
+      path: "sources/hls/480p/playlist.m3u8",
     })
   })
 
@@ -75,11 +78,11 @@ describe("video manifest read", () => {
 
     await video.loadNode()
 
-    expect(video.node.hasForkAtPath(encodePath("hls/master.m3u8"))).toBe(true)
-    expect(video.node.hasForkAtPath(encodePath("hls/480p/playlist.m3u8"))).toBe(true)
-    expect(video.node.hasForkAtPath(encodePath("hls/480p/1.ts"))).toBe(true)
-    expect(video.node.hasForkAtPath(encodePath("thumb/480-jpeg"))).toBe(true)
-    expect(video.node.hasForkAtPath(encodePath("thumb/960-jpeg"))).toBe(true)
+    expect(video.node.hasForkAtPath(encodePath("sources/hls/master.m3u8"))).toBe(true)
+    expect(video.node.hasForkAtPath(encodePath("sources/hls/480p/playlist.m3u8"))).toBe(true)
+    expect(video.node.hasForkAtPath(encodePath("sources/hls/480p/1.ts"))).toBe(true)
+    expect(video.node.hasForkAtPath(encodePath("thumb/480.jpeg"))).toBe(true)
+    expect(video.node.hasForkAtPath(encodePath("thumb/960.jpeg"))).toBe(true)
   })
 
   it("should download the video preview", async () => {
@@ -99,16 +102,17 @@ describe("video manifest read", () => {
         {
           type: "jpeg",
           width: 480,
-          path: "thumb/480-jpeg",
+          path: "thumb/480.jpeg",
         },
         {
           type: "jpeg",
           width: 960,
-          path: "thumb/960-jpeg",
+          path: "thumb/960.jpeg",
         },
       ],
     })
     expect(video.sources).toHaveLength(0)
+    expect(video.captions).toHaveLength(0)
   })
 
   it("should download the video details", async () => {
@@ -126,12 +130,23 @@ describe("video manifest read", () => {
     expect(video.sources[0]).toEqual({
       type: "hls",
       size: 0,
-      path: "hls/master.m3u8",
+      path: "sources/hls/master.m3u8",
     })
     expect(video.sources[1]).toEqual({
       type: "hls",
       size: 100_000,
-      path: "hls/480p/playlist.m3u8",
+      path: "sources/hls/480p/playlist.m3u8",
+    })
+    expect(video.captions).toHaveLength(2)
+    expect(video.captions[0]).toEqual({
+      label: "English",
+      lang: "en-US",
+      path: "captions/en-US.vtt",
+    })
+    expect(video.captions[1]).toEqual({
+      label: "Italian",
+      lang: "it",
+      path: "captions/it.vtt",
     })
   })
 })
@@ -160,6 +175,37 @@ describe("video manifest write", () => {
     expect(video.description).toBe("This is my new video")
   })
 
+  it("should add a caption", async () => {
+    const video = new VideoManifest({ beeClient })
+    video.addCaption(anyReference, "en-US", "English")
+    video.addCaption(anyReference, "it", "Italian")
+
+    expect(video.captions).toHaveLength(2)
+    expect(video.captions[0]).toEqual({
+      label: "English",
+      lang: "en-US",
+      path: "captions/en-US.vtt",
+    })
+  })
+
+  it("should remove a caption", async () => {
+    const video = new VideoManifest({ beeClient })
+    video.addCaption(anyReference, "en-US", "English")
+    video.addCaption(anyReference, "it", "Italian")
+    video.removeCaption("it")
+
+    expect(video.captions).toHaveLength(1)
+    expect(video.captions[0]).toEqual({
+      label: "English",
+      lang: "en-US",
+      path: "captions/en-US.vtt",
+    })
+
+    const nodeHasPath = video.node.hasForkAtPath(encodePath("captions/it.vtt"))
+
+    expect(nodeHasPath).toBe(false)
+  })
+
   it("should set the thumbnail", async () => {
     const video = new VideoManifest({ beeClient })
     video.addThumbnail(mockedThumbnailProcessor)
@@ -171,12 +217,12 @@ describe("video manifest write", () => {
         {
           type: "jpeg",
           width: 480,
-          path: "thumb/480-jpeg",
+          path: "thumb/480.jpeg",
         },
         {
           type: "jpeg",
           width: 960,
-          path: "thumb/960-jpeg",
+          path: "thumb/960.jpeg",
         },
       ],
     })
@@ -192,12 +238,12 @@ describe("video manifest write", () => {
     expect(video.sources[0]).toEqual({
       type: "hls",
       size: 0,
-      path: "hls/master.m3u8",
+      path: "sources/hls/master.m3u8",
     })
     expect(video.sources[1]).toEqual({
       type: "hls",
       size: 100_000,
-      path: "hls/480p/playlist.m3u8",
+      path: "sources/hls/480p/playlist.m3u8",
     })
   })
 

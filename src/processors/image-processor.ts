@@ -22,7 +22,7 @@ export interface ImageProcessorOptions {
    * - `$size` will be replaced by the image size
    * - `$type` will be replaced by the image type
    *
-   * Example: `avatar/$size-$type`
+   * Example: `avatar/$size.$type`
    */
   pathFormat?: string
 }
@@ -31,9 +31,9 @@ export const AVATAR_SIZES = [128, 256, 512]
 export const COVER_SIZES = [480, 768, 1024, 1280, 1800]
 export const THUMBNAIL_SIZES = [480, 960, 1280]
 
-export const AVATAR_PATH_FORMAT = "avatar/$size-$type"
-export const COVER_PATH_FORMAT = "cover/$size-$type"
-export const THUMBNAIL_PATH_FORMAT = "thumb/$size-$type"
+export const AVATAR_PATH_FORMAT = "avatar/$size.$type"
+export const COVER_PATH_FORMAT = "cover/$size.$type"
+export const THUMBNAIL_PATH_FORMAT = "thumb/$size.$type"
 
 export class ImageProcessor extends BaseProcessor {
   private _image: Image | null = null
@@ -66,14 +66,14 @@ export class ImageProcessor extends BaseProcessor {
           case "thumbnail":
             return THUMBNAIL_PATH_FORMAT
           default:
-            return "image/$size-$type"
+            return "image/$size.$type"
         }
       })()
 
     const parsePath = (width: number, type: string) =>
       pathFormat.replace(/\$size/g, width.toString()).replace(/\$type/g, type)
     const parseFilename = (width: number, type: string) =>
-      `${typeof options.sizes === "string" ? options.sizes : "image"}-${width}w-${type}`
+      `${typeof options.sizes === "string" ? options.sizes : "image"}-${width}w.${type}`
 
     const output = [
       {

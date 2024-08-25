@@ -11,12 +11,12 @@ Object.defineProperty(mockedVideoProcessor, "video", {
       {
         type: "hls",
         size: 0,
-        path: "hls/master.m3u8",
+        path: "sources/hls/master.m3u8",
       },
       {
         type: "hls",
         size: 100_000,
-        path: "hls/480p/playlist.m3u8",
+        path: "sources/hls/480p/playlist.m3u8",
       },
     ],
   } satisfies typeof mockedVideoProcessor.video,
@@ -24,7 +24,7 @@ Object.defineProperty(mockedVideoProcessor, "video", {
 Object.defineProperty(mockedVideoProcessor, "processorOutputs", {
   value: [
     {
-      path: "hls/master.m3u8",
+      path: "sources/hls/master.m3u8",
       entryAddress: anyReference,
       metadata: {
         filename: "master.m3u8",
@@ -32,7 +32,7 @@ Object.defineProperty(mockedVideoProcessor, "processorOutputs", {
       },
     },
     {
-      path: "hls/480p/playlist.m3u8",
+      path: "sources/hls/480p/playlist.m3u8",
       entryAddress: anyReference,
       metadata: {
         filename: "480p.m3u8",
@@ -40,7 +40,7 @@ Object.defineProperty(mockedVideoProcessor, "processorOutputs", {
       },
     },
     {
-      path: "hls/480p/1.ts",
+      path: "sources/hls/480p/1.ts",
       entryAddress: anyReference,
       metadata: {
         filename: "1.ts",
@@ -60,12 +60,12 @@ Object.defineProperty(mockedAvatarProcessor, "image", {
       {
         type: "jpeg",
         width: 128,
-        path: "avatar/128-jpeg",
+        path: "avatar/128.jpeg",
       },
       {
         type: "jpeg",
         width: 256,
-        path: "avatar/256-jpeg",
+        path: "avatar/256.jpeg",
       },
     ],
   } satisfies typeof mockedAvatarProcessor.image,
@@ -73,18 +73,18 @@ Object.defineProperty(mockedAvatarProcessor, "image", {
 Object.defineProperty(mockedAvatarProcessor, "processorOutputs", {
   value: [
     {
-      path: "avatar/128-jpeg",
+      path: "avatar/128.jpeg",
       entryAddress: anyReference,
       metadata: {
-        filename: "128-jpeg",
+        filename: "128.jpeg",
         contentType: "image/jpeg",
       },
     },
     {
-      path: "avatar/256-jpeg",
+      path: "avatar/256.jpeg",
       entryAddress: anyReference,
       metadata: {
-        filename: "256-jpeg",
+        filename: "256.jpeg",
         contentType: "image/jpeg",
       },
     },
@@ -100,12 +100,12 @@ Object.defineProperty(mockedCoverProcessor, "image", {
       {
         type: "jpeg",
         width: 480,
-        path: "cover/480-jpeg",
+        path: "cover/480.jpeg",
       },
       {
         type: "jpeg",
         width: 768,
-        path: "cover/768-jpeg",
+        path: "cover/768.jpeg",
       },
     ],
   } satisfies typeof mockedCoverProcessor.image,
@@ -113,18 +113,18 @@ Object.defineProperty(mockedCoverProcessor, "image", {
 Object.defineProperty(mockedCoverProcessor, "processorOutputs", {
   value: [
     {
-      path: "cover/480-jpeg",
+      path: "cover/480.jpeg",
       entryAddress: anyReference,
       metadata: {
-        filename: "480-jpeg",
+        filename: "480.jpeg",
         contentType: "image/jpeg",
       },
     },
     {
-      path: "cover/768-jpeg",
+      path: "cover/768.jpeg",
       entryAddress: anyReference,
       metadata: {
-        filename: "768-jpeg",
+        filename: "768.jpeg",
         contentType: "image/jpeg",
       },
     },
@@ -140,12 +140,12 @@ Object.defineProperty(mockedThumbnailProcessor, "image", {
       {
         type: "jpeg",
         width: 480,
-        path: "thumb/480-jpeg",
+        path: "thumb/480.jpeg",
       },
       {
         type: "jpeg",
         width: 960,
-        path: "thumb/960-jpeg",
+        path: "thumb/960.jpeg",
       },
     ],
   } satisfies typeof mockedThumbnailProcessor.image,
@@ -153,18 +153,18 @@ Object.defineProperty(mockedThumbnailProcessor, "image", {
 Object.defineProperty(mockedThumbnailProcessor, "processorOutputs", {
   value: [
     {
-      path: "thumb/480-jpeg",
+      path: "thumb/480.jpeg",
       entryAddress: anyReference,
       metadata: {
-        filename: "480-jpeg",
+        filename: "480.jpeg",
         contentType: "image/jpeg",
       },
     },
     {
-      path: "thumb/960-jpeg",
+      path: "thumb/960.jpeg",
       entryAddress: anyReference,
       metadata: {
-        filename: "960-jpeg",
+        filename: "960.jpeg",
         contentType: "image/jpeg",
       },
     },

@@ -70,7 +70,7 @@ export const VideoSourceSchema = z
 
 export const VideoPreviewSchema = z.object({
   /** Schema version */
-  v: z.enum(["1.0", "1.1", "1.2", "2.0"]).optional(),
+  v: z.enum(["1.0", "1.1", "1.2", "2.0", "2.1"]).optional(),
   /** Title of the video */
   title: SlicedStringSchema(150),
   /** Video creation timestamp */
@@ -85,6 +85,12 @@ export const VideoPreviewSchema = z.object({
   thumbnail: ImageSchema.nullable(),
 })
 
+export const VideoCaptionSchema = z.object({
+  label: z.string().min(1),
+  lang: z.string().min(2),
+  path: z.string().min(3),
+})
+
 export const VideoDetailsSchema = z.object({
   /** Description of the video */
   description: SlicedStringSchema(5000),
@@ -92,6 +98,8 @@ export const VideoDetailsSchema = z.object({
   aspectRatio: z.number().min(0),
   /** List of available qualities of the video */
   sources: z.array(VideoSourceSchema).min(1),
+  /** List of available video captions */
+  captions: z.array(VideoCaptionSchema).default([]),
   /** batch id used */
   batchId: BeeReferenceSchema.nullable().optional(),
   /** Optional extra data */
@@ -103,3 +111,4 @@ export type VideoQuality = z.infer<typeof quality>
 export type VideoSource = z.infer<typeof VideoSourceSchema>
 export type VideoPreview = z.infer<typeof VideoPreviewSchema>
 export type VideoDetails = z.infer<typeof VideoDetailsSchema>
+export type VideoCaption = z.infer<typeof VideoCaptionSchema>

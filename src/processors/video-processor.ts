@@ -16,6 +16,10 @@ export interface VideoProcessorOptions {
    * - Default: `https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm`
    */
   ffmpegBaseUrl?: string
+  /**
+   * - Default: `"sources/hls"`
+   */
+  basePath?: string
   signal?: AbortSignal
 }
 
@@ -29,6 +33,7 @@ let ffmpeg: FFmpeg
 const BASE_URL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
 const DEFAULT_RESOLUTIONS = [360, 480, 720, 1080, 1440]
 const INPUT_FILENAME = "input"
+const BASE_PATH = "sources/hls"
 
 const handleFFmpegPromise = (exec: Promise<number>) => {
   return exec
@@ -84,6 +89,8 @@ export class VideoProcessor extends BaseProcessor {
     await ffmpeg.deleteDir("hls") // clear previous run
     await ffmpeg.createDir("hls")
 
+    const basePath = options.basePath ?? BASE_PATH
+
     await handleFFmpegPromise(
       ffmpeg.exec([
         // input
@@ -112,34 +119,34 @@ export class VideoProcessor extends BaseProcessor {
         "-hls_playlist_type",
         "vod",
         "-hls_segment_filename",
-        '"hls/%v/%d.ts"',
+        `"${basePath}/%v/%d.ts"`,
         "-var_stream_map",
         `"${resolutions.map(({ height }, i) => `v:${i},a:${i},name:${height}p`).join(" ")}"`,
         "-master_pl_name",
         "master.m3u8",
-        "hls/%v/playlist.m3u8",
+        `${basePath}/%v/playlist.m3u8`,
       ]),
     )
 
     const masterFile = {
-      path: "hls/master.m3u8",
-      data: (await ffmpeg.readFile("hls/master.m3u8")) as Uint8Array,
+      path: `${basePath}/master.m3u8`,
+      data: (await ffmpeg.readFile(`${basePath}/master.m3u8`)) as Uint8Array,
     }
     const resolutionsPlaylists = await Promise.all(
       resolutions.map(async (res) => ({
-        path: `hls/${res}/playlist.m3u8`,
-        data: (await ffmpeg.readFile(`hls/${res}/playlist.m3u8`)) as Uint8Array,
+        path: `${basePath}/${res}/playlist.m3u8`,
+        data: (await ffmpeg.readFile(`${basePath}/${res}/playlist.m3u8`)) as Uint8Array,
       })),
     )
     const resolutionsSegments = await Promise.all(
       resolutions.map(async (res) => {
-        const resDirContent = (await ffmpeg.listDir(`hls/${res}`)).filter(
+        const resDirContent = (await ffmpeg.listDir(`${basePath}/${res}`)).filter(
           (f) => !f.isDir && f.name.endsWith(".ts"),
         )
         return await Promise.all(
           resDirContent.map(async (file) => {
-            const data = (await ffmpeg.readFile(`hls/${res}/${file.name}`)) as Uint8Array
-            return { path: `hls/${res}/${file.name}`, data }
+            const data = (await ffmpeg.readFile(`${basePath}/${res}/${file.name}`)) as Uint8Array
+            return { path: `${basePath}/${res}/${file.name}`, data }
           }),
         )
       }),
@@ -151,12 +158,12 @@ export class VideoProcessor extends BaseProcessor {
       sources: [
         {
           type: "hls",
-          path: "hls/master.m3u8",
+          path: `${basePath}/master.m3u8`,
           size: 0,
         },
         ...resolutions.map((res, i) => ({
           type: "hls" as const,
-          path: `hls/${res}/playlist.m3u8`,
+          path: `${basePath}/${res}/playlist.m3u8`,
           size: resolutionsSegments[i]?.reduce((acc, { data }) => acc + data.byteLength, 0) ?? 0,
         })),
       ],

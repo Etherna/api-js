@@ -262,7 +262,17 @@ export class BaseMantarayManifest extends BaseManifest {
     })
   }
 
-  protected enqueueData(data: Uint8Array, options?: BaseManifestUploadOptions) {
+  protected enqueueData(data: Uint8Array, options?: BaseManifestUploadOptions): BytesReference
+  protected enqueueData(
+    data: Uint8Array,
+    key?: string,
+    options?: BaseManifestUploadOptions,
+  ): BytesReference
+  protected enqueueData(
+    data: Uint8Array,
+    keyOrOptions?: string | BaseManifestUploadOptions,
+    opts?: BaseManifestUploadOptions,
+  ): BytesReference {
     const chunkedFile = makeChunkedFile(data)
 
     // add collisions to the stamp calculator
@@ -272,6 +282,9 @@ export class BaseMantarayManifest extends BaseManifest {
       .forEach((chunk) =>
         this.manifestBucketCalculator.add(bytesReferenceToReference(chunk.address())),
       )
+
+    const key = typeof keyOrOptions === "string" ? keyOrOptions : undefined
+    const options = typeof keyOrOptions === "object" ? keyOrOptions : opts
 
     this.queue.enqueue(async () => {
       if (!this.batchId) {
@@ -290,35 +303,39 @@ export class BaseMantarayManifest extends BaseManifest {
         timeout: options?.timeout,
       })
       await chunksUploader.drain()
-    })
+    }, key)
     return chunkedFile.address() as BytesReference
   }
 
-  protected importImageProcessor(imageProcessor: ImageProcessor) {
+  protected importImageProcessor(imageProcessor: ImageProcessor, key = "image") {
     if (!imageProcessor.image) {
       throw new EthernaSdkError("BAD_REQUEST", "Image not processed. Run 'process' method first")
     }
 
-    this.enqueueProcessor(imageProcessor)
+    this.enqueueProcessor(imageProcessor, key)
 
     imageProcessor.processorOutputs.forEach((output) => {
       this.addFile(output.entryAddress, output.path, output.metadata)
     })
   }
 
-  protected importVideoProcessor(videoProcessor: VideoProcessor) {
+  protected importVideoProcessor(videoProcessor: VideoProcessor, key = "video") {
     if (!videoProcessor.video) {
       throw new EthernaSdkError("BAD_REQUEST", "Video not processed. Run 'process' method first")
     }
 
-    this.enqueueProcessor(videoProcessor)
+    this.enqueueProcessor(videoProcessor, key)
 
     videoProcessor.processorOutputs.forEach((output) => {
       this.addFile(output.entryAddress, output.path, output.metadata)
     })
   }
 
-  protected enqueueProcessor(processor: BaseProcessor, options?: BaseManifestUploadOptions) {
+  protected enqueueProcessor(
+    processor: BaseProcessor,
+    key?: string,
+    options?: BaseManifestUploadOptions,
+  ) {
     // merge collisions
     this.manifestBucketCalculator.merge(processor.stampCalculator)
 
@@ -336,7 +353,7 @@ export class BaseMantarayManifest extends BaseManifest {
           batchId: this.batchId,
           ...options,
         })
-      })
+      }, key)
     }
   }
 }

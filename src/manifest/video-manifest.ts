@@ -13,6 +13,7 @@ import {
   dateToTimestamp,
   encodePath,
   getBzzNodeInfo,
+  getReferenceFromData,
   getVideoMeta,
   isValidReference,
   structuredClone,
@@ -39,7 +40,9 @@ export interface Video {
 
 export type ProfileManifestInit = Reference | { owner: EthAddress } | Video
 
-const CURRENT_MANIFEST_VERSION = "2.0" as const
+const CURRENT_MANIFEST_VERSION = "2.1" as const
+const THUMB_QUEUE_KEY = "thumb"
+const VIDEO_QUEUE_KEY = "video"
 
 /**
  * This class is used to fetch any video data or update a video of the current user
@@ -58,6 +61,7 @@ export class VideoManifest extends BaseMantarayManifest {
     description: "",
     aspectRatio: 0,
     sources: [],
+    captions: [],
     batchId: EmptyReference,
   }
 
@@ -162,6 +166,10 @@ export class VideoManifest extends BaseMantarayManifest {
     return structuredClone(this._details.sources)
   }
 
+  public get captions() {
+    return structuredClone(this._details.captions)
+  }
+
   public override async download(options: BaseMantarayManifestDownloadOptions): Promise<Video> {
     try {
       if (this._reference === EmptyReference) {
@@ -253,8 +261,8 @@ export class VideoManifest extends BaseMantarayManifest {
       this._details.batchId = batchId
 
       // ensure data is not malformed
-      // this._preview = VideoPreviewSchema.parse(this._preview)
-      // this._details = VideoDetailsSchema.parse(this._details)
+      this._preview = VideoPreviewSchema.parse(this._preview)
+      this._details = VideoDetailsSchema.parse(this._details)
 
       // update data
       this.updateNodeDefaultEntries()
@@ -392,11 +400,18 @@ export class VideoManifest extends BaseMantarayManifest {
   }
 
   public addThumbnail(imageProcessor: ImageProcessor) {
-    this.importImageProcessor(imageProcessor)
+    this.queue.dequeue(THUMB_QUEUE_KEY)
+    this.importImageProcessor(imageProcessor, THUMB_QUEUE_KEY)
     this._preview.thumbnail = imageProcessor.image
   }
 
+  public removeThumbnail() {
+    this.queue.dequeue(THUMB_QUEUE_KEY)
+  }
+
   public addVideo(videoProcessor: VideoProcessor) {
+    this.queue.dequeue(VIDEO_QUEUE_KEY)
+
     this.importVideoProcessor(videoProcessor)
 
     if (!videoProcessor.video) {
@@ -406,5 +421,81 @@ export class VideoManifest extends BaseMantarayManifest {
     this._preview.duration = videoProcessor.video.duration
     this._details.aspectRatio = videoProcessor.video.aspectRatio
     this._details.sources = videoProcessor.video.sources
+  }
+
+  public addCaption(reference: Reference, lang: string, label: string): void
+  public addCaption(text: string | Uint8Array, lang: string, label: string): void
+  public addCaption(
+    textOrReference: string | Uint8Array | Reference,
+    lang: string,
+    label: string,
+  ): void {
+    const data =
+      textOrReference instanceof Uint8Array
+        ? textOrReference
+        : new TextEncoder().encode(textOrReference)
+    const reference =
+      typeof textOrReference === "string" && isValidReference(textOrReference)
+        ? textOrReference
+        : getReferenceFromData(data)
+
+    if (typeof textOrReference !== "string" || !isValidReference(textOrReference)) {
+      const header = new TextEncoder().encode(`WEBVTT\n`)
+
+      // check if valid vtt
+      if (
+        data.length < header.length ||
+        !data.slice(0, header.length).every((v, i) => v === header[i])
+      ) {
+        throw new EthernaSdkError("INVALID_ARGUMENT", "Invalid Web VTT file")
+      }
+    }
+
+    const name = this.getCaptionName(lang)
+    const key = this.getCaptionKey(lang)
+    const path = this.getCaptionPath(lang)
+
+    this.queue.dequeue(key)
+
+    this._details.captions.push({
+      lang,
+      label,
+      path,
+    })
+
+    this.addFile(reference, path, {
+      filename: `${name}.vtt`,
+      contentType: "text/vtt",
+    })
+
+    if (typeof textOrReference === "string" && !isValidReference(textOrReference)) {
+      this.enqueueData(data, key, {
+        batchId: this.batchId,
+      })
+    }
+  }
+
+  public removeCaption(lang: string): void {
+    const key = this.getCaptionKey(lang)
+    const path = this.getCaptionPath(lang)
+
+    this._details.captions = this._details.captions.filter((caption) => caption.lang !== lang)
+    this.queue.dequeue(key)
+    this.removeFile(path)
+  }
+
+  private getCaptionPath(lang: string) {
+    return `captions/${this.getCaptionName(lang)}.vtt`
+  }
+
+  private getCaptionKey(lang: string) {
+    return `caption-${this.getCaptionName(lang)}`
+  }
+
+  private getCaptionName(lang: string) {
+    if (!lang) {
+      throw new EthernaSdkError("INVALID_ARGUMENT", "Language code is required")
+    }
+    return lang
   }
 }
