@@ -6,8 +6,8 @@ export const isValidReference = (reference: string): reference is Reference => {
 
 export function getBzzUrl(origin: string, reference: string, path?: string): string {
   const baseReference = (() => {
-    if (isValidReference(reference)) return reference
     if (path && isValidReference(path)) return path
+    if (isValidReference(reference)) return reference
     return null
   })()
   const basePath = (() => {
