@@ -5,12 +5,22 @@ export const isValidReference = (reference: string): reference is Reference => {
 }
 
 export function getBzzUrl(origin: string, reference: string, path?: string): string {
-  if (!reference || !isValidReference(reference)) {
+  const baseReference = (() => {
+    if (isValidReference(reference)) return reference
+    if (path && isValidReference(path)) return path
+    return null
+  })()
+  const basePath = (() => {
+    if (baseReference === path) return ""
+    return path ?? ""
+  })()
+
+  if (!baseReference) {
     throw new Error("Provide a valid reference")
   }
-  const url = new URL(`/bzz/${reference}/${path ?? ""}`, origin)
+  const url = new URL(`/bzz/${baseReference}/${basePath}`, origin)
   // add trailing slash to root to avoid CORS errors due to redirects
-  if (!path) {
+  if (!basePath) {
     url.pathname = url.pathname.replace(/\/?$/, "/")
   }
   return url.href
