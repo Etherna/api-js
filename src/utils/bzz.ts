@@ -1,7 +1,9 @@
 import type { Reference } from "../clients"
 
+export const BZZ_REFERENCE_REGEX = /^[0-9a-f]{64}$/
+
 export const isValidReference = (reference: string): reference is Reference => {
-  return /^[0-9a-f]{64}$/.test(reference)
+  return BZZ_REFERENCE_REGEX.test(reference)
 }
 
 export function getBzzUrl(origin: string, reference: string, path?: string): string {
@@ -11,7 +13,7 @@ export function getBzzUrl(origin: string, reference: string, path?: string): str
     return null
   })()
   const basePath = (() => {
-    if (baseReference === path) return ""
+    if (path && isValidReference(path)) return ""
     return path ?? ""
   })()
 

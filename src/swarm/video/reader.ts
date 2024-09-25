@@ -115,6 +115,14 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       videoPreviewRaw.title = video.lastValidManifest.title
       videoPreviewRaw.duration = video.lastValidManifest.duration
       videoPreviewRaw.thumbnail = video.lastValidManifest.thumbnail
+        ? {
+            ...video.lastValidManifest.thumbnail,
+            sources: video.lastValidManifest.thumbnail.sources.map((source) => ({
+              ...source,
+              path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
+            })),
+          }
+        : null
       videoPreviewRaw.ownerAddress = video.ownerAddress
       videoPreviewRaw.createdAt = dateToTimestamp(new Date(video.creationDateTime))
       videoPreviewRaw.updatedAt = dateToTimestamp(new Date(video.creationDateTime))
@@ -122,9 +130,12 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
       videoDetailsRaw.batchId = video.lastValidManifest.batchId
       videoDetailsRaw.description = video.lastValidManifest.description ?? ""
-      videoDetailsRaw.sources = video.lastValidManifest.sources.map((s) =>
-        VideoSourceRawSchema.parse(s),
-      )
+      videoDetailsRaw.sources = video.lastValidManifest.sources
+        .map((s) => VideoSourceRawSchema.parse(s))
+        .map((source) => ({
+          ...source,
+          path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
+        }))
     }
 
     return {
@@ -141,6 +152,14 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
     videoPreviewRaw.title = video.title
     videoPreviewRaw.duration = video.duration
     videoPreviewRaw.thumbnail = video.thumbnail
+      ? {
+          ...video.thumbnail,
+          sources: video.thumbnail.sources.map((source) => ({
+            ...source,
+            path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
+          })),
+        }
+      : null
     videoPreviewRaw.ownerAddress = video.ownerAddress
     videoPreviewRaw.createdAt = new Date(video.createdAt).getTime()
     videoPreviewRaw.updatedAt = new Date(video.updatedAt).getTime()
