@@ -43,7 +43,9 @@ export const VideoSourceRawSchema = z
     }),
     z.object({
       /** Source type */
-      type: z.enum(["dash", "hls"]),
+      type: z
+        .enum(["dash", "Dash", "hls", "Hls"])
+        .transform((data) => data.toLowerCase() as "dash" | "hls"),
       /** Path of the source */
       path: z.string().min(3),
       /** Video size in bytes */
@@ -130,7 +132,9 @@ export const VideoSourceSchema = z
     z
       .object({
         /** Source type */
-        type: z.enum(["dash", "hls"]),
+        type: z
+          .enum(["dash", "Dash", "hls", "Hls"])
+          .transform((data) => data.toLowerCase() as "dash" | "hls"),
         /** Path of the source */
         path: z.string().min(3),
         /** Video size in bytes */

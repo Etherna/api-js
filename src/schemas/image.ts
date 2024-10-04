@@ -5,7 +5,15 @@ import { beeReference, nonEmptyRecord } from "./base"
 
 export const imageSize = z.custom<`${number}w`>((val) => /^\d+w$/g.test(val as string))
 
-export const imageType = z.enum(["jpeg", "png", "webp", "avif", "jpeg-xl"]).default("jpeg")
+const baseImageTypes = ["jpeg", "png", "webp", "avif", "jpeg-xl"] as const
+const capitalImageTypes = baseImageTypes.map(
+  (type) => `${type[0].toUpperCase()}${type.slice(1)}` as const,
+)
+
+export const imageType = z
+  .enum([...baseImageTypes, ...capitalImageTypes])
+  .default("jpeg")
+  .transform((data) => data.toLowerCase() as ImageType)
 
 export const ImageRawLegacySourcesSchema = nonEmptyRecord(
   /** Image size with related bee reference */
@@ -99,7 +107,7 @@ export const ImageSchema = z.object({
 
 // Types
 export type ImageSize = z.infer<typeof imageSize>
-export type ImageType = z.infer<typeof imageType>
+export type ImageType = (typeof baseImageTypes)[number]
 export type ImageRawSource = z.infer<typeof ImageRawSourceSchema>
 export type ImageSource = z.infer<typeof ImageSourceSchema>
 export type ImageSources = z.infer<typeof ImageSourcesSchema>

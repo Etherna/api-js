@@ -25,7 +25,7 @@ export interface FolderBuilderConfig {
   errorDocument?: string
 }
 
-export default abstract class FolderBuilder {
+export class FolderBuilder {
   protected node = new MantarayNode()
   protected queue: Queue
   protected bytesTotal = 0
