@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { AUDIO_MANIFEST_REGEX, MASTER_MANIFEST_REGEX } from "../utils"
 import { beeReference, ethAddress, slicedString, timestamp } from "./base"
 import { ImageRawSchema, ImageSchema } from "./image"
 import { MantarayNodeSchema } from "./mantaray"
@@ -144,8 +145,8 @@ export const VideoSourceSchema = z
       })
       .transform((data) => ({
         ...data,
-        isMaster: data.path.endsWith("manifest.mpd") || data.path.endsWith("manifest.m3u8"),
-        isAudio: data.path.endsWith("audio.mpd") || data.path.endsWith("audio.m3u8"),
+        isMaster: MASTER_MANIFEST_REGEX.test(data.path),
+        isAudio: AUDIO_MANIFEST_REGEX.test(data.path),
       })),
   ])
   .superRefine((data, ctx) => {

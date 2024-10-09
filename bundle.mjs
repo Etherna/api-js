@@ -1,10 +1,10 @@
 // @ts-check
-import { build } from "vite"
 import fs from "node:fs"
 import path from "node:path"
+import { build } from "vite"
 
 // eslint-disable-next-line prettier/prettier
-import packageJson from "./package.json" assert { type: "json" }
+import packageJson from "./package.json" with { type: "json" }
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
 
@@ -55,7 +55,7 @@ if (fs.existsSync(DIST_PATH)) {
 const watch = process.argv.includes("--watch")
 
 const results = await Promise.allSettled(
-  entries.map(lib =>
+  entries.map((lib) =>
     build({
       mode: watch ? "development" : "production",
       build: {
@@ -76,8 +76,8 @@ const results = await Promise.allSettled(
       resolve: {
         alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
       },
-    })
-  )
+    }),
+  ),
 )
 
 results.forEach((result, i) => {
@@ -88,7 +88,7 @@ results.forEach((result, i) => {
   if (Array.isArray(result.value)) return
   if ("output" in result.value) return
 
-  result.value.on("change", path => {
+  result.value.on("change", (path) => {
     console.log(`File ${path} has been changed`)
   })
 })
@@ -107,7 +107,7 @@ delete packageCopy.pnpm
 // package.json
 fs.writeFileSync(
   path.join(DIST_PATH, "package.json"),
-  Buffer.from(JSON.stringify(packageCopy, null, 2), "utf-8")
+  Buffer.from(JSON.stringify(packageCopy, null, 2), "utf-8"),
 )
 
 // README.md
