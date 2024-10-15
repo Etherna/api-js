@@ -114,10 +114,13 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
     }
 
     const videoPreviewRaw = VideoReader.indexVideoPreviewToRaw(video.lastValidManifest)
-    const v = video.lastValidManifest.batchId ? "2.1" : "1.0"
     videoPreviewRaw.v = video.lastValidManifest.batchId ? "2.1" : "1.2"
 
     const videoDetailsRaw = VideoReader.emptyVideoDetails()
+    videoDetailsRaw.captions = video.lastValidManifest.captions?.map((c) => ({
+      ...c,
+      path: c.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
+    }))
     videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
     videoDetailsRaw.batchId = video.lastValidManifest.batchId
     videoDetailsRaw.description = video.lastValidManifest.description ?? ""

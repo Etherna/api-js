@@ -207,6 +207,7 @@ export type VideoPreviewRaw = z.infer<typeof VideoPreviewRawSchema>
 export type VideoDetailsRaw = z.infer<typeof VideoDetailsRawSchema>
 export type VideoSource = z.infer<typeof VideoSourceSchema>
 export type VideoSourceRaw = z.infer<typeof VideoSourceRawSchema>
+export type VideoCaption = z.infer<typeof VideoCaptionSchema>
 export type VideoPreview = z.infer<typeof VideoPreviewSchema>
 export type VideoDetails = z.infer<typeof VideoDetailsSchema>
 export type Video = {

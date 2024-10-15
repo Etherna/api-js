@@ -1,3 +1,5 @@
+import { VideoCaption } from "../../schemas/video"
+
 import type { BatchId, EthAddress, Reference } from ".."
 import type { ImageRaw, VideoQuality, VideoSourceRaw } from "../.."
 
@@ -54,6 +56,7 @@ export type IndexVideoManifest = Omit<IndexVideoPreview, "id"> & {
   originalQuality: VideoQuality | null
   personalData: string | null
   sources: VideoSourceRaw[]
+  captions?: VideoCaption[]
 }
 
 export type IndexVideoCreation = {
