@@ -72,7 +72,7 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       const reference = indexVideo?.lastValidManifest?.hash as Reference
 
       if (reference) {
-        videoRaw = this.indexVideoToRaw(indexVideo!)
+        videoRaw = VideoReader.indexVideoToRaw(indexVideo!)
         this.reference = reference
       }
     }
@@ -105,38 +105,28 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
     }
   }
 
-  indexVideoToRaw(video: IndexVideo): VideoRaw {
-    const videoPreviewRaw = VideoReader.emptyVideoPreview()
-    const videoDetailsRaw = VideoReader.emptyVideoDetails()
-
-    if (video.lastValidManifest && !VideoReader.isValidatingManifest(video.lastValidManifest)) {
-      const v = video.lastValidManifest.batchId ? "2.1" : "1.0"
-      videoPreviewRaw.v = v
-      videoPreviewRaw.title = video.lastValidManifest.title
-      videoPreviewRaw.duration = video.lastValidManifest.duration
-      videoPreviewRaw.thumbnail = video.lastValidManifest.thumbnail
-        ? {
-            ...video.lastValidManifest.thumbnail,
-            sources: video.lastValidManifest.thumbnail.sources.map((source) => ({
-              ...source,
-              path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
-            })),
-          }
-        : null
-      videoPreviewRaw.ownerAddress = video.ownerAddress
-      videoPreviewRaw.createdAt = dateToTimestamp(new Date(video.creationDateTime))
-      videoPreviewRaw.updatedAt = dateToTimestamp(new Date(video.creationDateTime))
-
-      videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
-      videoDetailsRaw.batchId = video.lastValidManifest.batchId
-      videoDetailsRaw.description = video.lastValidManifest.description ?? ""
-      videoDetailsRaw.sources = video.lastValidManifest.sources
-        .map((s) => VideoSourceRawSchema.parse(s))
-        .map((source) => ({
-          ...source,
-          path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
-        }))
+  static indexVideoToRaw(video: IndexVideo): VideoRaw {
+    if (!video.lastValidManifest || VideoReader.isValidatingManifest(video.lastValidManifest)) {
+      return {
+        preview: VideoReader.emptyVideoPreview(),
+        details: VideoReader.emptyVideoDetails(),
+      }
     }
+
+    const videoPreviewRaw = VideoReader.indexVideoPreviewToRaw(video.lastValidManifest)
+    const v = video.lastValidManifest.batchId ? "2.1" : "1.0"
+    videoPreviewRaw.v = video.lastValidManifest.batchId ? "2.1" : "1.2"
+
+    const videoDetailsRaw = VideoReader.emptyVideoDetails()
+    videoDetailsRaw.aspectRatio = video.lastValidManifest.aspectRatio
+    videoDetailsRaw.batchId = video.lastValidManifest.batchId
+    videoDetailsRaw.description = video.lastValidManifest.description ?? ""
+    videoDetailsRaw.sources = video.lastValidManifest.sources
+      .map((s) => VideoSourceRawSchema.parse(s))
+      .map((source) => ({
+        ...source,
+        path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
+      }))
 
     return {
       preview: videoPreviewRaw,
@@ -144,30 +134,26 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
     }
   }
 
-  indexPreviewToRaw(video: IndexVideoPreview): VideoRaw {
-    const videoPreviewRaw = VideoReader.emptyVideoPreview()
-    const videoDetailsRaw = VideoReader.emptyVideoDetails()
-
-    videoPreviewRaw.v = undefined
-    videoPreviewRaw.title = video.title
-    videoPreviewRaw.duration = video.duration
-    videoPreviewRaw.thumbnail = video.thumbnail
-      ? {
-          ...video.thumbnail,
-          sources: video.thumbnail.sources.map((source) => ({
-            ...source,
-            path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
-          })),
-        }
-      : null
-    videoPreviewRaw.ownerAddress = video.ownerAddress
-    videoPreviewRaw.createdAt = new Date(video.createdAt).getTime()
-    videoPreviewRaw.updatedAt = new Date(video.updatedAt).getTime()
-
+  static indexVideoPreviewToRaw(
+    videoPreview: IndexVideoPreview | IndexVideoManifest,
+  ): VideoPreviewRaw {
     return {
-      preview: videoPreviewRaw,
-      details: videoDetailsRaw,
-    }
+      v: undefined,
+      title: videoPreview.title,
+      duration: videoPreview.duration,
+      ownerAddress: videoPreview.ownerAddress,
+      thumbnail: videoPreview.thumbnail
+        ? {
+            ...videoPreview.thumbnail,
+            sources: videoPreview.thumbnail.sources.map((source) => ({
+              ...source,
+              path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
+            })),
+          }
+        : null,
+      createdAt: dateToTimestamp(new Date(videoPreview.createdAt)),
+      updatedAt: dateToTimestamp(new Date(videoPreview.updatedAt)),
+    } satisfies VideoPreviewRaw
   }
 
   static emptyVideoPreview(): VideoPreviewRaw {
