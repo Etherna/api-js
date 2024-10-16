@@ -48,7 +48,7 @@ export type IndexVideoPreview = {
   updatedAt: number
 }
 
-export type IndexVideoManifest = Omit<IndexVideoPreview, "id"> & {
+export type IndexVideoManifest = Omit<IndexVideoPreview, "id" | "ownerAddress"> & {
   batchId: BatchId | null
   aspectRatio: number | null
   hash: Reference

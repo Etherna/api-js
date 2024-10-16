@@ -113,7 +113,7 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       }
     }
 
-    const videoPreviewRaw = VideoReader.indexVideoPreviewToRaw(video.lastValidManifest)
+    const videoPreviewRaw = VideoReader.indexVideoPreviewToRaw(video)
     videoPreviewRaw.v = video.lastValidManifest.batchId ? "2.1" : "1.2"
 
     const videoDetailsRaw = VideoReader.emptyVideoDetails()
@@ -137,25 +137,24 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
     }
   }
 
-  static indexVideoPreviewToRaw(
-    videoPreview: IndexVideoPreview | IndexVideoManifest,
-  ): VideoPreviewRaw {
+  static indexVideoPreviewToRaw(videoPreview: IndexVideoPreview | IndexVideo): VideoPreviewRaw {
+    const data = "lastValidManifest" in videoPreview ? videoPreview.lastValidManifest : videoPreview
     return {
       v: undefined,
-      title: videoPreview.title,
-      duration: videoPreview.duration,
+      title: data?.title ?? "",
+      duration: data?.duration ?? 0,
       ownerAddress: videoPreview.ownerAddress,
-      thumbnail: videoPreview.thumbnail
+      thumbnail: data?.thumbnail
         ? {
-            ...videoPreview.thumbnail,
-            sources: videoPreview.thumbnail.sources.map((source) => ({
+            ...data?.thumbnail,
+            sources: data?.thumbnail.sources.map((source) => ({
               ...source,
               path: source.path?.replace(/^[0-9a-f]{64}\/(.+)/, "$1").replace(/\/$/, "") ?? "",
             })),
           }
         : null,
-      createdAt: dateToTimestamp(new Date(videoPreview.createdAt)),
-      updatedAt: dateToTimestamp(new Date(videoPreview.updatedAt)),
+      createdAt: data?.createdAt ?? dateToTimestamp(new Date()),
+      updatedAt: data?.updatedAt ? dateToTimestamp(new Date(data.updatedAt)) : null,
     } satisfies VideoPreviewRaw
   }
 
@@ -165,9 +164,9 @@ export class VideoReader extends BaseReader<Video | null, string, VideoRaw | Ind
       duration: 0,
       thumbnail: null,
       ownerAddress: "0x0",
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      v: "2.0",
+      createdAt: dateToTimestamp(new Date()),
+      updatedAt: dateToTimestamp(new Date()),
+      v: "2.1",
     }
   }
 
